@@ -1,6 +1,7 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
-  FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight 
+  FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
+  TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -17,21 +18,30 @@ interface MenuItemProps {
 
 const MenuItem = ({ icon: Icon, label, to, color = 'text-primary', badge }: MenuItemProps) => (
   <Link to={to}>
-    <Card className="p-4 hover:bg-muted/50 transition-colors active:scale-[0.98]">
+    <Card className="p-4 hover:bg-muted/30 transition-all duration-300 hover-lift border-0 shadow-card bg-card/80 backdrop-blur-sm group">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={cn('w-10 h-10 rounded-full flex items-center justify-center bg-muted', color)}>
-            <Icon className="w-5 h-5" />
+        <div className="flex items-center gap-4">
+          <div className={cn(
+            'w-11 h-11 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110',
+            color.includes('primary') && 'bg-primary/10',
+            color.includes('hr') && 'bg-hr/10',
+            color.includes('finance') && 'bg-finance/10',
+            color.includes('projects') && 'bg-projects/10',
+            color.includes('marketing') && 'bg-marketing/10',
+            color.includes('muted') && 'bg-muted',
+            color.includes('destructive') && 'bg-destructive/10',
+          )}>
+            <Icon className={cn('w-5 h-5', color)} />
           </div>
           <span className="font-medium text-foreground">{label}</span>
         </div>
         <div className="flex items-center gap-2">
           {badge && (
-            <span className="text-xs bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full font-semibold animate-pulse">
               {badge}
             </span>
           )}
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1" />
         </div>
       </div>
     </Card>
@@ -51,7 +61,7 @@ const menuSections = [
   {
     title: 'Financeiro',
     items: [
-      { icon: Wallet, label: 'Remuneração Variável', to: '/variavel', color: 'text-finance' },
+      { icon: TrendingUp, label: 'Remuneração Variável', to: '/variavel', color: 'text-finance' },
       { icon: CreditCard, label: 'Empréstimos', to: '/emprestimos', color: 'text-finance' },
       { icon: Gift, label: 'Meus Benefícios', to: '/beneficios', color: 'text-marketing' },
     ],
@@ -81,29 +91,34 @@ const menuSections = [
 export default function Menu() {
   return (
     <PageLayout title="Menu">
-      <div className="space-y-6 animate-fade-in-up">
-        {menuSections.map((section) => (
-          <div key={section.title}>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+      <div className="space-y-6">
+        {menuSections.map((section, sectionIndex) => (
+          <div key={section.title} className={`animate-fade-in-up stagger-${sectionIndex + 1}`}>
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-primary" />
               {section.title}
             </h3>
             <div className="space-y-2">
-              {section.items.map((item) => (
-                <MenuItem key={item.to} {...item} />
+              {section.items.map((item, index) => (
+                <div key={item.to} className={`stagger-${index + 1}`}>
+                  <MenuItem {...item} />
+                </div>
               ))}
             </div>
           </div>
         ))}
 
         {/* Logout */}
-        <Card className="p-4 border-destructive/30 hover:bg-destructive/5 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-destructive/10">
-              <LogOut className="w-5 h-5 text-destructive" />
+        <div className="animate-fade-in-up stagger-6">
+          <Card className="p-4 border-destructive/20 hover:bg-destructive/5 transition-all duration-300 cursor-pointer hover-lift shadow-card bg-card/80 backdrop-blur-sm group">
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-destructive/10 transition-transform duration-300 group-hover:scale-110">
+                <LogOut className="w-5 h-5 text-destructive" />
+              </div>
+              <span className="font-medium text-destructive">Sair</span>
             </div>
-            <span className="font-medium text-destructive">Sair</span>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </PageLayout>
   );
