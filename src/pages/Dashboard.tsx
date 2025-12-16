@@ -8,6 +8,7 @@ import { AlertCard } from '@/components/portal/AlertCard';
 import { DashboardSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockDashboardData } from '@/data/mockData';
+import { SalaryEvolutionChart, HoursDistributionChart, GoalProgressChart } from '@/components/portal/DashboardCharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -111,9 +112,24 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Performance Charts */}
+        <div className="animate-fade-in-up stagger-3">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+            <span className="w-1 h-4 rounded-full bg-finance" />
+            Performance
+          </h3>
+          <div className="space-y-3">
+            <SalaryEvolutionChart />
+            <div className="grid grid-cols-2 gap-3">
+              <HoursDistributionChart />
+              <GoalProgressChart />
+            </div>
+          </div>
+        </div>
+
         {/* Alertas */}
         {alertas.length > 0 && (
-          <div className="animate-fade-in-up stagger-3">
+        <div className="animate-fade-in-up stagger-5">
             <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 rounded-full bg-destructive animate-pulse" />
               Alertas ({alertas.length})
@@ -165,7 +181,7 @@ export default function Dashboard() {
         </div>
 
         {/* Ações Rápidas */}
-        <div className="animate-fade-in-up stagger-5">
+        <div className="animate-fade-in-up stagger-6">
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
             <span className="w-1 h-4 rounded-full bg-finance" />
             Ações Rápidas
