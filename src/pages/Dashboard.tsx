@@ -5,15 +5,26 @@ import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCard } from '@/components/portal/StatCard';
 import { AlertCard } from '@/components/portal/AlertCard';
+import { DashboardSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockDashboardData } from '@/data/mockData';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const isLoading = useLoadingState(1000);
   const { colaborador, salarioEstimado, horasTrabalhadas, saldoFerias, comissaoMes, alertas, comunicados } = mockDashboardData;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <DashboardSkeleton />
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout alertCount={alertas.length}>
