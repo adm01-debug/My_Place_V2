@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { MapPin, Clock, Calendar, ChevronRight, Navigation, Building2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { MapPin, Clock, Calendar, ChevronRight, Navigation, Building2, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRegistrosPonto } from '@/hooks/useRegistrosPonto';
 import {
   Sheet,
   SheetContent,
@@ -22,121 +23,28 @@ import {
 
 interface RegistroHistorico {
   id: string;
-  data: Date;
-  tipo: 'entrada' | 'saida';
-  horario: string;
-  localizacao: {
-    latitude: number;
-    longitude: number;
-    endereco: string;
-    local: string;
-  };
-  dispositivo: string;
-  status: 'aprovado' | 'pendente' | 'rejeitado';
-  dentroArea: boolean;
+  data_hora: string;
+  tipo: 'entrada' | 'saida' | 'intervalo_inicio' | 'intervalo_fim';
+  latitude: number | null;
+  longitude: number | null;
+  endereco: string | null;
+  status: 'aprovado' | 'pendente' | 'rejeitado' | 'fora_area';
+  observacao: string | null;
 }
-
-// Mock historical data
-const mockHistorico: RegistroHistorico[] = [
-  {
-    id: '1',
-    data: new Date('2025-12-16'),
-    tipo: 'entrada',
-    horario: '08:02',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '2',
-    data: new Date('2025-12-16'),
-    tipo: 'saida',
-    horario: '12:01',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '3',
-    data: new Date('2025-12-16'),
-    tipo: 'entrada',
-    horario: '13:00',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '4',
-    data: new Date('2025-12-13'),
-    tipo: 'entrada',
-    horario: '08:00',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '5',
-    data: new Date('2025-12-13'),
-    tipo: 'saida',
-    horario: '12:00',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '6',
-    data: new Date('2025-12-13'),
-    tipo: 'entrada',
-    horario: '13:00',
-    localizacao: { latitude: -23.5489, longitude: -46.6388, endereco: 'Rua Augusta, 500', local: 'Cliente Externo' },
-    dispositivo: 'App Mobile',
-    status: 'pendente',
-    dentroArea: false,
-  },
-  {
-    id: '7',
-    data: new Date('2025-12-13'),
-    tipo: 'saida',
-    horario: '18:30',
-    localizacao: { latitude: -23.5489, longitude: -46.6388, endereco: 'Rua Augusta, 500', local: 'Cliente Externo' },
-    dispositivo: 'App Mobile',
-    status: 'aprovado',
-    dentroArea: false,
-  },
-  {
-    id: '8',
-    data: new Date('2025-12-12'),
-    tipo: 'entrada',
-    horario: '08:05',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'Relógio Ponto',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-  {
-    id: '9',
-    data: new Date('2025-12-12'),
-    tipo: 'saida',
-    horario: '17:00',
-    localizacao: { latitude: -23.5505, longitude: -46.6333, endereco: 'Av. Paulista, 1000', local: 'Sede Principal' },
-    dispositivo: 'Relógio Ponto',
-    status: 'aprovado',
-    dentroArea: true,
-  },
-];
 
 // Simulated map component
 function MapaSimulado({ registros }: { registros: RegistroHistorico[] }) {
-  const locaisUnicos = registros.reduce((acc, reg) => {
-    const key = `${reg.localizacao.latitude},${reg.localizacao.longitude}`;
+  const registrosComLocalizacao = registros.filter(r => r.latitude && r.longitude);
+  
+  const locaisUnicos = registrosComLocalizacao.reduce((acc, reg) => {
+    if (!reg.latitude || !reg.longitude) return acc;
+    const key = `${reg.latitude.toFixed(4)},${reg.longitude.toFixed(4)}`;
     if (!acc[key]) {
       acc[key] = {
-        ...reg.localizacao,
+        latitude: reg.latitude,
+        longitude: reg.longitude,
+        endereco: reg.endereco || 'Local desconhecido',
+        local: reg.endereco?.includes('Sede') ? 'Sede Principal' : 'Externo',
         count: 1,
         tipos: [reg.tipo],
       };
@@ -148,6 +56,14 @@ function MapaSimulado({ registros }: { registros: RegistroHistorico[] }) {
     }
     return acc;
   }, {} as Record<string, { latitude: number; longitude: number; endereco: string; local: string; count: number; tipos: string[] }>);
+
+  if (Object.keys(locaisUnicos).length === 0) {
+    return (
+      <div className="w-full h-64 bg-muted/30 rounded-xl flex items-center justify-center">
+        <p className="text-muted-foreground text-sm">Nenhum registro com localização</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-64 bg-muted/30 rounded-xl overflow-hidden">
@@ -208,11 +124,6 @@ function MapaSimulado({ registros }: { registros: RegistroHistorico[] }) {
               </div>
             );
           })}
-          
-          {/* Connection lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            <line x1="50%" y1="50%" x2="30%" y2="40%" stroke="hsl(var(--muted-foreground))" strokeWidth="1" strokeDasharray="4" opacity="0.3" />
-          </svg>
         </div>
       </div>
 
@@ -236,18 +147,27 @@ function RegistroItem({ registro }: { registro: RegistroHistorico }) {
     aprovado: { icon: CheckCircle, color: 'text-finance', bg: 'bg-finance/10', label: 'Aprovado' },
     pendente: { icon: Clock, color: 'text-projects', bg: 'bg-projects/10', label: 'Pendente' },
     rejeitado: { icon: AlertTriangle, color: 'text-destructive', bg: 'bg-destructive/10', label: 'Rejeitado' },
+    fora_area: { icon: MapPin, color: 'text-projects', bg: 'bg-projects/10', label: 'Fora da área' },
+  };
+
+  const tipoLabels = {
+    entrada: 'Entrada',
+    saida: 'Saída',
+    intervalo_inicio: 'Início Intervalo',
+    intervalo_fim: 'Fim Intervalo',
   };
 
   const config = statusConfig[registro.status];
   const StatusIcon = config.icon;
+  const isEntrada = registro.tipo === 'entrada' || registro.tipo === 'intervalo_fim';
 
   return (
     <Card className="p-3 border-0 shadow-card">
       <div className="flex items-start gap-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          registro.tipo === 'entrada' ? 'bg-finance/10' : 'bg-destructive/10'
+          isEntrada ? 'bg-finance/10' : 'bg-destructive/10'
         }`}>
-          {registro.tipo === 'entrada' ? (
+          {isEntrada ? (
             <Navigation className="w-5 h-5 text-finance" />
           ) : (
             <MapPin className="w-5 h-5 text-destructive" />
@@ -257,9 +177,11 @@ function RegistroItem({ registro }: { registro: RegistroHistorico }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-foreground">{registro.horario}</span>
-              <Badge variant="outline" className={`text-xs ${registro.tipo === 'entrada' ? 'border-finance/30 text-finance' : 'border-destructive/30 text-destructive'}`}>
-                {registro.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+              <span className="font-semibold text-foreground">
+                {format(new Date(registro.data_hora), 'HH:mm')}
+              </span>
+              <Badge variant="outline" className={`text-xs ${isEntrada ? 'border-finance/30 text-finance' : 'border-destructive/30 text-destructive'}`}>
+                {tipoLabels[registro.tipo]}
               </Badge>
             </div>
             <div className={`flex items-center gap-1 text-xs ${config.color}`}>
@@ -269,21 +191,22 @@ function RegistroItem({ registro }: { registro: RegistroHistorico }) {
           </div>
           
           <div className="mt-1 space-y-1">
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Building2 className="w-3 h-3" />
-              {registro.localizacao.local}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {registro.localizacao.endereco}
-            </p>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{registro.dispositivo}</span>
-              {!registro.dentroArea && (
-                <Badge variant="outline" className="text-[10px] border-projects/30 text-projects">
-                  Fora da área
-                </Badge>
-              )}
-            </div>
+            {registro.endereco && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Building2 className="w-3 h-3" />
+                {registro.endereco}
+              </p>
+            )}
+            {registro.latitude && registro.longitude && (
+              <p className="text-xs text-muted-foreground">
+                {registro.latitude.toFixed(6)}, {registro.longitude.toFixed(6)}
+              </p>
+            )}
+            {registro.observacao && (
+              <p className="text-xs text-muted-foreground italic">
+                {registro.observacao}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -293,10 +216,11 @@ function RegistroItem({ registro }: { registro: RegistroHistorico }) {
 
 export function HistoricoPonto() {
   const [selectedTab, setSelectedTab] = useState('lista');
+  const { registros, isLoading } = useRegistrosPonto();
 
   // Group by date
-  const registrosPorData = mockHistorico.reduce((acc, reg) => {
-    const dateKey = format(reg.data, 'yyyy-MM-dd');
+  const registrosPorData = registros.reduce((acc, reg) => {
+    const dateKey = format(new Date(reg.data_hora), 'yyyy-MM-dd');
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -304,9 +228,9 @@ export function HistoricoPonto() {
     return acc;
   }, {} as Record<string, RegistroHistorico[]>);
 
-  const totalRegistros = mockHistorico.length;
-  const registrosAprovados = mockHistorico.filter(r => r.status === 'aprovado').length;
-  const registrosForaArea = mockHistorico.filter(r => !r.dentroArea).length;
+  const totalRegistros = registros.length;
+  const registrosAprovados = registros.filter(r => r.status === 'aprovado').length;
+  const registrosForaArea = registros.filter(r => r.status === 'fora_area' || r.status === 'pendente').length;
 
   return (
     <Sheet>
@@ -325,57 +249,79 @@ export function HistoricoPonto() {
           </SheetTitle>
         </SheetHeader>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <Card className="p-3 text-center border-0 shadow-card">
-            <p className="text-2xl font-bold text-foreground">{totalRegistros}</p>
-            <p className="text-xs text-muted-foreground">Total</p>
-          </Card>
-          <Card className="p-3 text-center border-0 shadow-card">
-            <p className="text-2xl font-bold text-finance">{registrosAprovados}</p>
-            <p className="text-xs text-muted-foreground">Aprovados</p>
-          </Card>
-          <Card className="p-3 text-center border-0 shadow-card">
-            <p className="text-2xl font-bold text-projects">{registrosForaArea}</p>
-            <p className="text-xs text-muted-foreground">Fora área</p>
-          </Card>
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <Card className="p-3 text-center border-0 shadow-card">
+                <p className="text-2xl font-bold text-foreground">{totalRegistros}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </Card>
+              <Card className="p-3 text-center border-0 shadow-card">
+                <p className="text-2xl font-bold text-finance">{registrosAprovados}</p>
+                <p className="text-xs text-muted-foreground">Aprovados</p>
+              </Card>
+              <Card className="p-3 text-center border-0 shadow-card">
+                <p className="text-2xl font-bold text-projects">{registrosForaArea}</p>
+                <p className="text-xs text-muted-foreground">Pendentes</p>
+              </Card>
+            </div>
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="flex-1">
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="lista" className="flex-1">Lista</TabsTrigger>
-            <TabsTrigger value="mapa" className="flex-1">Mapa</TabsTrigger>
-          </TabsList>
+            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="flex-1">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="lista" className="flex-1">Lista</TabsTrigger>
+                <TabsTrigger value="mapa" className="flex-1">Mapa</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="mapa" className="mt-0">
-            <MapaSimulado registros={mockHistorico} />
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Visualização simulada dos locais de registro
-            </p>
-          </TabsContent>
+              <TabsContent value="mapa" className="mt-0">
+                <MapaSimulado registros={registros} />
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Visualização dos locais de registro
+                </p>
+              </TabsContent>
 
-          <TabsContent value="lista" className="mt-0">
-            <ScrollArea className="h-[calc(85vh-280px)]">
-              <div className="space-y-4 pr-4">
-                {Object.entries(registrosPorData).map(([dateKey, registros]) => (
-                  <div key={dateKey}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-semibold text-foreground">
-                        {format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                      </span>
-                    </div>
-                    <div className="space-y-2 ml-6">
-                      {registros.map((registro) => (
-                        <RegistroItem key={registro.id} registro={registro} />
+              <TabsContent value="lista" className="mt-0">
+                {registros.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Nenhum registro encontrado</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Seus registros de ponto aparecerão aqui
+                    </p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[calc(85vh-280px)]">
+                    <div className="space-y-4 pr-4">
+                      {Object.entries(registrosPorData)
+                        .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+                        .map(([dateKey, regs]) => (
+                        <div key={dateKey}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-semibold text-foreground">
+                              {format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <div className="space-y-2 ml-6">
+                            {regs
+                              .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
+                              .map((registro) => (
+                              <RegistroItem key={registro.id} registro={registro} />
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+                  </ScrollArea>
+                )}
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );
