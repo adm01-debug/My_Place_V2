@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Perfil from "./pages/Perfil";
 import Holerites from "./pages/Holerites";
@@ -26,22 +29,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/holerites" element={<Holerites />} />
-          <Route path="/ponto" element={<Ponto />} />
-          <Route path="/ferias" element={<Ferias />} />
-          <Route path="/variavel" element={<RemuneracaoVariavel />} />
-          <Route path="/emprestimos" element={<Emprestimos />} />
-          <Route path="/beneficios" element={<Beneficios />} />
-          <Route path="/treinamentos" element={<Treinamentos />} />
-          <Route path="/documentos" element={<Documentos />} />
-          <Route path="/solicitacoes" element={<Solicitacoes />} />
-          <Route path="/comunicados" element={<Comunicados />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+            <Route path="/holerites" element={<ProtectedRoute><Holerites /></ProtectedRoute>} />
+            <Route path="/ponto" element={<ProtectedRoute><Ponto /></ProtectedRoute>} />
+            <Route path="/ferias" element={<ProtectedRoute><Ferias /></ProtectedRoute>} />
+            <Route path="/variavel" element={<ProtectedRoute><RemuneracaoVariavel /></ProtectedRoute>} />
+            <Route path="/emprestimos" element={<ProtectedRoute><Emprestimos /></ProtectedRoute>} />
+            <Route path="/beneficios" element={<ProtectedRoute><Beneficios /></ProtectedRoute>} />
+            <Route path="/treinamentos" element={<ProtectedRoute><Treinamentos /></ProtectedRoute>} />
+            <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
+            <Route path="/solicitacoes" element={<ProtectedRoute><Solicitacoes /></ProtectedRoute>} />
+            <Route path="/comunicados" element={<ProtectedRoute><Comunicados /></ProtectedRoute>} />
+            <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
