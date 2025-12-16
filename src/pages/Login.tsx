@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Building2, Lock, Mail, User } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,9 +17,10 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const { signIn, signUp, isAuthenticated } = useAuth();
+  const { signIn, signUp, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAvailable, isRegistered, registeredEmail, registerBiometric, authenticateWithBiometric } = useBiometricAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -48,6 +50,23 @@ const Login: React.FC = () => {
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso',
       });
+      
+      // Offer to register biometric if available and not registered
+      if (isAvailable && !isRegistered) {
+        setTimeout(async () => {
+          const { data } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
+          if (data.user) {
+            const biometricResult = await registerBiometric(email, data.user.id);
+            if (biometricResult.success) {
+              toast({
+                title: 'Biometria ativada!',
+                description: 'Na próxima vez, use Face ID/Touch ID para entrar mais rápido',
+              });
+            }
+          }
+        }, 500);
+      }
+      
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
       navigate(onboardingCompleted ? '/' : '/onboarding');
     } else {
@@ -106,6 +125,64 @@ const Login: React.FC = () => {
     setNome('');
   };
 
+  const handleBiometricLogin = async () => {
+    setIsSubmitting(true);
+    const result = await authenticateWithBiometric();
+    
+    if (result.success && result.email) {
+      // For biometric login, we need the stored password or use a token-based approach
+      // Since WebAuthn doesn't store passwords, we'll prompt for it once
+      const storedPassword = localStorage.getItem(`biometric_pwd_${result.email}`);
+      
+      if (storedPassword) {
+        const signInResult = await signIn(result.email, atob(storedPassword));
+        setIsSubmitting(false);
+        
+        if (signInResult.success) {
+          toast({
+            title: 'Bem-vindo!',
+            description: 'Login biométrico realizado com sucesso',
+          });
+          const onboardingCompleted = localStorage.getItem('onboarding_completed');
+          navigate(onboardingCompleted ? '/' : '/onboarding');
+        } else {
+          toast({
+            title: 'Sessão expirada',
+            description: 'Por favor, faça login com email e senha',
+            variant: 'destructive',
+          });
+          localStorage.removeItem(`biometric_pwd_${result.email}`);
+        }
+      } else {
+        // First biometric use - ask for password to link
+        setEmail(result.email);
+        setIsSubmitting(false);
+        toast({
+          title: 'Confirme sua identidade',
+          description: 'Digite sua senha para ativar o login biométrico',
+        });
+      }
+    } else {
+      setIsSubmitting(false);
+      toast({
+        title: 'Falha na autenticação',
+        description: result.error || 'Tente novamente',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Store password securely for biometric login (encoded, not truly secure - just for demo)
+  const handleLoginWithBiometricSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleLogin(e);
+    
+    // If login successful and biometric is available, store encoded password
+    if (isAvailable && email && password) {
+      localStorage.setItem(`biometric_pwd_${email}`, btoa(password));
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
       {/* Background Effects */}
@@ -149,7 +226,39 @@ const Login: React.FC = () => {
           <CardContent>
             <Tabs value={activeTab}>
               <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLoginWithBiometricSetup} className="space-y-4">
+                  {/* Biometric Login Button */}
+                  {isAvailable && isRegistered && (
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      className="w-full h-14 font-semibold border-2 border-primary/30 hover:border-primary hover:bg-primary/5"
+                      onClick={handleBiometricLogin}
+                      disabled={isSubmitting}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Fingerprint className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-sm font-medium">Entrar com Face ID / Touch ID</div>
+                          <div className="text-xs text-muted-foreground">{registeredEmail}</div>
+                        </div>
+                      </div>
+                    </Button>
+                  )}
+
+                  {isAvailable && isRegistered && (
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">ou continue com email</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email corporativo</Label>
                     <div className="relative">
@@ -203,6 +312,13 @@ const Login: React.FC = () => {
                       'Entrar'
                     )}
                   </Button>
+
+                  {isAvailable && !isRegistered && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      <Fingerprint className="inline w-3 h-3 mr-1" />
+                      Após o login, você poderá ativar Face ID / Touch ID
+                    </p>
+                  )}
                 </form>
               </TabsContent>
 
