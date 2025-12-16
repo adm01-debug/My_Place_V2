@@ -1,7 +1,8 @@
-import { Clock, Umbrella, TrendingUp, ChevronRight, FileText, Calendar, HelpCircle, Sparkles } from 'lucide-react';
+import { Clock, Umbrella, TrendingUp, ChevronRight, FileText, Calendar, HelpCircle, Sparkles, Wallet } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCard } from '@/components/portal/StatCard';
 import { AlertCard } from '@/components/portal/AlertCard';
@@ -9,11 +10,15 @@ import { DashboardSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockDashboardData } from '@/data/mockData';
 import { SalaryEvolutionChart, HoursDistributionChart, GoalProgressChart } from '@/components/portal/DashboardCharts';
+import { useEmprestimos } from '@/hooks/useEmprestimos';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const isLoading = useLoadingState(1000);
   const { colaborador, salarioEstimado, horasTrabalhadas, saldoFerias, comissaoMes, alertas, comunicados } = mockDashboardData;
+  const { emprestimos } = useEmprestimos();
+  
+  const emprestimoAtivo = emprestimos.find(e => e.status === 'ativo');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -112,8 +117,51 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Empréstimo Ativo */}
+        {emprestimoAtivo && (
+          <div className="animate-fade-in-up stagger-3">
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-finance" />
+              Empréstimo Ativo
+            </h3>
+            <Card 
+              className="p-4 border-0 shadow-card hover-lift cursor-pointer"
+              onClick={() => navigate('/emprestimos')}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-finance/10 flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-finance" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{emprestimoAtivo.numero_contrato}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {emprestimoAtivo.parcelas_pagas}/{emprestimoAtivo.quantidade_parcelas} parcelas pagas
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Saldo devedor</span>
+                  <span className="font-semibold text-foreground">{formatCurrency(emprestimoAtivo.saldo_devedor)}</span>
+                </div>
+                <Progress 
+                  value={(emprestimoAtivo.parcelas_pagas / emprestimoAtivo.quantidade_parcelas) * 100} 
+                  className="h-2"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Próxima parcela: {formatCurrency(emprestimoAtivo.valor_parcela)}</span>
+                  <span>{Math.round((emprestimoAtivo.parcelas_pagas / emprestimoAtivo.quantidade_parcelas) * 100)}% quitado</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {/* Performance Charts */}
-        <div className="animate-fade-in-up stagger-3">
+        <div className="animate-fade-in-up stagger-4">
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
             <span className="w-1 h-4 rounded-full bg-finance" />
             Performance
@@ -129,7 +177,7 @@ export default function Dashboard() {
 
         {/* Alertas */}
         {alertas.length > 0 && (
-        <div className="animate-fade-in-up stagger-5">
+        <div className="animate-fade-in-up stagger-6">
             <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 rounded-full bg-destructive animate-pulse" />
               Alertas ({alertas.length})
@@ -143,7 +191,7 @@ export default function Dashboard() {
         )}
 
         {/* Comunicados */}
-        <div className="animate-fade-in-up stagger-4">
+        <div className="animate-fade-in-up stagger-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 rounded-full bg-projects" />
@@ -181,7 +229,7 @@ export default function Dashboard() {
         </div>
 
         {/* Ações Rápidas */}
-        <div className="animate-fade-in-up stagger-6">
+        <div className="animate-fade-in-up stagger-7">
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
             <span className="w-1 h-4 rounded-full bg-finance" />
             Ações Rápidas
