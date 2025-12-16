@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      emprestimos: {
+        Row: {
+          created_at: string
+          data_contratacao: string
+          id: string
+          motivo: string | null
+          numero_contrato: string
+          observacao: string | null
+          parcelas_pagas: number
+          quantidade_parcelas: number
+          saldo_devedor: number
+          status: string
+          taxa_juros: number
+          total_com_juros: number
+          updated_at: string
+          user_id: string
+          valor_original: number
+          valor_parcela: number
+        }
+        Insert: {
+          created_at?: string
+          data_contratacao?: string
+          id?: string
+          motivo?: string | null
+          numero_contrato: string
+          observacao?: string | null
+          parcelas_pagas?: number
+          quantidade_parcelas: number
+          saldo_devedor: number
+          status?: string
+          taxa_juros?: number
+          total_com_juros: number
+          updated_at?: string
+          user_id: string
+          valor_original: number
+          valor_parcela: number
+        }
+        Update: {
+          created_at?: string
+          data_contratacao?: string
+          id?: string
+          motivo?: string | null
+          numero_contrato?: string
+          observacao?: string | null
+          parcelas_pagas?: number
+          quantidade_parcelas?: number
+          saldo_devedor?: number
+          status?: string
+          taxa_juros?: number
+          total_com_juros?: number
+          updated_at?: string
+          user_id?: string
+          valor_original?: number
+          valor_parcela?: number
+        }
+        Relationships: []
+      }
       ferias: {
         Row: {
           aprovado_por: string | null
@@ -94,6 +151,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      parcelas_emprestimo: {
+        Row: {
+          created_at: string
+          data_pagamento: string | null
+          emprestimo_id: string
+          id: string
+          numero: number
+          status: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          created_at?: string
+          data_pagamento?: string | null
+          emprestimo_id: string
+          id?: string
+          numero: number
+          status?: string
+          valor: number
+          vencimento: string
+        }
+        Update: {
+          created_at?: string
+          data_pagamento?: string | null
+          emprestimo_id?: string
+          id?: string
+          numero?: number
+          status?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcelas_emprestimo_emprestimo_id_fkey"
+            columns: ["emprestimo_id"]
+            isOneToOne: false
+            referencedRelation: "emprestimos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
