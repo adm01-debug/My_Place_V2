@@ -133,6 +133,55 @@ export function useEmprestimos() {
     return { success: true, data };
   };
 
+  const anteciparParcela = async (parcelaId: string, emprestimoId: string) => {
+    if (!user) return { success: false, error: 'Usuário não autenticado' };
+
+    // Get current emprestimo data
+    const emprestimo = emprestimos.find(e => e.id === emprestimoId);
+    if (!emprestimo) return { success: false, error: 'Empréstimo não encontrado' };
+
+    const parcela = emprestimo.parcelas?.find(p => p.id === parcelaId);
+    if (!parcela) return { success: false, error: 'Parcela não encontrada' };
+
+    if (parcela.status === 'paga') {
+      return { success: false, error: 'Parcela já foi paga' };
+    }
+
+    // Update parcela status
+    const { error: parcelaError } = await supabase
+      .from('parcelas_emprestimo')
+      .update({ 
+        status: 'paga', 
+        data_pagamento: new Date().toISOString().split('T')[0] 
+      })
+      .eq('id', parcelaId);
+
+    if (parcelaError) {
+      return { success: false, error: parcelaError.message };
+    }
+
+    // Update emprestimo totals
+    const novasParcPagas = emprestimo.parcelas_pagas + 1;
+    const novoSaldoDevedor = emprestimo.saldo_devedor - parcela.valor;
+    const novoStatus = novasParcPagas >= emprestimo.quantidade_parcelas ? 'quitado' : 'ativo';
+
+    const { error: empError } = await supabase
+      .from('emprestimos')
+      .update({
+        parcelas_pagas: novasParcPagas,
+        saldo_devedor: novoSaldoDevedor,
+        status: novoStatus,
+      })
+      .eq('id', emprestimoId);
+
+    if (empError) {
+      return { success: false, error: empError.message };
+    }
+
+    await fetchEmprestimos();
+    return { success: true };
+  };
+
   useEffect(() => {
     fetchEmprestimos();
   }, [user]);
@@ -141,6 +190,7 @@ export function useEmprestimos() {
     emprestimos,
     isLoading,
     solicitarEmprestimo,
+    anteciparParcela,
     refetch: fetchEmprestimos,
   };
 }
