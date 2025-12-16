@@ -1,14 +1,16 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp, Moon, Sun
+  TrendingUp, Moon, Sun, Download, Smartphone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { cn } from '@/lib/utils';
 
 interface MenuItemProps {
@@ -95,6 +97,7 @@ export default function Menu() {
   const { theme, setTheme } = useTheme();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   const handleLogout = () => {
     logout();
@@ -106,6 +109,42 @@ export default function Menu() {
   return (
     <PageLayout title="Menu">
       <div className="space-y-6">
+        {/* PWA Install Banner */}
+        {isInstallable && !isInstalled && (
+          <div className="animate-fade-in-up">
+            <Card className="p-4 border-0 shadow-card bg-gradient-to-r from-primary/10 to-hr/10 backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-primary/20">
+                    <Smartphone className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-foreground text-sm">Instalar App</span>
+                    <span className="text-xs text-muted-foreground">
+                      Acesso rápido na tela inicial
+                    </span>
+                  </div>
+                </div>
+                <Button size="sm" onClick={install} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Instalar
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {isInstalled && (
+          <div className="animate-fade-in-up">
+            <Card className="p-3 border-0 shadow-card bg-finance/10 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-finance text-sm">
+                <Smartphone className="w-4 h-4" />
+                <span>App instalado com sucesso!</span>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {/* Dark Mode Toggle */}
         <div className="animate-fade-in-up">
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
