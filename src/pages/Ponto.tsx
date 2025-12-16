@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Clock, AlertTriangle, CheckCircle, TrendingUp, Calendar, FileText } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Clock, AlertTriangle, CheckCircle, TrendingUp, FileText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,8 +8,8 @@ import { RegistroPonto } from '@/components/portal/RegistroPonto';
 import { HistoricoPonto } from '@/components/portal/HistoricoPonto';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
-import { mockEspelhoPonto } from '@/data/mockData';
-import { format } from 'date-fns';
+import { useRegistrosPonto } from '@/hooks/useRegistrosPonto';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Dialog,
@@ -26,22 +26,130 @@ const statusConfig = {
   atraso: { icon: AlertTriangle, color: 'text-projects', bg: 'bg-projects-light', label: 'Atraso' },
   extra: { icon: TrendingUp, color: 'text-primary', bg: 'bg-primary/10', label: 'Extra' },
   falta: { icon: AlertTriangle, color: 'text-destructive', bg: 'bg-destructive/10', label: 'Falta' },
-  justificado: { icon: CheckCircle, color: 'text-muted-foreground', bg: 'bg-muted', label: 'Justificado' },
-};
-
-const tipoConfig = {
-  normal: '',
-  feriado: '🎉 Feriado',
-  dsr: '🔵 DSR',
-  ferias: '🏖️ Férias',
-  afastamento: '🏥 Afastamento',
+  pendente: { icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted', label: 'Pendente' },
 };
 
 export default function Ponto() {
   const [showJustificativa, setShowJustificativa] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const isLoading = useLoadingState(800);
-  const espelho = mockEspelhoPonto;
+  const isLoading = useLoadingState(600);
+  const { registros, isLoading: isLoadingRegistros, refetch } = useRegistrosPonto();
+
+  const currentMonth = new Date();
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Calculate statistics from real data
+  const stats = useMemo(() => {
+    let totalMinutes = 0;
+    let extraMinutes = 0;
+    const DAILY_TARGET = 8 * 60; // 8 hours in minutes
+
+    // Group registros by day
+    const registrosPorDia = registros.reduce((acc, reg) => {
+      const dateKey = format(new Date(reg.data_hora), 'yyyy-MM-dd');
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(reg);
+      return acc;
+    }, {} as Record<string, typeof registros>);
+
+    // Calculate hours for each day
+    Object.values(registrosPorDia).forEach(dayRegs => {
+      const entradas = dayRegs.filter(r => r.tipo === 'entrada').sort((a, b) => 
+        new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()
+      );
+      const saidas = dayRegs.filter(r => r.tipo === 'saida').sort((a, b) => 
+        new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()
+      );
+
+      for (let i = 0; i < entradas.length; i++) {
+        const entrada = new Date(entradas[i].data_hora);
+        const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
+        
+        if (saida) {
+          const dayMinutes = (saida.getTime() - entrada.getTime()) / 60000;
+          totalMinutes += dayMinutes;
+        }
+      }
+    });
+
+    // Calculate extra hours (anything over 8h per day, simplified)
+    const daysWorked = Object.keys(registrosPorDia).length;
+    const expectedMinutes = daysWorked * DAILY_TARGET;
+    extraMinutes = Math.max(0, totalMinutes - expectedMinutes);
+
+    const formatHours = (mins: number) => {
+      const h = Math.floor(mins / 60);
+      const m = Math.floor(mins % 60);
+      return `${h}:${String(m).padStart(2, '0')}`;
+    };
+
+    return {
+      horasNormais: formatHours(Math.min(totalMinutes, daysWorked * DAILY_TARGET)),
+      horasExtras: formatHours(extraMinutes),
+      bancoHoras: extraMinutes > 0 ? `+${formatHours(extraMinutes)}` : '0:00',
+    };
+  }, [registros]);
+
+  // Generate espelho data from registros
+  const espelhoDias = useMemo(() => {
+    const today = new Date();
+    
+    return daysInMonth
+      .filter(day => day <= today)
+      .map(day => {
+        const dateKey = format(day, 'yyyy-MM-dd');
+        const dayRegs = registros.filter(r => 
+          format(new Date(r.data_hora), 'yyyy-MM-dd') === dateKey
+        );
+        
+        const isWeekendDay = isWeekend(day);
+        const entradas = dayRegs.filter(r => r.tipo === 'entrada');
+        const saidas = dayRegs.filter(r => r.tipo === 'saida');
+        
+        let status: keyof typeof statusConfig = 'pendente';
+        let totalHoras = '0:00';
+        
+        if (isWeekendDay) {
+          status = dayRegs.length > 0 ? 'extra' : 'ok';
+        } else if (dayRegs.length === 0) {
+          status = isSameDay(day, today) ? 'pendente' : 'falta';
+        } else {
+          // Calculate total hours
+          let totalMinutes = 0;
+          for (let i = 0; i < entradas.length; i++) {
+            const entrada = new Date(entradas[i].data_hora);
+            const saida = saidas[i] ? new Date(saidas[i].data_hora) : (isSameDay(day, today) ? new Date() : null);
+            if (saida) {
+              totalMinutes += (saida.getTime() - entrada.getTime()) / 60000;
+            }
+          }
+          
+          const h = Math.floor(totalMinutes / 60);
+          const m = Math.floor(totalMinutes % 60);
+          totalHoras = `${h}:${String(m).padStart(2, '0')}`;
+          
+          if (totalMinutes >= 8 * 60) {
+            status = totalMinutes > 8 * 60 ? 'extra' : 'ok';
+          } else if (totalMinutes > 0) {
+            status = entradas.length > saidas.length ? 'pendente' : 'atraso';
+          }
+        }
+        
+        return {
+          data: day,
+          status,
+          totalHoras,
+          batidas: dayRegs.map(r => ({
+            horario: format(new Date(r.data_hora), 'HH:mm'),
+            tipo: r.tipo,
+          })),
+          isWeekend: isWeekendDay,
+        };
+      })
+      .reverse();
+  }, [daysInMonth, registros]);
 
   const diaSemana = (date: Date) => {
     return format(date, 'EEE', { locale: ptBR }).toUpperCase();
@@ -52,9 +160,9 @@ export default function Ponto() {
     setShowJustificativa(true);
   };
 
-  const pendencias = espelho.dias.filter(d => d.status === 'falta' && !d.justificativa);
+  const pendencias = espelhoDias.filter(d => d.status === 'falta');
 
-  if (isLoading) {
+  if (isLoading || isLoadingRegistros) {
     return (
       <PageLayout title="Meu Ponto" showBack>
         <div className="space-y-6">
@@ -72,7 +180,7 @@ export default function Ponto() {
   }
 
   return (
-    <PageLayout title="Meu Ponto" showBack>
+    <PageLayout title="Meu Ponto" showBack onRefresh={refetch}>
       <div className="space-y-6 animate-fade-in-up">
         {/* Registro de Ponto */}
         <RegistroPonto />
@@ -80,7 +188,7 @@ export default function Ponto() {
         {/* Período */}
         <div className="text-center">
           <p className="text-muted-foreground text-sm">
-            {format(new Date(espelho.ano, espelho.mes - 1), 'MMMM/yyyy', { locale: ptBR }).toUpperCase()}
+            {format(currentMonth, 'MMMM/yyyy', { locale: ptBR }).toUpperCase()}
           </p>
         </div>
 
@@ -92,17 +200,17 @@ export default function Ponto() {
           <div className="grid grid-cols-3 gap-3">
             <Card className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Normal</p>
-              <p className="text-lg font-bold text-foreground">{espelho.horasNormais}</p>
+              <p className="text-lg font-bold text-foreground">{stats.horasNormais}</p>
               <p className="text-xs text-muted-foreground">/176h</p>
             </Card>
             <Card className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Extras</p>
-              <p className="text-lg font-bold text-primary">{espelho.horasExtras50}</p>
+              <p className="text-lg font-bold text-primary">{stats.horasExtras}</p>
               <p className="text-xs text-muted-foreground">50%</p>
             </Card>
             <Card className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Banco</p>
-              <p className="text-lg font-bold text-finance">{espelho.bancoHoras}</p>
+              <p className="text-lg font-bold text-finance">{stats.bancoHoras}</p>
               <p className="text-xs text-muted-foreground">saldo</p>
             </Card>
           </div>
@@ -114,14 +222,14 @@ export default function Ponto() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
               ⚠️ Pendências ({pendencias.length})
             </h3>
-            {pendencias.map((dia) => (
-              <Card key={dia.data.toString()} className="p-4 border-l-4 border-l-destructive bg-destructive/5">
+            {pendencias.slice(0, 3).map((dia) => (
+              <Card key={dia.data.toString()} className="p-4 border-l-4 border-l-destructive bg-destructive/5 mb-2">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-foreground">
                       {format(dia.data, 'dd/MM')} ({diaSemana(dia.data)})
                     </p>
-                    <p className="text-sm text-muted-foreground">Ponto não batido</p>
+                    <p className="text-sm text-muted-foreground">Ponto não registrado</p>
                   </div>
                   <Button size="sm" onClick={() => handleJustificar(dia.data)}>
                     <FileText className="w-4 h-4 mr-1" /> Justificar
@@ -138,24 +246,20 @@ export default function Ponto() {
             📅 Espelho de Ponto
           </h3>
           <div className="space-y-2">
-            {espelho.dias.map((dia) => {
+            {espelhoDias.slice(0, 10).map((dia) => {
               const config = statusConfig[dia.status];
               const Icon = config.icon;
-              const isToday = format(dia.data, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+              const isToday = isSameDay(dia.data, new Date());
               
               return (
                 <Card 
                   key={dia.data.toString()} 
-                  className={`p-3 ${isToday ? 'ring-2 ring-primary' : ''}`}
+                  className={`p-3 ${isToday ? 'ring-2 ring-primary' : ''} ${dia.isWeekend ? 'opacity-60' : ''}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config.bg}`}>
-                        {dia.tipo !== 'normal' ? (
-                          <span className="text-sm">{tipoConfig[dia.tipo]?.slice(0, 2)}</span>
-                        ) : (
-                          <Icon className={`w-4 h-4 ${config.color}`} />
-                        )}
+                        <Icon className={`w-4 h-4 ${config.color}`} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -165,30 +269,24 @@ export default function Ponto() {
                           {isToday && (
                             <Badge variant="outline" className="text-xs">HOJE</Badge>
                           )}
+                          {dia.isWeekend && (
+                            <Badge variant="secondary" className="text-xs">FDS</Badge>
+                          )}
                         </div>
-                        {dia.tipo === 'normal' && dia.batidas.length > 0 && (
+                        {dia.batidas.length > 0 && (
                           <p className="text-xs text-muted-foreground">
                             ⏰ {dia.batidas.map(b => b.horario).join(' | ')}
                           </p>
-                        )}
-                        {dia.tipo !== 'normal' && (
-                          <p className="text-xs text-muted-foreground">{tipoConfig[dia.tipo]}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-medium ${config.color}`}>
-                        {dia.tipo === 'normal' ? dia.totalHoras : '-'}
+                        {dia.totalHoras !== '0:00' ? dia.totalHoras : '-'}
                       </p>
-                      {dia.status === 'extra' && (
-                        <p className="text-xs text-primary">+{dia.totalHoras.replace(/(\d+):(\d+)/, (_, h, m) => {
-                          const total = parseInt(h) * 60 + parseInt(m) - 8 * 60;
-                          return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
-                        })} extra</p>
-                      )}
                     </div>
                   </div>
-                  {dia.status === 'falta' && !dia.justificativa && (
+                  {dia.status === 'falta' && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -211,7 +309,7 @@ export default function Ponto() {
           </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-finance">{espelho.bancoHoras}</p>
+              <p className="text-2xl font-bold text-finance">{stats.bancoHoras}</p>
               <p className="text-xs text-muted-foreground">Saldo atual</p>
             </div>
             <HistoricoPonto />
