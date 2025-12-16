@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, Calendar, CheckCircle, Clock, Plus, AlertTriangle } from 'lucide-react';
+import { CreditCard, Calendar, CheckCircle, Clock, Plus, AlertTriangle, FastForward } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,8 @@ export default function Emprestimos() {
   const [observacao, setObservacao] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { emprestimos, isLoading, solicitarEmprestimo, refetch } = useEmprestimos();
+  const { emprestimos, isLoading, solicitarEmprestimo, anteciparParcela, refetch } = useEmprestimos();
+  const [isAntecipando, setIsAntecipando] = useState<string | null>(null);
   const { toast } = useToast();
 
   const formatCurrency = (v: number) => 
@@ -183,37 +184,71 @@ export default function Emprestimos() {
                   📋 Extrato de Parcelas
                 </h3>
                 <Card className="divide-y divide-border">
-                  {empAtivo.parcelas.map((p) => (
-                    <div key={p.id} className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {p.status === 'paga' ? (
-                          <CheckCircle className="w-4 h-4 text-finance" />
-                        ) : p.status === 'atrasada' ? (
-                          <AlertTriangle className="w-4 h-4 text-destructive" />
-                        ) : (
-                          <Clock className="w-4 h-4 text-muted-foreground" />
-                        )}
-                        <div>
-                          <p className="text-sm font-medium">Parcela {p.numero}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(p.vencimento), 'MMM/yyyy', { locale: ptBR })}
-                          </p>
+                  {empAtivo.parcelas.map((p) => {
+                    const handleAntecipar = async () => {
+                      setIsAntecipando(p.id);
+                      const result = await anteciparParcela(p.id, empAtivo.id);
+                      setIsAntecipando(null);
+                      if (result.success) {
+                        toast({
+                          title: 'Parcela antecipada!',
+                          description: `Parcela ${p.numero} marcada como paga.`,
+                        });
+                      } else {
+                        toast({
+                          title: 'Erro ao antecipar',
+                          description: result.error,
+                          variant: 'destructive',
+                        });
+                      }
+                    };
+
+                    return (
+                      <div key={p.id} className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {p.status === 'paga' ? (
+                            <CheckCircle className="w-4 h-4 text-finance" />
+                          ) : p.status === 'atrasada' ? (
+                            <AlertTriangle className="w-4 h-4 text-destructive" />
+                          ) : (
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium">Parcela {p.numero}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(p.vencimento), 'MMM/yyyy', { locale: ptBR })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {p.status === 'pendente' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleAntecipar}
+                              disabled={isAntecipando === p.id}
+                              className="text-xs h-7 px-2"
+                            >
+                              <FastForward className="w-3 h-3 mr-1" />
+                              {isAntecipando === p.id ? 'Antecipando...' : 'Antecipar'}
+                            </Button>
+                          )}
+                          <div className="text-right">
+                            <p className="text-sm font-medium">{formatCurrency(p.valor)}</p>
+                            <p className={`text-xs ${
+                              p.status === 'paga' ? 'text-finance' : 
+                              p.status === 'atrasada' ? 'text-destructive' : 
+                              'text-muted-foreground'
+                            }`}>
+                              {p.status === 'paga' ? '✅ Paga' : 
+                               p.status === 'atrasada' ? '⚠️ Atrasada' : 
+                               '⏳ Pendente'}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{formatCurrency(p.valor)}</p>
-                        <p className={`text-xs ${
-                          p.status === 'paga' ? 'text-finance' : 
-                          p.status === 'atrasada' ? 'text-destructive' : 
-                          'text-muted-foreground'
-                        }`}>
-                          {p.status === 'paga' ? '✅ Paga' : 
-                           p.status === 'atrasada' ? '⚠️ Atrasada' : 
-                           '⏳ Pendente'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </Card>
               </div>
             )}
