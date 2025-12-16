@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockHolerites, mockColaborador } from '@/data/mockData';
 import { Holerite } from '@/types/portal';
 import { format } from 'date-fns';
@@ -30,6 +32,7 @@ const tipoLabels: Record<string, string> = {
 export default function Holerites() {
   const [ano, setAno] = useState('2025');
   const [selectedHolerite, setSelectedHolerite] = useState<Holerite | null>(null);
+  const isLoading = useLoadingState(800);
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -49,6 +52,24 @@ export default function Holerites() {
         return null;
     }
   };
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meus Holerites" showBack>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Ano:</span>
+            <div className="w-24 h-10 bg-muted rounded-md animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <ListItemSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Meus Holerites" showBack>
