@@ -2,9 +2,23 @@ import { FileText, Download, FolderOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { MenuItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockDocumentos } from '@/data/mockData';
 
 export default function Documentos() {
+  const isLoading = useLoadingState(800);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meus Documentos" showBack>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map(i => <MenuItemSkeleton key={i} />)}
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout title="Meus Documentos" showBack>
       <div className="space-y-3 animate-fade-in-up">

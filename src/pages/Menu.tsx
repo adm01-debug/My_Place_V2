@@ -9,6 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { MenuItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { cn } from '@/lib/utils';
@@ -98,6 +100,7 @@ export default function Menu() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { isInstallable, isInstalled, install } = usePWAInstall();
+  const isLoading = useLoadingState(600);
 
   const handleLogout = () => {
     logout();
@@ -105,6 +108,21 @@ export default function Menu() {
   };
 
   const isDark = theme === 'dark';
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Menu">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map(i => <MenuItemSkeleton key={i} />)}
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => <MenuItemSkeleton key={i} />)}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Menu">

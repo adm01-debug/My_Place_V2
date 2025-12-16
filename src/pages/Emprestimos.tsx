@@ -4,14 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { StatCardSkeleton, TableSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockEmprestimos } from '@/data/mockData';
 import { format } from 'date-fns';
 
 export default function Emprestimos() {
   const emprestimos = mockEmprestimos;
+  const isLoading = useLoadingState(800);
   const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
   const emp = emprestimos[0];
   const progresso = (emp.parcelasPagas / emp.quantidadeParcelas) * 100;
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meus Empréstimos" showBack>
+        <div className="space-y-6">
+          <StatCardSkeleton />
+          <TableSkeleton rows={4} />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Meus Empréstimos" showBack>
