@@ -73,6 +73,23 @@ export function useFerias() {
     return { success: true, data };
   };
 
+  const cancelarFerias = async (id: string) => {
+    if (!user) return { success: false, error: 'Usuário não autenticado' };
+
+    const { error } = await supabase
+      .from('ferias')
+      .update({ status: 'cancelado' })
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    setFerias(prev => prev.map(f => f.id === id ? { ...f, status: 'cancelado' as const } : f));
+    return { success: true };
+  };
+
   useEffect(() => {
     fetchFerias();
   }, [user]);
@@ -81,6 +98,7 @@ export function useFerias() {
     ferias,
     isLoading,
     solicitarFerias,
+    cancelarFerias,
     refetch: fetchFerias,
   };
 }
