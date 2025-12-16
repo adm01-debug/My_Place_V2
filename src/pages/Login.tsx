@@ -1,23 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Building2, Lock, Mail } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff, Building2, Lock, Mail, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nome, setNome] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const [activeTab, setActiveTab] = useState('login');
+  const { signIn, signUp, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      navigate(onboardingCompleted ? '/' : '/onboarding');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -30,7 +40,7 @@ const Login: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    const result = await login(email, password);
+    const result = await signIn(email, password);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -38,7 +48,6 @@ const Login: React.FC = () => {
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso',
       });
-      // Check if onboarding was completed
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
       navigate(onboardingCompleted ? '/' : '/onboarding');
     } else {
@@ -50,21 +59,51 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setEmail('maria.silva@empresa.com');
-    setPassword('123456');
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password || !nome) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha todos os campos para continuar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: 'Senha muito curta',
+        description: 'A senha deve ter pelo menos 6 caracteres',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    const result = await login('maria.silva@empresa.com', '123456');
+    const result = await signUp(email, password, nome);
     setIsSubmitting(false);
 
     if (result.success) {
       toast({
-        title: 'Bem-vindo!',
-        description: 'Login demo realizado com sucesso',
+        title: 'Conta criada!',
+        description: 'Sua conta foi criada com sucesso',
       });
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
       navigate(onboardingCompleted ? '/' : '/onboarding');
+    } else {
+      toast({
+        title: 'Erro no cadastro',
+        description: result.error,
+        variant: 'destructive',
+      });
     }
+  };
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setNome('');
   };
 
   return (
@@ -87,101 +126,168 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Login Card */}
+        {/* Auth Card */}
         <Card className="glass-subtle border-border/50 shadow-xl">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl">Entrar</CardTitle>
-            <CardDescription>Digite suas credenciais de acesso</CardDescription>
+            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); resetForm(); }}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Entrar</TabsTrigger>
+                <TabsTrigger value="signup">Criar Conta</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="login" className="mt-4">
+                <CardTitle className="text-xl">Bem-vindo de volta</CardTitle>
+                <CardDescription>Digite suas credenciais de acesso</CardDescription>
+              </TabsContent>
+
+              <TabsContent value="signup" className="mt-4">
+                <CardTitle className="text-xl">Criar nova conta</CardTitle>
+                <CardDescription>Preencha os dados para se cadastrar</CardDescription>
+              </TabsContent>
+            </Tabs>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email corporativo</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu.email@empresa.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    disabled={isSubmitting}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end">
-                <button type="button" className="text-sm text-primary hover:underline">
-                  Esqueci minha senha
-                </button>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-11 font-semibold"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Entrando...
+            <Tabs value={activeTab}>
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email corporativo</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="seu.email@empresa.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        disabled={isSubmitting}
+                      />
+                    </div>
                   </div>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">ou</span>
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        disabled={isSubmitting}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleDemoLogin}
-              disabled={isSubmitting}
-            >
-              Acessar com conta demo
-            </Button>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 font-semibold"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        Entrando...
+                      </div>
+                    ) : (
+                      'Entrar'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-nome">Nome completo</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="signup-nome"
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        className="pl-10"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email corporativo</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="seu.email@empresa.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Mínimo 6 caracteres"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        disabled={isSubmitting}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 font-semibold"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        Criando conta...
+                      </div>
+                    ) : (
+                      'Criar conta'
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
-        {/* Demo Credentials Info */}
+        {/* Info */}
         <Card className="glass-subtle border-border/30">
           <CardContent className="py-4">
             <p className="text-xs text-center text-muted-foreground">
-              <strong>Demo:</strong> Use qualquer email com senha <code className="px-1 py-0.5 rounded bg-muted">123456</code>
+              Sistema seguro com autenticação criptografada
             </p>
           </CardContent>
         </Card>
