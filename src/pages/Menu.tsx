@@ -1,11 +1,14 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp
+  TrendingUp, Moon, Sun
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface MenuItemProps {
@@ -89,9 +92,52 @@ const menuSections = [
 ];
 
 export default function Menu() {
+  const { theme, setTheme } = useTheme();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isDark = theme === 'dark';
+
   return (
     <PageLayout title="Menu">
       <div className="space-y-6">
+        {/* Dark Mode Toggle */}
+        <div className="animate-fade-in-up">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+            <span className="w-1 h-4 rounded-full bg-primary" />
+            Aparência
+          </h3>
+          <Card className="p-4 border-0 shadow-card bg-card/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-primary/10 transition-all duration-500">
+                  {isDark ? (
+                    <Moon className="w-5 h-5 text-primary animate-fade-in-scale" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-projects animate-fade-in-scale" />
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium text-foreground">Modo Escuro</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isDark ? 'Ativado' : 'Desativado'}
+                  </span>
+                </div>
+              </div>
+              <Switch
+                checked={isDark}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+          </Card>
+        </div>
+
         {menuSections.map((section, sectionIndex) => (
           <div key={section.title} className={`animate-fade-in-up stagger-${sectionIndex + 1}`}>
             <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
@@ -110,7 +156,10 @@ export default function Menu() {
 
         {/* Logout */}
         <div className="animate-fade-in-up stagger-6">
-          <Card className="p-4 border-destructive/20 hover:bg-destructive/5 transition-all duration-300 cursor-pointer hover-lift shadow-card bg-card/80 backdrop-blur-sm group">
+          <Card 
+            className="p-4 border-destructive/20 hover:bg-destructive/5 transition-all duration-300 cursor-pointer hover-lift shadow-card bg-card/80 backdrop-blur-sm group"
+            onClick={handleLogout}
+          >
             <div className="flex items-center gap-4">
               <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-destructive/10 transition-transform duration-300 group-hover:scale-110">
                 <LogOut className="w-5 h-5 text-destructive" />
