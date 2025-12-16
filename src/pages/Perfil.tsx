@@ -1,22 +1,40 @@
-import { ArrowLeft, Camera, Edit2, MapPin, Phone, Mail, Briefcase, Building, CreditCard } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Camera, Edit2, MapPin, Phone, Mail, Briefcase, CreditCard, Fingerprint, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { ProfileSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { mockColaborador } from '@/data/mockData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function Perfil() {
   const colaborador = mockColaborador;
   const isLoading = useLoadingState(800);
+  const { user } = useAuth();
+  const { isAvailable, isRegistered, registeredEmail, registerBiometric, removeBiometric } = useBiometricAuth();
   
   const formatDate = (date: Date) => {
     return format(date, "dd/MM/yyyy", { locale: ptBR });
+  };
+
+  const handleToggleBiometric = async () => {
+    if (isRegistered) {
+      removeBiometric();
+      toast.success('Autenticação biométrica desativada');
+    } else if (user) {
+      const result = await registerBiometric(user.email || '', user.id);
+      if (result.success) {
+        toast.success('Autenticação biométrica ativada');
+      } else {
+        toast.error(result.error || 'Erro ao ativar biometria');
+      }
+    }
   };
 
   if (isLoading) {
@@ -147,6 +165,44 @@ export default function Perfil() {
             <InfoRow label="Conta" value={colaborador.conta} />
           </div>
         </Card>
+
+        {/* Segurança - Autenticação Biométrica */}
+        {isAvailable && (
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-2">
+              <Fingerprint className="w-4 h-4" /> Segurança
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Face ID / Touch ID</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isRegistered 
+                      ? `Ativo para ${registeredEmail}` 
+                      : 'Use biometria para login mais rápido'}
+                  </p>
+                </div>
+                <Switch 
+                  checked={isRegistered} 
+                  onCheckedChange={handleToggleBiometric}
+                />
+              </div>
+              {isRegistered && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-destructive h-auto p-1"
+                  onClick={() => {
+                    removeBiometric();
+                    toast.success('Autenticação biométrica removida');
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> Remover credencial biométrica
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
       </div>
     </PageLayout>
   );
