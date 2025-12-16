@@ -1,7 +1,6 @@
-import { ReactNode, useCallback, useState } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
-import { AnimatedPage } from '@/components/AnimatedPage';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,8 +22,8 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
       // Simulated refresh delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        title: "Atualizado",
-        description: "Dados atualizados com sucesso",
+        title: "✅ Atualizado",
+        description: "Dados sincronizados com sucesso",
       });
     }
   }, [onRefresh, toast]);
@@ -42,9 +41,7 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
       <main className="relative flex-1 max-w-lg mx-auto w-full">
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="px-4 py-6 pb-24">
-            <AnimatedPage>
-              {children}
-            </AnimatedPage>
+            {children}
           </div>
         </PullToRefresh>
       </main>
