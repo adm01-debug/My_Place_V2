@@ -1,0 +1,596 @@
+// ==================== MOCK DATA - PORTAL DO COLABORADOR ====================
+
+import {
+  PerfilColaborador,
+  Holerite,
+  RemuneracaoVariavel,
+  Meta,
+  Emprestimo,
+  EspelhoPonto,
+  FeriasColaborador,
+  BeneficiosColaborador,
+  TreinamentosColaborador,
+  Documento,
+  Solicitacao,
+  Comunicado,
+  Alerta,
+  DashboardData,
+} from '@/types/portal';
+
+// ==================== COLABORADOR ====================
+export const mockColaborador: PerfilColaborador = {
+  id: '001',
+  nome: 'João Silva Santos',
+  cpf: '***.456.789-**',
+  matricula: '001-2024',
+  foto: 'https://api.dicebear.com/7.x/avataaars/svg?seed=joao',
+  dataNascimento: new Date('1990-03-15'),
+  estadoCivil: 'Casado',
+  telefone: '(11) 98765-4321',
+  email: 'joao.silva@email.com',
+  endereco: {
+    logradouro: 'Rua das Flores',
+    numero: '123',
+    complemento: 'Apto 45',
+    bairro: 'Centro',
+    cidade: 'São Paulo',
+    estado: 'SP',
+    cep: '01234-567',
+  },
+  cargo: 'Operador de Produção',
+  departamento: 'Gravação',
+  dataAdmissao: new Date('2024-01-15'),
+  tempoCasa: '11 meses',
+  gestor: 'Carlos Mendes',
+  banco: 'Itaú (341)',
+  agencia: '1234',
+  conta: '*****-7',
+};
+
+// ==================== HOLERITES ====================
+export const mockHolerites: Holerite[] = [
+  {
+    id: 'h-2025-12',
+    colaboradorId: '001',
+    mes: 12,
+    ano: 2025,
+    tipo: 'mensal',
+    proventos: [
+      { codigo: '001', descricao: 'Salário Base', valor: 3500.00 },
+      { codigo: '002', descricao: 'Horas Extras 50%', referencia: '8h', valor: 262.50 },
+      { codigo: '003', descricao: 'Horas Extras 100%', referencia: '4h', valor: 175.00 },
+      { codigo: '004', descricao: 'Adicional Noturno', referencia: '10h', valor: 140.00 },
+      { codigo: '005', descricao: 'Comissão', valor: 450.00 },
+      { codigo: '006', descricao: 'DSR s/ Extras', valor: 87.50 },
+    ],
+    descontos: [
+      { codigo: '101', descricao: 'INSS', valor: 415.35 },
+      { codigo: '102', descricao: 'IRRF', valor: 142.33 },
+      { codigo: '103', descricao: 'Vale Transporte', valor: 210.00 },
+    ],
+    totalProventos: 4615.00,
+    totalDescontos: 767.68,
+    liquido: 3847.32,
+    baseInss: 4615.00,
+    baseIrrf: 4199.65,
+    fgtsMes: 369.20,
+    status: 'pendente',
+    dataPagamento: new Date('2026-01-05'),
+  },
+  {
+    id: 'h-2025-11',
+    colaboradorId: '001',
+    mes: 11,
+    ano: 2025,
+    tipo: 'mensal',
+    proventos: [
+      { codigo: '001', descricao: 'Salário Base', valor: 3500.00 },
+      { codigo: '002', descricao: 'Horas Extras 50%', referencia: '6h', valor: 196.88 },
+      { codigo: '005', descricao: 'Comissão', valor: 520.00 },
+    ],
+    descontos: [
+      { codigo: '101', descricao: 'INSS', valor: 379.42 },
+      { codigo: '102', descricao: 'IRRF', valor: 95.28 },
+      { codigo: '103', descricao: 'Vale Transporte', valor: 210.00 },
+    ],
+    totalProventos: 4216.88,
+    totalDescontos: 684.70,
+    liquido: 3532.18,
+    baseInss: 4216.88,
+    baseIrrf: 3837.46,
+    fgtsMes: 337.35,
+    status: 'pago',
+    dataPagamento: new Date('2025-12-05'),
+  },
+  {
+    id: 'h-2025-13-1',
+    colaboradorId: '001',
+    mes: 11,
+    ano: 2025,
+    tipo: '13_primeira',
+    proventos: [
+      { codigo: '013', descricao: '13º Salário - 1ª Parcela', valor: 1750.00 },
+    ],
+    descontos: [],
+    totalProventos: 1750.00,
+    totalDescontos: 0,
+    liquido: 1750.00,
+    baseInss: 0,
+    baseIrrf: 0,
+    fgtsMes: 140.00,
+    status: 'pago',
+    dataPagamento: new Date('2025-11-30'),
+  },
+  {
+    id: 'h-2025-10',
+    colaboradorId: '001',
+    mes: 10,
+    ano: 2025,
+    tipo: 'mensal',
+    proventos: [
+      { codigo: '001', descricao: 'Salário Base', valor: 3500.00 },
+      { codigo: '005', descricao: 'Comissão', valor: 380.00 },
+    ],
+    descontos: [
+      { codigo: '101', descricao: 'INSS', valor: 348.60 },
+      { codigo: '102', descricao: 'IRRF', valor: 71.95 },
+      { codigo: '103', descricao: 'Vale Transporte', valor: 210.00 },
+    ],
+    totalProventos: 3880.00,
+    totalDescontos: 630.55,
+    liquido: 3249.45,
+    baseInss: 3880.00,
+    baseIrrf: 3531.40,
+    fgtsMes: 310.40,
+    status: 'pago',
+    dataPagamento: new Date('2025-11-05'),
+  },
+];
+
+// ==================== REMUNERAÇÃO VARIÁVEL ====================
+export const mockRemuneracaoVariavel: RemuneracaoVariavel[] = [
+  {
+    id: 'rv-2025-12',
+    colaboradorId: '001',
+    mes: 12,
+    ano: 2025,
+    itens: [
+      { tipo: 'comissao_vendas', descricao: 'Comissão vendas', base: 7000, percentual: 5, valor: 350.00 },
+      { tipo: 'bonus_meta', descricao: 'Bônus meta atingida', valor: 100.00 },
+    ],
+    total: 450.00,
+    status: 'previsto',
+  },
+  {
+    id: 'rv-2025-11',
+    colaboradorId: '001',
+    mes: 11,
+    ano: 2025,
+    itens: [
+      { tipo: 'comissao_vendas', descricao: 'Comissão vendas', base: 8400, percentual: 5, valor: 420.00 },
+      { tipo: 'bonus_produtividade', descricao: 'Bônus produtividade', valor: 100.00 },
+    ],
+    total: 520.00,
+    status: 'pago',
+    dataPagamento: new Date('2025-12-05'),
+  },
+  {
+    id: 'rv-2025-10',
+    colaboradorId: '001',
+    mes: 10,
+    ano: 2025,
+    itens: [
+      { tipo: 'comissao_vendas', descricao: 'Comissão vendas', base: 7600, percentual: 5, valor: 380.00 },
+    ],
+    total: 380.00,
+    status: 'pago',
+    dataPagamento: new Date('2025-11-05'),
+  },
+];
+
+export const mockMetas: Meta[] = [
+  {
+    id: 'meta-1',
+    titulo: 'Meta de Vendas - Dez/2025',
+    valorAtual: 15000,
+    valorMeta: 20000,
+    percentual: 75,
+    bonus: 200.00,
+    periodo: 'Dezembro/2025',
+  },
+];
+
+// ==================== EMPRÉSTIMOS ====================
+export const mockEmprestimos: Emprestimo[] = [
+  {
+    id: 'emp-001',
+    colaboradorId: '001',
+    numeroContrato: 'EMP-2025-001',
+    dataContratacao: new Date('2025-03-15'),
+    valorOriginal: 3000.00,
+    taxaJuros: 2.0,
+    totalComJuros: 3180.00,
+    quantidadeParcelas: 12,
+    valorParcela: 265.00,
+    parcelasPagas: 9,
+    saldoDevedor: 795.00,
+    status: 'ativo',
+    parcelas: [
+      { numero: 1, vencimento: new Date('2025-04-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-04-05') },
+      { numero: 2, vencimento: new Date('2025-05-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-05-05') },
+      { numero: 3, vencimento: new Date('2025-06-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-06-05') },
+      { numero: 4, vencimento: new Date('2025-07-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-07-05') },
+      { numero: 5, vencimento: new Date('2025-08-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-08-05') },
+      { numero: 6, vencimento: new Date('2025-09-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-09-05') },
+      { numero: 7, vencimento: new Date('2025-10-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-10-05') },
+      { numero: 8, vencimento: new Date('2025-11-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-11-05') },
+      { numero: 9, vencimento: new Date('2025-12-01'), valor: 265.00, status: 'paga', dataPagamento: new Date('2025-12-05') },
+      { numero: 10, vencimento: new Date('2026-01-01'), valor: 265.00, status: 'pendente' },
+      { numero: 11, vencimento: new Date('2026-02-01'), valor: 265.00, status: 'pendente' },
+      { numero: 12, vencimento: new Date('2026-03-01'), valor: 265.00, status: 'pendente' },
+    ],
+  },
+];
+
+// ==================== PONTO ====================
+export const mockEspelhoPonto: EspelhoPonto = {
+  colaboradorId: '001',
+  mes: 12,
+  ano: 2025,
+  horasNormais: '156:00',
+  horasExtras50: '8:00',
+  horasExtras100: '4:30',
+  adicionalNoturno: '10:00',
+  bancoHoras: '+8:45',
+  faltas: 1,
+  atrasos: 2,
+  status: 'aberto',
+  dias: [
+    {
+      data: new Date('2025-12-16'),
+      tipo: 'normal',
+      batidas: [
+        { tipo: 'entrada', horario: '08:02', fonte: 'relogio' },
+        { tipo: 'saida', horario: '12:01', fonte: 'relogio' },
+        { tipo: 'entrada', horario: '13:00', fonte: 'relogio' },
+      ],
+      totalHoras: '4:59',
+      status: 'ok',
+    },
+    {
+      data: new Date('2025-12-15'),
+      tipo: 'normal',
+      batidas: [],
+      totalHoras: '0:00',
+      status: 'falta',
+    },
+    {
+      data: new Date('2025-12-14'),
+      tipo: 'dsr',
+      batidas: [],
+      totalHoras: '0:00',
+      status: 'ok',
+    },
+    {
+      data: new Date('2025-12-13'),
+      tipo: 'normal',
+      batidas: [
+        { tipo: 'entrada', horario: '08:00', fonte: 'relogio' },
+        { tipo: 'saida', horario: '12:00', fonte: 'relogio' },
+        { tipo: 'entrada', horario: '13:00', fonte: 'relogio' },
+        { tipo: 'saida', horario: '18:30', fonte: 'relogio' },
+      ],
+      totalHoras: '9:30',
+      status: 'extra',
+    },
+    {
+      data: new Date('2025-12-12'),
+      tipo: 'normal',
+      batidas: [
+        { tipo: 'entrada', horario: '08:05', fonte: 'relogio' },
+        { tipo: 'saida', horario: '12:00', fonte: 'relogio' },
+        { tipo: 'entrada', horario: '13:00', fonte: 'relogio' },
+        { tipo: 'saida', horario: '17:00', fonte: 'relogio' },
+      ],
+      totalHoras: '7:55',
+      status: 'atraso',
+    },
+    {
+      data: new Date('2025-12-11'),
+      tipo: 'normal',
+      batidas: [
+        { tipo: 'entrada', horario: '08:00', fonte: 'relogio' },
+        { tipo: 'saida', horario: '12:00', fonte: 'relogio' },
+        { tipo: 'entrada', horario: '13:00', fonte: 'relogio' },
+        { tipo: 'saida', horario: '17:00', fonte: 'relogio' },
+      ],
+      totalHoras: '8:00',
+      status: 'ok',
+    },
+  ],
+};
+
+// ==================== FÉRIAS ====================
+export const mockFerias: FeriasColaborador = {
+  colaboradorId: '001',
+  periodoAquisitivo: {
+    inicio: new Date('2024-01-15'),
+    fim: new Date('2025-01-14'),
+    saldoDias: 30,
+    vencimento: new Date('2026-01-14'),
+  },
+  solicitacoes: [],
+  historico: [
+    {
+      id: 'fer-001',
+      tipo: 'fracionada',
+      dataInicio: new Date('2025-01-02'),
+      dataFim: new Date('2025-01-16'),
+      dias: 15,
+      abonoPecuniario: false,
+      adiantamento13: false,
+      valorBruto: 1750.00,
+      valor13: 0,
+      valorAbono: 0,
+      descontos: 157.50,
+      valorLiquido: 2175.83,
+      status: 'concluida',
+      criadaEm: new Date('2024-11-15'),
+    },
+  ],
+};
+
+// ==================== BENEFÍCIOS ====================
+export const mockBeneficios: BeneficiosColaborador = {
+  colaboradorId: '001',
+  valeTransporte: {
+    ativo: true,
+    creditoMensal: 220.00,
+    desconto: 210.00,
+    saldoCartao: 85.40,
+    ultimaRecarga: new Date('2025-12-01'),
+    numeroCartao: 'BOM ****1234',
+    operadora: 'BOM',
+  },
+  valeRefeicao: {
+    tipo: 'refeicao',
+    ativo: true,
+    creditoMensal: 440.00,
+    valorDia: 20.00,
+    diasUteis: 22,
+    saldoCartao: 180.00,
+    ultimaRecarga: new Date('2025-12-01'),
+    numeroCartao: 'Sodexo ****5678',
+    operadora: 'Sodexo',
+  },
+  planoSaude: {
+    ativo: true,
+    operadora: 'Unimed',
+    plano: 'Básico Individual',
+    numeroCarteirinha: '123456789',
+    valorTotal: 380.00,
+    valorEmpresa: 285.00,
+    valorDesconto: 95.00,
+    dependentes: [],
+  },
+  planoOdonto: {
+    ativo: true,
+    operadora: 'OdontoPrev',
+    plano: 'Básico',
+    numeroCarteirinha: '987654321',
+    valorTotal: 80.00,
+    valorEmpresa: 60.00,
+    valorDesconto: 20.00,
+    dependentes: [],
+  },
+  resumoDescontos: {
+    vt: 210.00,
+    vr: 0,
+    saude: 95.00,
+    odonto: 20.00,
+    total: 325.00,
+  },
+};
+
+// ==================== TREINAMENTOS ====================
+export const mockTreinamentos: TreinamentosColaborador = {
+  colaboradorId: '001',
+  totalRealizados: 12,
+  totalPendentes: 2,
+  horasTotal: 48,
+  pendentes: [
+    {
+      id: 'tr-001',
+      titulo: 'NR-12 - Segurança em Máquinas',
+      descricao: 'Treinamento obrigatório de segurança para operação de máquinas.',
+      cargaHoraria: 8,
+      tipo: 'obrigatorio',
+      categoria: 'Segurança',
+      prazo: new Date('2025-12-20'),
+      urlTreinamento: '#',
+    },
+    {
+      id: 'tr-002',
+      titulo: 'Atendimento ao Cliente',
+      descricao: 'Técnicas de atendimento e relacionamento com clientes.',
+      cargaHoraria: 4,
+      tipo: 'recomendado',
+      categoria: 'Soft Skills',
+      prazo: new Date('2026-01-31'),
+      urlTreinamento: '#',
+    },
+  ],
+  realizados: [
+    {
+      id: 'tr-003',
+      titulo: 'Integração Novos Colaboradores',
+      descricao: 'Treinamento de boas-vindas e integração.',
+      cargaHoraria: 8,
+      tipo: 'obrigatorio',
+      categoria: 'Integração',
+      dataRealizacao: new Date('2024-01-20'),
+      nota: 9.5,
+      certificadoUrl: '#',
+    },
+    {
+      id: 'tr-004',
+      titulo: 'NR-06 - EPIs',
+      descricao: 'Uso correto de Equipamentos de Proteção Individual.',
+      cargaHoraria: 4,
+      tipo: 'obrigatorio',
+      categoria: 'Segurança',
+      dataRealizacao: new Date('2024-01-25'),
+      nota: 10.0,
+      certificadoUrl: '#',
+      validade: new Date('2026-01-25'),
+    },
+    {
+      id: 'tr-005',
+      titulo: 'Operação de Gravadora',
+      descricao: 'Treinamento técnico para operação de máquina gravadora.',
+      cargaHoraria: 16,
+      tipo: 'obrigatorio',
+      categoria: 'Técnico',
+      dataRealizacao: new Date('2024-02-01'),
+      nota: 8.5,
+      certificadoUrl: '#',
+    },
+  ],
+  trilha: {
+    nivelAtual: 'Operador Júnior',
+    proximoNivel: 'Operador Pleno',
+    progressoPercentual: 60,
+    treinamentosFaltantes: 2,
+  },
+};
+
+// ==================== DOCUMENTOS ====================
+export const mockDocumentos: Documento[] = [
+  { id: 'doc-1', tipo: 'holerites', titulo: 'Holerites', descricao: 'Demonstrativos de pagamento', disponivel: true },
+  { id: 'doc-2', tipo: 'informe', titulo: 'Informe de Rendimentos 2025', descricao: 'Para declaração de IR', disponivel: true, geradoEm: new Date('2025-02-28') },
+  { id: 'doc-3', tipo: 'informe', titulo: 'Informe de Rendimentos 2024', descricao: 'Para declaração de IR', disponivel: true, geradoEm: new Date('2024-02-28') },
+  { id: 'doc-4', tipo: 'declaracao', titulo: 'Declaração de Vínculo', descricao: 'Comprovante de emprego', disponivel: true },
+  { id: 'doc-5', tipo: 'carta', titulo: 'Carta de Referência', descricao: 'Para fins de crédito', disponivel: true },
+  { id: 'doc-6', tipo: 'ferias', titulo: 'Recibos de Férias', descricao: 'Comprovantes de férias', disponivel: true },
+  { id: 'doc-7', tipo: 'contrato', titulo: 'Contrato de Trabalho', descricao: 'Cópia do seu contrato', disponivel: true },
+  { id: 'doc-8', tipo: 'certificados', titulo: 'Certificados', descricao: 'Treinamentos realizados', disponivel: true },
+];
+
+// ==================== SOLICITAÇÕES ====================
+export const mockSolicitacoes: Solicitacao[] = [
+  {
+    id: 'sol-001',
+    numero: '2025-1215-001',
+    tipo: 'cadastro',
+    categoria: 'Alteração Cadastral',
+    titulo: 'Alteração de Endereço',
+    descricao: 'Mudei de endereço e preciso atualizar no sistema.',
+    status: 'em_analise',
+    criadaEm: new Date('2025-12-15'),
+    atualizadaEm: new Date('2025-12-15'),
+  },
+  {
+    id: 'sol-002',
+    numero: '2025-1210-003',
+    tipo: 'beneficios',
+    categoria: 'Plano de Saúde',
+    titulo: 'Inclusão de Dependente',
+    descricao: 'Gostaria de incluir minha esposa como dependente no plano de saúde.',
+    status: 'aguardando_docs',
+    criadaEm: new Date('2025-12-10'),
+    atualizadaEm: new Date('2025-12-12'),
+    respostas: [
+      {
+        autor: 'DP',
+        mensagem: 'Por favor, envie a certidão de casamento e documento de identidade da dependente.',
+        data: new Date('2025-12-12'),
+      },
+    ],
+  },
+  {
+    id: 'sol-003',
+    numero: '2025-1201-002',
+    tipo: 'bancario',
+    categoria: 'Dados Bancários',
+    titulo: 'Alteração Dados Bancários',
+    descricao: 'Preciso alterar minha conta bancária para recebimento.',
+    status: 'concluida',
+    criadaEm: new Date('2025-12-01'),
+    atualizadaEm: new Date('2025-12-05'),
+    resolvidaEm: new Date('2025-12-05'),
+  },
+];
+
+// ==================== COMUNICADOS ====================
+export const mockComunicados: Comunicado[] = [
+  {
+    id: 'com-001',
+    titulo: 'Recesso de Fim de Ano',
+    conteudo: 'Informamos que a empresa entrará em recesso de 23/12/2025 a 02/01/2026. O retorno às atividades será no dia 03/01/2026. Desejamos a todos um excelente fim de ano!',
+    resumo: 'Informamos que a empresa entrará em recesso de 23/12 a 02/01/2026...',
+    categoria: 'RH',
+    dataPublicacao: new Date('2025-12-15'),
+    lido: false,
+    importante: true,
+  },
+  {
+    id: 'com-002',
+    titulo: 'Pagamento do 13º Salário',
+    conteudo: 'A 2ª parcela do 13º salário será creditada em 20/12/2025. Confira seu holerite no portal.',
+    resumo: 'A 2ª parcela do 13º será creditada em 20/12/2025...',
+    categoria: 'Financeiro',
+    dataPublicacao: new Date('2025-12-12'),
+    lido: true,
+    importante: false,
+  },
+  {
+    id: 'com-003',
+    titulo: 'Campanha de Vacinação',
+    conteudo: 'Neste mês teremos campanha de vacinação contra gripe na empresa. A vacinação ocorrerá nos dias 18 e 19/12, das 9h às 16h, no ambulatório.',
+    resumo: 'Neste mês teremos campanha de vacinação contra gripe...',
+    categoria: 'Saúde',
+    dataPublicacao: new Date('2025-12-01'),
+    lido: true,
+    importante: false,
+  },
+  {
+    id: 'com-004',
+    titulo: 'Atualização do Regulamento Interno',
+    conteudo: 'O regulamento interno foi atualizado. Confira as principais mudanças no documento anexo.',
+    resumo: 'O regulamento interno foi atualizado. Confira...',
+    categoria: 'Institucional',
+    dataPublicacao: new Date('2025-11-20'),
+    lido: true,
+    importante: false,
+    anexoUrl: '#',
+  },
+];
+
+// ==================== ALERTAS ====================
+export const mockAlertas: Alerta[] = [
+  {
+    id: 'alert-001',
+    tipo: 'warning',
+    titulo: 'Ponto de ontem não batido',
+    descricao: '15/12/2025 - Dia sem registro de ponto',
+    acao: { label: 'Justificar', link: '/ponto' },
+  },
+  {
+    id: 'alert-002',
+    tipo: 'info',
+    titulo: 'Treinamento NR-12 pendente',
+    descricao: 'Prazo: 20/12/2025',
+    acao: { label: 'Iniciar', link: '/treinamentos' },
+  },
+];
+
+// ==================== DASHBOARD DATA ====================
+export const mockDashboardData: DashboardData = {
+  colaborador: mockColaborador,
+  salarioEstimado: 3847.32,
+  horasTrabalhadas: '156h',
+  saldoFerias: 30,
+  comissaoMes: 450.00,
+  alertas: mockAlertas,
+  comunicados: mockComunicados.slice(0, 3),
+};
