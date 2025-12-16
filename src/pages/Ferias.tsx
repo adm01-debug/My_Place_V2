@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockFerias, mockColaborador } from '@/data/mockData';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,6 +39,7 @@ export default function Ferias() {
   const [dataInicio, setDataInicio] = useState('');
   const [venderDias, setVenderDias] = useState(false);
   const [antecipar13, setAntecipar13] = useState(false);
+  const isLoading = useLoadingState(800);
   
   const ferias = mockFerias;
   const saldo = ferias.periodoAquisitivo.saldoDias;
@@ -55,6 +58,18 @@ export default function Ferias() {
   const totalBruto = valorFerias + tercoConstitucional + valorAbono;
   const descontosEst = totalBruto * 0.09;
   const liquidoEst = totalBruto - descontosEst;
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Minhas Férias" showBack>
+        <div className="space-y-6">
+          <StatCardSkeleton />
+          <ListItemSkeleton />
+          <ListItemSkeleton />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Minhas Férias" showBack>

@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockRemuneracaoVariavel, mockMetas } from '@/data/mockData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -28,6 +30,7 @@ const statusConfig = {
 export default function RemuneracaoVariavel() {
   const remuneracoes = mockRemuneracaoVariavel;
   const metas = mockMetas;
+  const isLoading = useLoadingState(800);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -44,6 +47,19 @@ export default function RemuneracaoVariavel() {
     return rem?.total || 0;
   });
   const maxValor = Math.max(...dadosGrafico, 1);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Remuneração Variável" showBack>
+        <div className="space-y-6">
+          <StatCardSkeleton />
+          <ListItemSkeleton />
+          <ListItemSkeleton />
+          <ListItemSkeleton />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Remuneração Variável" showBack>

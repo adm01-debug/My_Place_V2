@@ -5,16 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { ProfileSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockColaborador } from '@/data/mockData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Perfil() {
   const colaborador = mockColaborador;
+  const isLoading = useLoadingState(800);
   
   const formatDate = (date: Date) => {
     return format(date, "dd/MM/yyyy", { locale: ptBR });
   };
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meu Perfil" showBack>
+        <div className="space-y-6">
+          <ProfileSkeleton />
+          <ListItemSkeleton />
+          <ListItemSkeleton />
+          <ListItemSkeleton />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Meu Perfil" showBack>

@@ -3,10 +3,24 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockComunicados } from '@/data/mockData';
 import { format } from 'date-fns';
 
 export default function Comunicados() {
+  const isLoading = useLoadingState(800);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Comunicados" showBack>
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map(i => <ListItemSkeleton key={i} />)}
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout title="Comunicados" showBack>
       <div className="space-y-3 animate-fade-in-up">

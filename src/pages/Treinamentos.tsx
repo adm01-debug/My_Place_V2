@@ -4,11 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockTreinamentos } from '@/data/mockData';
 import { format } from 'date-fns';
 
 export default function Treinamentos() {
   const t = mockTreinamentos;
+  const isLoading = useLoadingState(800);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meus Treinamentos" showBack>
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-3">
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <ListItemSkeleton key={i} />)}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout title="Meus Treinamentos" showBack>
       <div className="space-y-6 animate-fade-in-up">

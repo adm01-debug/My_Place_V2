@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCard } from '@/components/portal/StatCard';
+import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockEspelhoPonto } from '@/data/mockData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,6 +39,7 @@ const tipoConfig = {
 export default function Ponto() {
   const [showJustificativa, setShowJustificativa] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const isLoading = useLoadingState(800);
   const espelho = mockEspelhoPonto;
 
   const diaSemana = (date: Date) => {
@@ -49,6 +52,23 @@ export default function Ponto() {
   };
 
   const pendencias = espelho.dias.filter(d => d.status === 'falta' && !d.justificativa);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meu Ponto" showBack>
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-3">
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => <ListItemSkeleton key={i} />)}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Meu Ponto" showBack>

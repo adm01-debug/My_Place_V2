@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockSolicitacoes } from '@/data/mockData';
 import { format } from 'date-fns';
 
@@ -18,6 +20,20 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 export default function Solicitacoes() {
   const abertas = mockSolicitacoes.filter(s => !['concluida', 'rejeitada'].includes(s.status));
   const concluidas = mockSolicitacoes.filter(s => ['concluida', 'rejeitada'].includes(s.status));
+  const isLoading = useLoadingState(800);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Minhas Solicitações" showBack>
+        <div className="space-y-6">
+          <div className="h-10 bg-muted rounded-md animate-pulse" />
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <ListItemSkeleton key={i} />)}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Minhas Solicitações" showBack>

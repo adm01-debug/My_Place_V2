@@ -2,12 +2,25 @@ import { Bus, Utensils, Heart, Smile } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
+import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockBeneficios } from '@/data/mockData';
 import { format } from 'date-fns';
 
 export default function Beneficios() {
   const b = mockBeneficios;
+  const isLoading = useLoadingState(800);
   const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Meus Benefícios" showBack>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map(i => <ListItemSkeleton key={i} />)}
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Meus Benefícios" showBack>
