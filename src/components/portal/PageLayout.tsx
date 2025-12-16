@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
+import { AnimatedPage } from '@/components/AnimatedPage';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -21,7 +22,9 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0 }
       <Header title={title} showBack={showBack} alertCount={alertCount} />
       
       <main className="relative max-w-lg mx-auto px-4 py-6 pb-24">
-        {children}
+        <AnimatedPage>
+          {children}
+        </AnimatedPage>
       </main>
       
       <BottomNav />
