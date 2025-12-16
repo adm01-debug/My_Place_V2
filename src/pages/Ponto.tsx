@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { RegistroPonto } from '@/components/portal/RegistroPonto';
+import { HistoricoPonto } from '@/components/portal/HistoricoPonto';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockEspelhoPonto } from '@/data/mockData';
@@ -213,9 +214,7 @@ export default function Ponto() {
               <p className="text-2xl font-bold text-finance">{espelho.bancoHoras}</p>
               <p className="text-xs text-muted-foreground">Saldo atual</p>
             </div>
-            <Button variant="outline" size="sm">
-              <Calendar className="w-4 h-4 mr-1" /> Ver Histórico
-            </Button>
+            <HistoricoPonto />
           </div>
         </Card>
       </div>
