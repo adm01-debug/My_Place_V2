@@ -1,34 +1,42 @@
-import { useLocation } from 'react-router-dom';
-import { useEffect, useState, ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { ReactNode } from 'react';
 
 interface AnimatedPageProps {
   children: ReactNode;
 }
 
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    y: 8,
+    scale: 0.99,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.99,
+  },
+};
+
 export const AnimatedPage = ({ children }: AnimatedPageProps) => {
-  const location = useLocation();
-  const [displayChildren, setDisplayChildren] = useState(children);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    setIsAnimating(true);
-    const timeout = setTimeout(() => {
-      setDisplayChildren(children);
-      setIsAnimating(false);
-    }, 150);
-
-    return () => clearTimeout(timeout);
-  }, [location.pathname, children]);
-
   return (
-    <div
-      className={`transition-all duration-300 ease-out ${
-        isAnimating 
-          ? 'opacity-0 translate-y-2 scale-[0.99]' 
-          : 'opacity-100 translate-y-0 scale-100'
-      }`}
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageVariants}
+      transition={{
+        type: 'tween',
+        ease: [0.25, 0.1, 0.25, 1],
+        duration: 0.2,
+      }}
     >
-      {displayChildren}
-    </div>
+      {children}
+    </motion.div>
   );
 };

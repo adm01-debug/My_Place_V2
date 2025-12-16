@@ -2,10 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AnimatedPage } from "@/components/AnimatedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
@@ -26,6 +28,33 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
+        <Route path="/onboarding" element={<ProtectedRoute><AnimatedPage><Onboarding /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><AnimatedPage><Dashboard /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/perfil" element={<ProtectedRoute><AnimatedPage><Perfil /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/holerites" element={<ProtectedRoute><AnimatedPage><Holerites /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/ponto" element={<ProtectedRoute><AnimatedPage><Ponto /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/ferias" element={<ProtectedRoute><AnimatedPage><Ferias /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/variavel" element={<ProtectedRoute><AnimatedPage><RemuneracaoVariavel /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/emprestimos" element={<ProtectedRoute><AnimatedPage><Emprestimos /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/beneficios" element={<ProtectedRoute><AnimatedPage><Beneficios /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/treinamentos" element={<ProtectedRoute><AnimatedPage><Treinamentos /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/documentos" element={<ProtectedRoute><AnimatedPage><Documentos /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/solicitacoes" element={<ProtectedRoute><AnimatedPage><Solicitacoes /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/comunicados" element={<ProtectedRoute><AnimatedPage><Comunicados /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/menu" element={<ProtectedRoute><AnimatedPage><Menu /></AnimatedPage></ProtectedRoute>} />
+        <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
@@ -35,24 +64,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <NotificationProvider>
-              <Routes>
-              <Route path="/login" element={<Login />} />
-                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-                <Route path="/holerites" element={<ProtectedRoute><Holerites /></ProtectedRoute>} />
-                <Route path="/ponto" element={<ProtectedRoute><Ponto /></ProtectedRoute>} />
-                <Route path="/ferias" element={<ProtectedRoute><Ferias /></ProtectedRoute>} />
-                <Route path="/variavel" element={<ProtectedRoute><RemuneracaoVariavel /></ProtectedRoute>} />
-                <Route path="/emprestimos" element={<ProtectedRoute><Emprestimos /></ProtectedRoute>} />
-                <Route path="/beneficios" element={<ProtectedRoute><Beneficios /></ProtectedRoute>} />
-                <Route path="/treinamentos" element={<ProtectedRoute><Treinamentos /></ProtectedRoute>} />
-                <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
-                <Route path="/solicitacoes" element={<ProtectedRoute><Solicitacoes /></ProtectedRoute>} />
-                <Route path="/comunicados" element={<ProtectedRoute><Comunicados /></ProtectedRoute>} />
-                <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AnimatedRoutes />
             </NotificationProvider>
           </AuthProvider>
         </BrowserRouter>
