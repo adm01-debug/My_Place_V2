@@ -8,6 +8,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Perfil from "./pages/Perfil";
 import Holerites from "./pages/Holerites";
@@ -35,7 +36,8 @@ const App = () => (
           <AuthProvider>
             <NotificationProvider>
               <Routes>
-                <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Login />} />
+                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
                 <Route path="/holerites" element={<ProtectedRoute><Holerites /></ProtectedRoute>} />

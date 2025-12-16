@@ -38,7 +38,9 @@ const Login: React.FC = () => {
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso',
       });
-      navigate('/');
+      // Check if onboarding was completed
+      const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      navigate(onboardingCompleted ? '/' : '/onboarding');
     } else {
       toast({
         title: 'Erro no login',
@@ -60,7 +62,8 @@ const Login: React.FC = () => {
         title: 'Bem-vindo!',
         description: 'Login demo realizado com sucesso',
       });
-      navigate('/');
+      const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      navigate(onboardingCompleted ? '/' : '/onboarding');
     }
   };
 
