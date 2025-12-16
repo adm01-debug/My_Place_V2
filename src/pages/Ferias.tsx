@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Umbrella, Calendar, Plus, Info } from 'lucide-react';
+import { Umbrella, Calendar, Plus, Info, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,8 +44,9 @@ export default function Ferias() {
   const [antecipar13, setAntecipar13] = useState(false);
   const [observacao, setObservacao] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
   
-  const { ferias, isLoading, solicitarFerias, refetch } = useFerias();
+  const { ferias, isLoading, solicitarFerias, cancelarFerias, refetch } = useFerias();
   const { toast } = useToast();
   
   // Calcular saldo (simplificado - em produção viria do backend)
@@ -212,6 +213,34 @@ export default function Ferias() {
                     <p className="text-xs text-muted-foreground mt-1 italic">
                       {sol.observacao}
                     </p>
+                  )}
+                  {sol.status === 'pendente' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="mt-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={async () => {
+                        setCancelingId(sol.id);
+                        const result = await cancelarFerias(sol.id);
+                        setCancelingId(null);
+                        if (result.success) {
+                          toast({
+                            title: 'Solicitação cancelada',
+                            description: 'Sua solicitação de férias foi cancelada.',
+                          });
+                        } else {
+                          toast({
+                            title: 'Erro ao cancelar',
+                            description: result.error,
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
+                      disabled={cancelingId === sol.id}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      {cancelingId === sol.id ? 'Cancelando...' : 'Cancelar solicitação'}
+                    </Button>
                   )}
                 </div>
               ))}
