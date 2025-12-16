@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
+        display: ["Outfit", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,28 +61,70 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Module Colors
+        crm: {
+          DEFAULT: "hsl(var(--crm))",
+          light: "hsl(var(--crm-light))",
+          dark: "hsl(var(--crm-dark))",
+        },
+        finance: {
+          DEFAULT: "hsl(var(--finance))",
+          light: "hsl(var(--finance-light))",
+          dark: "hsl(var(--finance-dark))",
+        },
+        hr: {
+          DEFAULT: "hsl(var(--hr))",
+          light: "hsl(var(--hr-light))",
+          dark: "hsl(var(--hr-dark))",
+        },
+        projects: {
+          DEFAULT: "hsl(var(--projects))",
+          light: "hsl(var(--projects-light))",
+          dark: "hsl(var(--projects-dark))",
+        },
+        operations: {
+          DEFAULT: "hsl(var(--operations))",
+          light: "hsl(var(--operations-light))",
+          dark: "hsl(var(--operations-dark))",
+        },
+        marketing: {
+          DEFAULT: "hsl(var(--marketing))",
+          light: "hsl(var(--marketing-light))",
+          dark: "hsl(var(--marketing-dark))",
+        },
+        // Gamification Colors
+        xp: {
+          DEFAULT: "hsl(var(--xp))",
+          glow: "hsl(var(--xp-glow))",
+        },
+        level: {
+          bronze: "hsl(var(--level-bronze))",
+          silver: "hsl(var(--level-silver))",
+          gold: "hsl(var(--level-gold))",
+          platinum: "hsl(var(--level-platinum))",
+          diamond: "hsl(var(--level-diamond))",
+        },
+        achievement: "hsl(var(--achievement))",
+        streak: "hsl(var(--streak))",
+        combo: "hsl(var(--combo))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        glow: "var(--shadow-glow)",
+        xp: "var(--shadow-xp)",
+      },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
