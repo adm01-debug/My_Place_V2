@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
-import { StatCard } from '@/components/portal/StatCard';
+import { RegistroPonto } from '@/components/portal/RegistroPonto';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { mockEspelhoPonto } from '@/data/mockData';
@@ -73,6 +73,9 @@ export default function Ponto() {
   return (
     <PageLayout title="Meu Ponto" showBack>
       <div className="space-y-6 animate-fade-in-up">
+        {/* Registro de Ponto */}
+        <RegistroPonto />
+
         {/* Período */}
         <div className="text-center">
           <p className="text-muted-foreground text-sm">
