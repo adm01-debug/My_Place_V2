@@ -97,13 +97,13 @@ const menuSections = [
 
 export default function Menu() {
   const { theme, setTheme } = useTheme();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const isLoading = useLoadingState(600);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/login');
   };
 
