@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, ReactNode } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PullToRefreshProps {
@@ -69,33 +69,47 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
       {/* Pull indicator */}
       <div
         className={cn(
-          "absolute left-1/2 -translate-x-1/2 z-50 flex items-center justify-center transition-all duration-300",
-          pullDistance > 0 || isRefreshing ? "opacity-100" : "opacity-0"
+          "absolute left-1/2 -translate-x-1/2 z-50 flex flex-col items-center justify-center transition-all duration-300",
+          pullDistance > 0 || isRefreshing ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         style={{
-          top: Math.max(8, pullDistance - 40),
+          top: Math.max(8, pullDistance - 50),
         }}
       >
         <div
           className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
+            "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg",
             shouldTrigger || isRefreshing
-              ? "bg-primary text-primary-foreground shadow-glow"
-              : "bg-card text-muted-foreground shadow-card"
+              ? "bg-primary text-primary-foreground scale-110"
+              : "bg-card text-muted-foreground border border-border"
           )}
         >
-          <RefreshCw
-            className={cn(
-              "w-5 h-5 transition-transform duration-200",
-              isRefreshing && "animate-spin"
-            )}
-            style={{
-              transform: isRefreshing
-                ? undefined
-                : `rotate(${progress * 180}deg)`,
-            }}
-          />
+          {isRefreshing ? (
+            <RefreshCw className="w-5 h-5 animate-spin" />
+          ) : (
+            <ArrowDown
+              className={cn(
+                "w-5 h-5 transition-transform duration-200",
+                shouldTrigger && "rotate-180"
+              )}
+              style={{
+                transform: shouldTrigger
+                  ? 'rotate(180deg)'
+                  : `rotate(${progress * 180}deg)`,
+              }}
+            />
+          )}
         </div>
+        <span className={cn(
+          "text-xs mt-2 font-medium transition-colors",
+          shouldTrigger || isRefreshing ? "text-primary" : "text-muted-foreground"
+        )}>
+          {isRefreshing 
+            ? "Atualizando..." 
+            : shouldTrigger 
+              ? "Solte para atualizar" 
+              : "Puxe para atualizar"}
+        </span>
       </div>
 
       {/* Content with transform */}
