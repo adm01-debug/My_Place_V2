@@ -30,8 +30,7 @@ export default function Holerites() {
   
   const { 
     holerites, 
-    totalAno, 
-    mediaAnual, 
+    estatisticasAno, 
     isLoading,
     getHoleritesAno,
     getAnosDisponiveis,
@@ -39,6 +38,9 @@ export default function Holerites() {
     downloadPdf,
     refetch 
   } = useHolerites();
+  
+  const totalAno = estatisticasAno.total;
+  const mediaAnual = estatisticasAno.media;
   
   const { toast } = useToast();
 

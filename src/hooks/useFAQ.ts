@@ -1,6 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useMemo, useCallback } from 'react';
 
 export interface FAQItem {
   id: string;
@@ -22,42 +20,118 @@ export interface FAQCategoria {
   count: number;
 }
 
+// FAQs estáticas para o portal
+const FAQ_DATA: FAQItem[] = [
+  {
+    id: '1',
+    pergunta: 'Como solicitar férias?',
+    resposta: 'Acesse o menu Férias, verifique seu saldo de dias disponíveis e clique em "Solicitar Férias". Preencha o período desejado e aguarde a aprovação do seu gestor.',
+    categoria: 'ferias',
+    tags: ['férias', 'solicitação', 'descanso'],
+    ordem: 1,
+    destaque: true,
+    visualizacoes: 150,
+    utilidade_positiva: 45,
+    utilidade_negativa: 2,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '2',
+    pergunta: 'Onde encontro meus holerites?',
+    resposta: 'Seus holerites estão disponíveis no menu "Holerites". Você pode visualizar, baixar em PDF e consultar o histórico de todos os meses.',
+    categoria: 'financeiro',
+    tags: ['holerite', 'pagamento', 'salário'],
+    ordem: 2,
+    destaque: true,
+    visualizacoes: 200,
+    utilidade_positiva: 60,
+    utilidade_negativa: 1,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '3',
+    pergunta: 'Como registrar o ponto pelo app?',
+    resposta: 'No menu Ponto, clique no botão de registro. O sistema capturará sua localização automaticamente. Lembre-se de estar dentro da área permitida.',
+    categoria: 'ponto',
+    tags: ['ponto', 'registro', 'horário'],
+    ordem: 3,
+    destaque: true,
+    visualizacoes: 180,
+    utilidade_positiva: 55,
+    utilidade_negativa: 3,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '4',
+    pergunta: 'Como consultar meus benefícios?',
+    resposta: 'Acesse o menu Benefícios para ver seus planos de saúde, vale-refeição, vale-transporte e outros benefícios ativos, incluindo saldos e dependentes.',
+    categoria: 'beneficios',
+    tags: ['benefícios', 'plano saúde', 'vale'],
+    ordem: 4,
+    destaque: false,
+    visualizacoes: 120,
+    utilidade_positiva: 35,
+    utilidade_negativa: 1,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '5',
+    pergunta: 'Como abrir uma solicitação para o RH?',
+    resposta: 'No menu Solicitações, clique em "Nova Solicitação", escolha o tipo e descreva sua necessidade. Você pode anexar documentos e acompanhar o status.',
+    categoria: 'rh',
+    tags: ['solicitação', 'rh', 'atendimento'],
+    ordem: 5,
+    destaque: false,
+    visualizacoes: 90,
+    utilidade_positiva: 25,
+    utilidade_negativa: 2,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '6',
+    pergunta: 'Como justificar uma falta ou atraso?',
+    resposta: 'Na página de Ponto, localize o dia com pendência e clique em "Justificar". Preencha o motivo e anexe documentos comprobatórios se necessário.',
+    categoria: 'ponto',
+    tags: ['justificativa', 'falta', 'atraso'],
+    ordem: 6,
+    destaque: false,
+    visualizacoes: 85,
+    utilidade_positiva: 28,
+    utilidade_negativa: 1,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '7',
+    pergunta: 'Onde baixo meu informe de rendimentos?',
+    resposta: 'O informe de rendimentos está disponível no menu Documentos, geralmente a partir de fevereiro de cada ano, referente ao ano anterior.',
+    categoria: 'documentos',
+    tags: ['informe', 'rendimentos', 'IR'],
+    ordem: 7,
+    destaque: false,
+    visualizacoes: 100,
+    utilidade_positiva: 30,
+    utilidade_negativa: 0,
+    created_at: '2025-01-01',
+  },
+  {
+    id: '8',
+    pergunta: 'Como acessar meus treinamentos obrigatórios?',
+    resposta: 'No menu Treinamentos você encontra todos os cursos atribuídos a você, com prazos e progresso. Treinamentos obrigatórios aparecem em destaque.',
+    categoria: 'treinamentos',
+    tags: ['treinamento', 'curso', 'capacitação'],
+    ordem: 8,
+    destaque: false,
+    visualizacoes: 75,
+    utilidade_positiva: 22,
+    utilidade_negativa: 1,
+    created_at: '2025-01-01',
+  },
+];
+
 export function useFAQ() {
-  const { user } = useAuth();
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('todos');
-
-  // Fetch all FAQs
-  const fetchFAQs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
-        .from('faq')
-        .select('*')
-        .eq('ativo', true)
-        .order('destaque', { ascending: false })
-        .order('ordem', { ascending: true })
-        .order('visualizacoes', { ascending: false });
-
-      if (fetchError) throw fetchError;
-
-      setFaqs(data || []);
-    } catch (err: any) {
-      console.error('Erro ao carregar FAQs:', err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFAQs();
-  }, [fetchFAQs]);
+  const [faqs] = useState<FAQItem[]>(FAQ_DATA);
 
   // Categorias disponíveis
   const categorias = useMemo<FAQCategoria[]>(() => {
@@ -116,46 +190,14 @@ export function useFAQ() {
     return faqs.filter(faq => faq.destaque).slice(0, 5);
   }, [faqs]);
 
-  // Incrementar visualização
-  const incrementarVisualizacao = useCallback(async (faqId: string) => {
-    try {
-      await supabase.rpc('fn_faq_incrementar_view', { p_faq_id: faqId });
-      
-      // Atualizar localmente
-      setFaqs(prev => prev.map(faq =>
-        faq.id === faqId
-          ? { ...faq, visualizacoes: faq.visualizacoes + 1 }
-          : faq
-      ));
-    } catch (err) {
-      console.error('Erro ao incrementar visualização:', err);
-    }
+  // Incrementar visualização (no-op para dados estáticos)
+  const incrementarVisualizacao = useCallback(async (_faqId: string) => {
+    // No-op para dados estáticos
   }, []);
 
-  // Registrar utilidade (foi útil ou não)
-  const registrarUtilidade = useCallback(async (faqId: string, util: boolean) => {
-    try {
-      await supabase.rpc('fn_faq_registrar_utilidade', {
-        p_faq_id: faqId,
-        p_util: util,
-      });
-
-      // Atualizar localmente
-      setFaqs(prev => prev.map(faq =>
-        faq.id === faqId
-          ? {
-              ...faq,
-              utilidade_positiva: util ? faq.utilidade_positiva + 1 : faq.utilidade_positiva,
-              utilidade_negativa: !util ? faq.utilidade_negativa + 1 : faq.utilidade_negativa,
-            }
-          : faq
-      ));
-
-      return { success: true };
-    } catch (err: any) {
-      console.error('Erro ao registrar utilidade:', err);
-      return { success: false, error: err.message };
-    }
+  // Registrar utilidade (no-op para dados estáticos)
+  const registrarUtilidade = useCallback(async (_faqId: string, _util: boolean) => {
+    return { success: true };
   }, []);
 
   // Buscar FAQ por ID
@@ -163,7 +205,7 @@ export function useFAQ() {
     return faqs.find(faq => faq.id === id);
   }, [faqs]);
 
-  // Buscar FAQs relacionadas (mesma categoria ou tags em comum)
+  // Buscar FAQs relacionadas
   const getFAQsRelacionadas = useCallback((faqId: string, limit = 3) => {
     const faq = faqs.find(f => f.id === faqId);
     if (!faq) return [];
@@ -186,8 +228,8 @@ export function useFAQ() {
     totalFaqs: faqs.length,
     
     // Estado
-    isLoading,
-    error,
+    isLoading: false,
+    error: null,
     searchTerm,
     categoriaAtiva,
     
@@ -196,7 +238,7 @@ export function useFAQ() {
     setCategoriaAtiva,
     
     // Actions
-    refetch: fetchFAQs,
+    refetch: async () => {},
     incrementarVisualizacao,
     registrarUtilidade,
     getFAQById,

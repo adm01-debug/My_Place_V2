@@ -42,12 +42,14 @@ describe('OfflineIndicator', () => {
 describe('StatCard', () => {
   it('deve renderizar com props corretas', async () => {
     const { StatCard } = await import('@/components/portal/StatCard');
+    const { FileText } = await import('lucide-react');
     
     render(
       <StatCard 
-        title="Teste" 
+        icon={FileText}
+        label="Teste" 
         value="100" 
-        subtitle="subtítulo" 
+        subValue="subtítulo" 
       />,
       { wrapper: RouterWrapper }
     );
@@ -84,14 +86,17 @@ describe('Skeletons', () => {
 // =====================================================
 
 describe('AlertCard', () => {
-  it('deve renderizar com variante info', async () => {
+  it('deve renderizar com alerta info', async () => {
     const { AlertCard } = await import('@/components/portal/AlertCard');
     
     render(
       <AlertCard 
-        variant="info"
-        title="Informação"
-        description="Descrição teste"
+        alerta={{
+          id: '1',
+          tipo: 'info',
+          titulo: 'Informação',
+          descricao: 'Descrição teste',
+        }}
       />
     );
     
@@ -99,38 +104,43 @@ describe('AlertCard', () => {
     expect(screen.getByText('Descrição teste')).toBeDefined();
   });
 
-  it('deve renderizar com variante warning', async () => {
+  it('deve renderizar com alerta warning', async () => {
     const { AlertCard } = await import('@/components/portal/AlertCard');
     
     render(
       <AlertCard 
-        variant="warning"
-        title="Atenção"
-        description="Cuidado!"
+        alerta={{
+          id: '2',
+          tipo: 'warning',
+          titulo: 'Atenção',
+          descricao: 'Cuidado!',
+        }}
       />
     );
     
     expect(screen.getByText('Atenção')).toBeDefined();
   });
 
-  it('deve chamar onAction quando botão clicado', async () => {
+  it('deve renderizar com ação', async () => {
     const { AlertCard } = await import('@/components/portal/AlertCard');
-    const onAction = vi.fn();
     
     render(
       <AlertCard 
-        variant="info"
-        title="Teste"
-        description="Desc"
-        actionLabel="Clique"
-        onAction={onAction}
-      />
+        alerta={{
+          id: '3',
+          tipo: 'info',
+          titulo: 'Teste',
+          descricao: 'Desc',
+          acao: {
+            label: 'Clique',
+            link: '/teste',
+          },
+        }}
+      />,
+      { wrapper: RouterWrapper }
     );
     
-    const button = screen.getByText('Clique');
-    fireEvent.click(button);
-    
-    expect(onAction).toHaveBeenCalled();
+    expect(screen.getByText('Clique')).toBeDefined();
   });
 });
 

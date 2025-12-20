@@ -20,13 +20,9 @@ export interface Holerite {
   user_id: string;
   mes: number;
   ano: number;
-  salario_base: number;
   salario_bruto: number;
   salario_liquido: number;
   descontos: number;
-  horas_trabalhadas: number;
-  horas_extras: number;
-  faltas: number;
   pdf_url: string | null;
   detalhes: HoleriteDetalhes | null;
   created_at: string;
@@ -56,7 +52,12 @@ export function useHolerites() {
         .order('mes', { ascending: false });
 
       if (error) throw error;
-      setHolerites(data as Holerite[] || []);
+      // Map database response to Holerite interface
+      const mappedHolerites = (data || []).map((h: any) => ({
+        ...h,
+        detalhes: h.detalhes as HoleriteDetalhes | null,
+      })) as Holerite[];
+      setHolerites(mappedHolerites);
     } catch (err: any) {
       console.error('Erro ao buscar holerites:', err);
       toast({ title: 'Erro ao carregar holerites', description: err.message, variant: 'destructive' });
