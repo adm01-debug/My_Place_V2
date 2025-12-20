@@ -1,178 +1,146 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface ItemHolerite {
-  codigo?: string;
+export interface HoleriteItem {
+  codigo: string;
   descricao: string;
-  referencia?: string;
+  referencia: string;
   valor: number;
 }
 
-interface DetalhesHolerite {
-  proventos?: ItemHolerite[];
-  descontos?: ItemHolerite[];
-  baseInss?: number;
-  baseIrrf?: number;
-  fgtsMes?: number;
+export interface HoleriteDetalhes {
+  proventos: HoleriteItem[];
+  descontos: HoleriteItem[];
 }
 
-interface Holerite {
+export interface Holerite {
   id: string;
+  user_id: string;
   mes: number;
   ano: number;
+  salario_base: number;
   salario_bruto: number;
-  descontos: number;
   salario_liquido: number;
-  detalhes: DetalhesHolerite | null;
+  descontos: number;
+  horas_trabalhadas: number;
+  horas_extras: number;
+  faltas: number;
   pdf_url: string | null;
+  detalhes: HoleriteDetalhes | null;
   created_at: string;
 }
 
-interface HoleritesData {
-  holerites: Holerite[];
-  ultimoHolerite: Holerite | null;
-  totalAno: number;
-  mediaAnual: number;
-}
+const mesesNomes = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
 
-export function useHolerites(ano?: number) {
-  const anoAtual = ano || new Date().getFullYear();
-  const [data, setData] = useState<HoleritesData>({
-    holerites: [],
-    ultimoHolerite: null,
-    totalAno: 0,
-    mediaAnual: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+export function useHolerites() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [holerites, setHolerites] = useState<Holerite[]>([]);
 
-  const fetchHolerites = async () => {
+  const fetchHolerites = useCallback(async () => {
     if (!user) return;
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('holerites')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('ano', { ascending: false })
+        .order('mes', { ascending: false });
 
-    setIsLoading(true);
-    
-    const { data: holeriteData, error } = await supabase
-      .from('holerites')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('ano', { ascending: false })
-      .order('mes', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching holerites:', error);
-      toast({
-        title: 'Erro ao carregar holerites',
-        description: error.message,
-        variant: 'destructive',
-      });
+      if (error) throw error;
+      setHolerites(data as Holerite[] || []);
+    } catch (err: any) {
+      console.error('Erro ao buscar holerites:', err);
+      toast({ title: 'Erro ao carregar holerites', description: err.message, variant: 'destructive' });
+    } finally {
       setIsLoading(false);
-      return;
     }
+  }, [user, toast]);
 
-    const holerites = (holeriteData || []) as Holerite[];
-    
-    // Último holerite
-    const ultimoHolerite = holerites[0] || null;
+  const ultimoHolerite = useMemo(() => holerites[0] || null, [holerites]);
 
-    // Calcular totais do ano atual
-    const holeritesAno = holerites.filter(h => h.ano === anoAtual);
-    const totalAno = holeritesAno.reduce((acc, h) => acc + h.salario_liquido, 0);
-    const mediaAnual = holeritesAno.length > 0 ? totalAno / holeritesAno.length : 0;
-
-    setData({
-      holerites,
-      ultimoHolerite,
-      totalAno,
-      mediaAnual,
-    });
-
-    setIsLoading(false);
-  };
+  const estatisticasAno = useMemo(() => {
+    const anoAtual = new Date().getFullYear();
+    const holeriteAno = holerites.filter(h => h.ano === anoAtual);
+    if (holeriteAno.length === 0) return { total: 0, media: 0, meses: 0 };
+    const total = holeriteAno.reduce((acc, h) => acc + h.salario_liquido, 0);
+    return { total, media: total / holeriteAno.length, meses: holeriteAno.length };
+  }, [holerites]);
 
   const downloadPdf = async (holerite: Holerite) => {
-    if (!holerite.pdf_url) {
-      toast({
-        title: 'PDF não disponível',
-        description: 'O PDF deste holerite ainda não foi gerado.',
-        variant: 'destructive',
-      });
-      return { success: false, error: 'PDF não disponível' };
-    }
-
-    try {
-      // Se é URL do Supabase Storage
-      if (holerite.pdf_url.includes('supabase')) {
-        const path = holerite.pdf_url.split('/').pop();
-        if (path) {
-          const { data, error } = await supabase.storage
-            .from('documentos')
-            .createSignedUrl(path, 3600);
-
-          if (error) throw error;
-          window.open(data.signedUrl, '_blank');
-          return { success: true };
+    if (holerite.pdf_url) {
+      try {
+        if (holerite.pdf_url.includes('supabase')) {
+          const path = holerite.pdf_url.split('/').pop();
+          if (path) {
+            const { data, error } = await supabase.storage.from('documentos').createSignedUrl(path, 3600);
+            if (error) throw error;
+            window.open(data.signedUrl, '_blank');
+            return { success: true };
+          }
         }
-      }
+        window.open(holerite.pdf_url, '_blank');
+        return { success: true };
+      } catch (err) { console.error('Erro ao baixar PDF:', err); }
+    }
 
-      // URL externa
-      window.open(holerite.pdf_url, '_blank');
+    setIsGeneratingPdf(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gerar-holerite-pdf`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+          body: JSON.stringify({ holerite_id: holerite.id }),
+        }
+      );
+      if (!response.ok) throw new Error((await response.json()).error || 'Erro ao gerar PDF');
+      const result = await response.json();
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(result.html);
+        printWindow.document.close();
+        printWindow.onload = () => printWindow.print();
+      }
+      toast({ title: 'PDF gerado', description: 'Use Ctrl+P para salvar como PDF.' });
       return { success: true };
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao baixar PDF',
-        description: error.message,
-        variant: 'destructive',
-      });
-      return { success: false, error: error.message };
+    } catch (err: any) {
+      toast({ title: 'Erro ao gerar PDF', description: err.message, variant: 'destructive' });
+      return { success: false, error: err.message };
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
-  const getHoleritesAno = (year: number): Holerite[] => {
-    return data.holerites.filter(h => h.ano === year);
-  };
+  const getHoleritesAno = useCallback((ano: number) => holerites.filter(h => h.ano === ano), [holerites]);
+  const getHoleriteMes = useCallback((mes: number, ano: number) => holerites.find(h => h.mes === mes && h.ano === ano), [holerites]);
+  const getAnosDisponiveis = useCallback(() => [...new Set(holerites.map(h => h.ano))].sort((a, b) => b - a), [holerites]);
+  const getMesNome = (mes: number) => mesesNomes[mes - 1] || '';
 
-  const getHoleriteMes = (mes: number, year: number): Holerite | undefined => {
-    return data.holerites.find(h => h.mes === mes && h.ano === year);
-  };
-
-  const getAnosDisponiveis = (): number[] => {
-    const anos = [...new Set(data.holerites.map(h => h.ano))];
-    return anos.sort((a, b) => b - a);
-  };
-
-  // Calcular totais de proventos e descontos
   const calcularTotais = (holerite: Holerite) => {
-    const proventos = holerite.detalhes?.proventos || [];
-    const descontos = holerite.detalhes?.descontos || [];
-
-    const totalProventos = proventos.reduce((acc, p) => acc + p.valor, 0);
-    const totalDescontos = descontos.reduce((acc, d) => acc + d.valor, 0);
-
+    const { proventos = [], descontos = [] } = holerite.detalhes || {};
     return {
-      totalProventos: totalProventos || holerite.salario_bruto,
-      totalDescontos: totalDescontos || holerite.descontos,
+      totalProventos: proventos.reduce((acc, p) => acc + p.valor, 0) || holerite.salario_bruto,
+      totalDescontos: descontos.reduce((acc, d) => acc + d.valor, 0) || holerite.descontos,
       liquido: holerite.salario_liquido,
     };
   };
 
-  useEffect(() => {
-    fetchHolerites();
-  }, [user]);
+  useEffect(() => { fetchHolerites(); }, [fetchHolerites]);
 
   return {
-    holerites: data.holerites,
-    ultimoHolerite: data.ultimoHolerite,
-    totalAno: data.totalAno,
-    mediaAnual: data.mediaAnual,
-    isLoading,
-    downloadPdf,
-    getHoleritesAno,
-    getHoleriteMes,
-    getAnosDisponiveis,
-    calcularTotais,
+    holerites, ultimoHolerite, estatisticasAno,
+    isLoading, isGeneratingPdf,
+    downloadPdf, getHoleritesAno, getHoleriteMes, getAnosDisponiveis, getMesNome, calcularTotais,
     refetch: fetchHolerites,
   };
 }
