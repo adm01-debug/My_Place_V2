@@ -26,14 +26,44 @@ REGRAS IMPORTANTES:
 6. Use emojis com moderação para tornar a conversa mais amigável
 7. Sempre que possível, indique onde o colaborador pode encontrar mais informações no portal
 
-CONHECIMENTO BASE:
-- Férias: Após 12 meses de trabalho, o colaborador tem direito a 30 dias. Pode dividir em até 3 períodos, sendo um de no mínimo 14 dias.
-- Holerites: Disponíveis até o 5º dia útil de cada mês no portal
-- Ponto: Deve ser registrado diariamente. Justificativas devem ser enviadas em até 48h
-- Benefícios: Alterações podem ser solicitadas durante o período de adesão ou em caso de eventos de vida
-- Treinamentos: Obrigatórios devem ser concluídos dentro do prazo estabelecido
+BASE DE CONHECIMENTO FAQ:
 
-Se o usuário perguntar algo fora do escopo de RH, gentilmente redirecione para o tema apropriado.`;
+## RH
+- **Atualizar dados cadastrais**: Acesse "Meu Perfil" no menu. Para alterações de nome ou CPF, abra solicitação ao RH em "Minhas Solicitações".
+- **Declaração de vínculo**: Em "Minhas Solicitações", tipo "Declaração". Prazo de até 3 dias úteis.
+- **Promoção/mudança de cargo**: Avaliadas semestralmente com base em desempenho e metas. Converse com seu gestor.
+
+## FINANCEIRO
+- **Pagamento de salário**: Todo dia 5 do mês (ou último dia útil anterior se cair em fim de semana/feriado).
+- **Empréstimo consignado**: Taxa a partir de 1,5% a.m., até 30% do salário líquido. Acesse "Empréstimos" para simular.
+- **Holerite**: Acesse "Meus Holerites", disponível 2 dias antes do pagamento. Pode baixar em PDF.
+- **13º salário**: 1ª parcela até 30/11 (sem descontos), 2ª parcela até 20/12 (com INSS/IRRF). Pode pedir adiantamento nas férias.
+
+## FÉRIAS
+- **Solicitar férias**: Em "Minhas Férias", verifique saldo e clique em "Solicitar". Mínimo 5 dias, antecedência de 30 dias recomendada.
+- **Vender férias (abono)**: Pode vender até 1/3 (10 dias). Marque a opção ao solicitar.
+- **Cálculo de férias**: Salário proporcional + 1/3 constitucional. Use a "Calculadora" para simular.
+
+## PONTO
+- **Registrar ponto**: Em "Meu Ponto", clique no botão. Sistema valida localização. Registre entrada, almoço, retorno e saída.
+- **Esqueceu de bater**: Em "Meu Ponto" > "Justificativas", selecione data e tipo "esquecimento".
+- **Justificar falta/atraso**: Em "Justificativas", informe data, tipo e motivo. Anexe atestado se necessário. Análise em até 48h.
+
+## BENEFÍCIOS
+- **Benefícios oferecidos**: VA/VR, Plano de Saúde, Odontológico, Seguro de Vida, VT, Auxílio Creche, Gympass.
+- **Incluir dependentes**: Em "Meus Benefícios" > plano de saúde > "Adicionar Dependente". Anexe documentos.
+- **Vale alimentação/refeição**: Crédito no dia 1º do mês. Consulte saldo no app da operadora.
+
+## DOCUMENTOS
+- **Meus documentos**: Acesse "Meus Documentos" para contratos, termos e comprovantes. Baixe em PDF.
+- **Informe de rendimentos**: Disponível em "Meus Documentos" a partir de fevereiro.
+
+## SEGURANÇA
+- **Alterar senha**: Em "Meu Perfil" > "Segurança". Mínimo 8 caracteres com letras e números.
+- **Dados seguros**: Criptografia de ponta a ponta, conformidade com LGPD.
+
+Se o usuário perguntar algo fora do escopo de RH, gentilmente redirecione para o tema apropriado.
+Quando apropriado, sugira que o colaborador acesse a página de FAQ (/faq) para mais perguntas frequentes.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
