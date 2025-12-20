@@ -10,31 +10,24 @@ describe('useFAQ', () => {
     vi.clearAllMocks();
   });
 
-  it('deve inicializar com loading true', async () => {
+  it('deve inicializar com loading false (dados estáticos)', async () => {
     const { useFAQ } = await import('@/hooks/useFAQ');
     const { result } = renderHook(() => useFAQ());
     
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('deve ter categorias padrão', async () => {
     const { useFAQ } = await import('@/hooks/useFAQ');
     const { result } = renderHook(() => useFAQ());
     
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-    
     expect(result.current.categorias).toBeDefined();
+    expect(result.current.categorias.length).toBeGreaterThan(0);
   });
 
   it('deve filtrar por termo de busca', async () => {
     const { useFAQ } = await import('@/hooks/useFAQ');
     const { result } = renderHook(() => useFAQ());
-    
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
     
     result.current.setSearchTerm('férias');
     expect(result.current.searchTerm).toBe('férias');
@@ -110,13 +103,9 @@ describe('useHolerites', () => {
       user_id: 'test',
       mes: 12,
       ano: 2025,
-      salario_base: 5000,
       salario_bruto: 6000,
       salario_liquido: 4500,
       descontos: 1500,
-      horas_trabalhadas: 176,
-      horas_extras: 0,
-      faltas: 0,
       pdf_url: null,
       detalhes: null,
       created_at: '2025-12-01',
@@ -140,10 +129,10 @@ describe('useFerias', () => {
       expect(result.current.isLoading).toBe(false);
     });
     
-    expect(result.current.saldo).toBeDefined();
+    expect(result.current.saldoTotal).toBeDefined();
   });
 
-  it('deve ter histórico vazio inicialmente', async () => {
+  it('deve ter função getHistorico', async () => {
     const { useFerias } = await import('@/hooks/useFerias');
     const { result } = renderHook(() => useFerias());
     
@@ -151,7 +140,7 @@ describe('useFerias', () => {
       expect(result.current.isLoading).toBe(false);
     });
     
-    expect(result.current.historico).toEqual([]);
+    expect(result.current.getHistorico()).toEqual([]);
   });
 });
 
@@ -199,7 +188,7 @@ describe('useBeneficios', () => {
     expect(result.current.beneficios).toEqual([]);
   });
 
-  it('deve ter resumo com valores zerados', async () => {
+  it('deve ter resumoDescontos', async () => {
     const { useBeneficios } = await import('@/hooks/useBeneficios');
     const { result } = renderHook(() => useBeneficios());
     
@@ -207,8 +196,8 @@ describe('useBeneficios', () => {
       expect(result.current.isLoading).toBe(false);
     });
     
-    expect(result.current.resumo).toBeDefined();
-    expect(result.current.resumo.totalMensal).toBe(0);
+    expect(result.current.resumoDescontos).toBeDefined();
+    expect(result.current.resumoDescontos.total).toBe(0);
   });
 });
 
@@ -228,10 +217,11 @@ describe('useRegistrosPonto', () => {
     expect(result.current.registros).toEqual([]);
   });
 
-  it('não deve estar registrando inicialmente', async () => {
+  it('deve ter função formatarHoras', async () => {
     const { useRegistrosPonto } = await import('@/hooks/useRegistrosPonto');
     const { result } = renderHook(() => useRegistrosPonto());
     
-    expect(result.current.isRegistering).toBe(false);
+    expect(result.current.formatarHoras(60)).toBe('+1:00');
+    expect(result.current.formatarHoras(-30)).toBe('-0:30');
   });
 });

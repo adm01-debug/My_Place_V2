@@ -51,9 +51,5 @@ export { useBiometricAuth } from './useBiometricAuth';
 export { useAssistenteRH } from './useAssistenteRH';
 
 // Re-exports úteis
-export type { Beneficio, DependenteBeneficio } from './useBeneficios';
-export type { Treinamento, TreinamentoColaborador } from './useTreinamentos';
-export type { Documento } from './useDocumentos';
-export type { Comunicado } from './useComunicados';
 export type { Holerite, HoleriteDetalhes } from './useHolerites';
 export type { FAQItem, FAQCategoria } from './useFAQ';
