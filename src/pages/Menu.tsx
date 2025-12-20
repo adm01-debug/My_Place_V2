@@ -1,7 +1,7 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp, Moon, Sun, Download, Smartphone
+  TrendingUp, Moon, Sun, Download, Smartphone, Shield
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -13,6 +13,7 @@ import { MenuItemSkeleton } from '@/components/portal/Skeletons';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { cn } from '@/lib/utils';
 
 interface MenuItemProps {
@@ -100,6 +101,7 @@ export default function Menu() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { isInstallable, isInstalled, install } = usePWAInstall();
+  const { isAdmin } = useUserRoles();
   const isLoading = useLoadingState(600);
 
   const handleLogout = async () => {
@@ -194,6 +196,17 @@ export default function Menu() {
             </div>
           </Card>
         </div>
+
+        {/* Admin Panel Link */}
+        {isAdmin && (
+          <div className="animate-fade-in-up">
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-destructive" />
+              Administração
+            </h3>
+            <MenuItem icon={Shield} label="Painel Admin" to="/admin" color="text-destructive" />
+          </div>
+        )}
 
         {menuSections.map((section, sectionIndex) => (
           <div key={section.title} className={`animate-fade-in-up stagger-${sectionIndex + 1}`}>
