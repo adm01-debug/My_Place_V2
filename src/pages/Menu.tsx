@@ -1,7 +1,7 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3
+  TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -72,6 +72,7 @@ const menuSections = [
       { icon: TrendingUp, label: 'Remuneração Variável', to: '/variavel', color: 'text-finance' },
       { icon: CreditCard, label: 'Empréstimos', to: '/emprestimos', color: 'text-finance' },
       { icon: Gift, label: 'Meus Benefícios', to: '/beneficios', color: 'text-marketing' },
+      { icon: Calculator, label: 'Calculadora', to: '/calculadora', color: 'text-primary' },
     ],
   },
   {
