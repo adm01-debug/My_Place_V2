@@ -92,7 +92,7 @@ const menuSections = [
   {
     title: 'Ajuda',
     items: [
-      { icon: HelpCircle, label: 'Ajuda e FAQ', to: '/ajuda', color: 'text-muted-foreground' },
+      { icon: HelpCircle, label: 'FAQ', to: '/faq', color: 'text-muted-foreground' },
     ],
   },
 ];
