@@ -77,11 +77,11 @@ export function useRemuneracaoVariavel(ano?: number) {
 
     // Fetch remunerações do ano
     const { data: remuneracoesData, error: remError } = await supabase
-      .from('remuneracao_variavel')
+      .from('remuneracao_variavel' as any)
       .select('*')
       .eq('user_id', user.id)
       .eq('ano', anoAtual)
-      .order('mes', { ascending: false });
+      .order('mes', { ascending: false }) as { data: any[] | null; error: any };
 
     if (remError) {
       console.error('Error fetching remuneracao:', remError);
@@ -98,9 +98,9 @@ export function useRemuneracaoVariavel(ano?: number) {
     const remuneracoesWithItens = await Promise.all(
       (remuneracoesData || []).map(async (rem) => {
         const { data: itensData } = await supabase
-          .from('itens_remuneracao')
+          .from('itens_remuneracao' as any)
           .select('*')
-          .eq('remuneracao_id', rem.id);
+          .eq('remuneracao_id', rem.id) as { data: any[] | null };
 
         return {
           ...rem,

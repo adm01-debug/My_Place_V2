@@ -131,12 +131,12 @@ export function useDashboard() {
 
       // 6. Remuneração variável do mês
       const { data: remuneracao } = await supabase
-        .from('remuneracao_variavel')
+        .from('remuneracao_variavel' as any)
         .select('total')
         .eq('user_id', user.id)
         .eq('mes', mesAtual)
         .eq('ano', anoAtual)
-        .single();
+        .single() as { data: any };
 
       // 7. Empréstimo ativo
       const { data: emprestimo } = await supabase
@@ -149,21 +149,21 @@ export function useDashboard() {
 
       // 8. Comunicados recentes
       const { data: comunicados } = await supabase
-        .from('comunicados')
+        .from('comunicados' as any)
         .select(`
           id, titulo, resumo, categoria, data_publicacao, importante,
           comunicados_lidos!left(id)
         `)
         .eq('ativo', true)
         .order('data_publicacao', { ascending: false })
-        .limit(3);
+        .limit(3) as { data: any[] | null };
 
       // 9. Notificações não lidas
       const { count: notificacoesCount } = await supabase
-        .from('notificacoes')
+        .from('notificacoes' as any)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('lida', false);
+        .eq('lida', false) as { count: number | null };
 
       // 10. Solicitações pendentes
       const { count: solicitacoesCount } = await supabase
@@ -174,10 +174,10 @@ export function useDashboard() {
 
       // 11. Treinamentos pendentes
       const { count: treinamentosCount } = await supabase
-        .from('treinamentos_colaborador')
+        .from('treinamentos_colaborador' as any)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('status', 'pendente');
+        .eq('status', 'pendente') as { count: number | null };
 
       // Calcular horas trabalhadas
       const calcularHoras = (registros: any[] | null): string => {
@@ -228,7 +228,7 @@ export function useDashboard() {
       }
 
       // Processar comunicados
-      const comunicadosProcessados: ComunicadoResumo[] = (comunicados || []).map(c => ({
+      const comunicadosProcessados: ComunicadoResumo[] = (comunicados || []).map((c: any) => ({
         id: c.id,
         titulo: c.titulo,
         resumo: c.resumo,
@@ -295,208 +295,4 @@ export function useDashboard() {
     isLoading,
     refetch: fetchDashboard,
   };
-}
-    emprestimoAtivo: null,
-    alertas: [],
-    comunicados: [],
-    notificacoesNaoLidas: 0,
-    solicitacoesPendentes: 0,
-    treinamentosPendentes: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, profile } = useAuth();
-  const { toast } = useToast();
-
-  const fetchDashboardData = async () => {
-    if (!user) return;
-    setIsLoading(true);
-
-    try {
-      const mesAtual = new Date().getMonth() + 1;
-      const anoAtual = new Date().getFullYear();
-      const inicioMes = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-      const fimMes = format(endOfMonth(new Date()), 'yyyy-MM-dd');
-      const hoje = format(new Date(), 'yyyy-MM-dd');
-
-      // 1. Último holerite
-      const { data: holerite } = await supabase
-        .from('holerites')
-        .select('mes, ano, salario_liquido')
-        .eq('user_id', user.id)
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false })
-        .limit(1)
-        .single();
-
-      // 2. Registros de ponto do mês
-      const { data: registrosPonto } = await supabase
-        .from('registros_ponto')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('data_hora', `${inicioMes}T00:00:00`)
-        .lte('data_hora', `${fimMes}T23:59:59`)
-        .order('data_hora', { ascending: true });
-
-      let minutosMes = 0;
-      let minutosHoje = 0;
-      const pontosPorDia: Record<string, any[]> = {};
-
-      (registrosPonto || []).forEach(registro => {
-        const dia = format(new Date(registro.data_hora), 'yyyy-MM-dd');
-        if (!pontosPorDia[dia]) pontosPorDia[dia] = [];
-        pontosPorDia[dia].push(registro);
-      });
-
-      Object.entries(pontosPorDia).forEach(([dia, pontos]) => {
-        const entradas = pontos.filter(p => p.tipo === 'entrada');
-        const saidas = pontos.filter(p => p.tipo === 'saida');
-        for (let i = 0; i < entradas.length; i++) {
-          const entrada = new Date(entradas[i].data_hora);
-          const saida = saidas[i] ? new Date(saidas[i].data_hora) : (dia === hoje ? new Date() : null);
-          if (saida) {
-            const mins = differenceInMinutes(saida, entrada);
-            minutosMes += mins;
-            if (dia === hoje) minutosHoje += mins;
-          }
-        }
-      });
-
-      const formatHoras = (mins: number) => {
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        return `${h}:${String(m).padStart(2, '0')}`;
-      };
-
-      // 3. Férias
-      const { data: ferias } = await supabase
-        .from('ferias')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'aprovado')
-        .gte('data_inicio', hoje)
-        .order('data_inicio', { ascending: true })
-        .limit(1);
-
-      const { data: feriasUsadas } = await supabase
-        .from('ferias')
-        .select('dias_solicitados')
-        .eq('user_id', user.id)
-        .in('status', ['aprovado', 'concluido']);
-
-      const diasUsados = (feriasUsadas || []).reduce((acc, f) => acc + f.dias_solicitados, 0);
-      const saldoFerias = Math.max(0, 30 - (diasUsados % 30));
-
-      // 4. Remuneração variável
-      const { data: remuneracao } = await supabase
-        .from('remuneracao_variavel')
-        .select('total')
-        .eq('user_id', user.id)
-        .eq('mes', mesAtual)
-        .eq('ano', anoAtual)
-        .single();
-
-      // 5. Empréstimo ativo
-      const { data: emprestimo } = await supabase
-        .from('emprestimos')
-        .select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela')
-        .eq('user_id', user.id)
-        .eq('status', 'ativo')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      // 6. Contadores
-      const { count: notificacoesCount } = await supabase
-        .from('notificacoes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('lida', false);
-
-      const { count: solicitacoesCount } = await supabase
-        .from('solicitacoes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .in('status', ['pendente', 'em_analise']);
-
-      // 7. Comunicados
-      const { data: comunicados } = await supabase
-        .from('comunicados')
-        .select('id, titulo, resumo, categoria, data_publicacao, importante, comunicados_lidos!left(id)')
-        .eq('ativo', true)
-        .order('data_publicacao', { ascending: false })
-        .limit(3);
-
-      // 8. Alertas dinâmicos
-      const alertas: Alerta[] = [];
-      const pontosHoje = pontosPorDia[hoje] || [];
-      const entradasHoje = pontosHoje.filter(p => p.tipo === 'entrada').length;
-      const horaAtual = new Date().getHours();
-
-      if (horaAtual >= 9 && entradasHoje === 0) {
-        alertas.push({
-          id: 'ponto-hoje',
-          tipo: 'warning',
-          titulo: 'Ponto não registrado',
-          descricao: 'Você ainda não registrou entrada hoje',
-          acao: { label: 'Registrar', link: '/ponto' },
-        });
-      }
-
-      if (saldoFerias >= 25) {
-        alertas.push({
-          id: 'ferias-vencendo',
-          tipo: 'info',
-          titulo: 'Férias disponíveis',
-          descricao: `Você tem ${saldoFerias} dias de férias disponíveis`,
-          acao: { label: 'Solicitar', link: '/ferias' },
-        });
-      }
-
-      setData({
-        colaborador: profile ? {
-          id: profile.id,
-          nome: profile.nome,
-          cargo: profile.cargo,
-          departamento: profile.departamento,
-          avatar_url: profile.avatar_url,
-          matricula: profile.matricula,
-        } : null,
-        salarioEstimado: holerite?.salario_liquido || 0,
-        ultimoHolerite: holerite ? { mes: holerite.mes, ano: holerite.ano, liquido: holerite.salario_liquido } : null,
-        horasTrabalhadas: formatHoras(minutosMes),
-        horasHoje: formatHoras(minutosHoje),
-        bancoHoras: '+0:00',
-        saldoFerias,
-        proximasFerias: ferias?.[0] ? { data_inicio: ferias[0].data_inicio, dias: ferias[0].dias_solicitados } : null,
-        comissaoMes: remuneracao?.total || 0,
-        emprestimoAtivo: emprestimo ? {
-          saldo_devedor: emprestimo.saldo_devedor,
-          parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas,
-          proxima_parcela: emprestimo.valor_parcela,
-        } : null,
-        alertas,
-        comunicados: (comunicados || []).map(c => ({
-          id: c.id,
-          titulo: c.titulo,
-          resumo: c.resumo,
-          categoria: c.categoria,
-          data_publicacao: c.data_publicacao,
-          lido: Array.isArray(c.comunicados_lidos) && c.comunicados_lidos.length > 0,
-          importante: c.importante,
-        })),
-        notificacoesNaoLidas: notificacoesCount || 0,
-        solicitacoesPendentes: solicitacoesCount || 0,
-        treinamentosPendentes: 0,
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [user, profile]);
-
-  return { ...data, isLoading, refetch: fetchDashboardData };
 }

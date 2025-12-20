@@ -34,10 +34,10 @@ export function useJustificativasPonto() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('justificativas_ponto')
+      .from('justificativas_ponto' as any)
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
     if (error) {
       console.error('Error fetching justificativas:', error);
@@ -62,16 +62,16 @@ export function useJustificativasPonto() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { data, error } = await supabase
-      .from('justificativas_ponto')
+      .from('justificativas_ponto' as any)
       .insert({
         registro_ponto_id: registroPontoId,
         user_id: user.id,
         motivo,
         descricao,
         anexo_url: anexoUrl || null,
-      })
+      } as any)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       return { success: false, error: error.message };
@@ -89,11 +89,11 @@ export function useJustificativasPonto() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('justificativas_ponto')
+      .from('justificativas_ponto' as any)
       .update({
         descricao,
         anexo_url: anexoUrl,
-      })
+      } as any)
       .eq('id', justificativaId)
       .eq('user_id', user.id)
       .eq('status', 'pendente');

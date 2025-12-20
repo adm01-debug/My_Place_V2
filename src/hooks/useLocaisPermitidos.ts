@@ -31,10 +31,10 @@ export function useLocaisPermitidos() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('locais_permitidos')
+      .from('locais_permitidos' as any)
       .select('*')
       .eq('ativo', true)
-      .order('nome');
+      .order('nome') as { data: any[] | null; error: any };
 
     if (error) {
       console.error('Error fetching locais:', error);
@@ -57,10 +57,10 @@ export function useLocaisPermitidos() {
   ): Promise<{ valido: boolean; local: ValidacaoLocal | null; todosLocais: ValidacaoLocal[] }> => {
     try {
       const { data, error } = await supabase
-        .rpc('fn_validar_localizacao', {
+        .rpc('fn_validar_localizacao' as any, {
           p_latitude: latitude,
           p_longitude: longitude,
-        });
+        }) as { data: any; error: any };
 
       if (error) {
         console.error('Error validating location:', error);
