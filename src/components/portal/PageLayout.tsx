@@ -1,7 +1,8 @@
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
 import { PullToRefresh } from '@/components/PullToRefresh';
+import { AssistenteVirtual, AssistenteButton } from './AssistenteVirtual';
 import { useToast } from '@/hooks/use-toast';
 
 interface PageLayoutProps {
@@ -14,6 +15,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, title, showBack = false, alertCount = 0, onRefresh }: PageLayoutProps) {
   const { toast } = useToast();
+  const [showAssistente, setShowAssistente] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     if (onRefresh) {
@@ -47,6 +49,15 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
       </main>
       
       <BottomNav />
+
+      {/* Assistente Virtual */}
+      {!showAssistente && (
+        <AssistenteButton onClick={() => setShowAssistente(true)} />
+      )}
+      <AssistenteVirtual 
+        isOpen={showAssistente} 
+        onClose={() => setShowAssistente(false)} 
+      />
     </div>
   );
 }
