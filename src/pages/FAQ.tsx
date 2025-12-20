@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, ChevronDown, MessageCircle, Briefcase, Wallet, Calendar, Clock, Gift, FileText, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, ChevronDown, MessageCircle, Briefcase, Wallet, Calendar, Clock, Gift, FileText, Shield, BookOpen, HelpCircle, ThumbsUp, ThumbsDown, Loader2, Sparkles } from 'lucide-react';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,333 +7,383 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useFAQ } from '@/hooks/useFAQ';
+import { useToast } from '@/hooks/use-toast';
 
-interface FAQItem {
-  id: string;
-  pergunta: string;
-  resposta: string;
-  categoria: string;
-  tags: string[];
-}
+const categoriaIcons: Record<string, any> = {
+  todos: Search,
+  rh: Briefcase,
+  financeiro: Wallet,
+  ferias: Calendar,
+  ponto: Clock,
+  beneficios: Gift,
+  documentos: FileText,
+  seguranca: Shield,
+  treinamentos: BookOpen,
+  geral: HelpCircle,
+};
 
-const categorias = [
-  { id: 'todos', label: 'Todos', icon: Search, color: 'text-primary' },
-  { id: 'rh', label: 'RH', icon: Briefcase, color: 'text-hr' },
-  { id: 'financeiro', label: 'Financeiro', icon: Wallet, color: 'text-finance' },
-  { id: 'ferias', label: 'Férias', icon: Calendar, color: 'text-projects' },
-  { id: 'ponto', label: 'Ponto', icon: Clock, color: 'text-primary' },
-  { id: 'beneficios', label: 'Benefícios', icon: Gift, color: 'text-marketing' },
-  { id: 'documentos', label: 'Documentos', icon: FileText, color: 'text-muted-foreground' },
-  { id: 'seguranca', label: 'Segurança', icon: Shield, color: 'text-destructive' },
-];
+const categoriaColors: Record<string, string> = {
+  rh: 'text-hr',
+  financeiro: 'text-finance',
+  ferias: 'text-projects',
+  ponto: 'text-primary',
+  beneficios: 'text-marketing',
+  documentos: 'text-muted-foreground',
+  seguranca: 'text-destructive',
+  treinamentos: 'text-primary',
+  geral: 'text-muted-foreground',
+};
 
-const faqData: FAQItem[] = [
-  // RH
-  {
-    id: '1',
-    pergunta: 'Como atualizar meus dados cadastrais?',
-    resposta: 'Acesse a página "Meu Perfil" no menu principal. Lá você pode atualizar informações como foto, telefone e endereço. Para alterações de dados pessoais como nome ou CPF, abra uma solicitação ao RH através do menu "Minhas Solicitações".',
-    categoria: 'rh',
-    tags: ['cadastro', 'perfil', 'dados pessoais']
-  },
-  {
-    id: '2',
-    pergunta: 'Como solicitar uma declaração de vínculo empregatício?',
-    resposta: 'Vá em "Minhas Solicitações" e selecione o tipo "Declaração". Preencha os dados necessários indicando a finalidade (banco, imobiliária, etc.). O prazo de entrega é de até 3 dias úteis e você será notificado quando estiver disponível em "Meus Documentos".',
-    categoria: 'rh',
-    tags: ['declaração', 'documento', 'comprovante']
-  },
-  {
-    id: '3',
-    pergunta: 'Qual o processo para promoção ou mudança de cargo?',
-    resposta: 'Promoções são avaliadas semestralmente com base em desempenho, metas atingidas e competências desenvolvidas. Converse com seu gestor sobre seu plano de desenvolvimento. A empresa também divulga vagas internas através dos comunicados.',
-    categoria: 'rh',
-    tags: ['promoção', 'carreira', 'crescimento']
-  },
-  // Financeiro
-  {
-    id: '4',
-    pergunta: 'Quando é pago o salário?',
-    resposta: 'O salário é depositado todo dia 5 do mês subsequente. Caso o dia 5 caia em fim de semana ou feriado, o pagamento é antecipado para o último dia útil anterior. O holerite fica disponível no portal 2 dias antes do pagamento.',
-    categoria: 'financeiro',
-    tags: ['salário', 'pagamento', 'holerite']
-  },
-  {
-    id: '5',
-    pergunta: 'Como funciona o empréstimo consignado?',
-    resposta: 'O empréstimo consignado tem taxa de juros reduzida (a partir de 1,5% a.m.) e desconto direto em folha. Você pode solicitar até 30% do seu salário líquido em parcelas. Acesse "Empréstimos" para simular valores e fazer sua solicitação.',
-    categoria: 'financeiro',
-    tags: ['empréstimo', 'consignado', 'crédito']
-  },
-  {
-    id: '6',
-    pergunta: 'Como consultar meu holerite?',
-    resposta: 'Acesse "Meus Holerites" no menu. Você pode visualizar os holerites de todos os meses, ver o detalhamento de proventos e descontos, e baixar o PDF para impressão. Os holerites ficam disponíveis 2 dias antes do pagamento.',
-    categoria: 'financeiro',
-    tags: ['holerite', 'contracheque', 'pagamento']
-  },
-  {
-    id: '7',
-    pergunta: 'Como funciona o 13º salário?',
-    resposta: 'O 13º é pago em duas parcelas: a primeira até 30 de novembro (50% sem descontos) e a segunda até 20 de dezembro (50% com descontos de INSS e IRRF). Você pode solicitar o adiantamento da 1ª parcela junto com as férias.',
-    categoria: 'financeiro',
-    tags: ['13º', 'décimo terceiro', 'gratificação']
-  },
-  // Férias
-  {
-    id: '8',
-    pergunta: 'Como solicitar férias?',
-    resposta: 'Acesse "Minhas Férias", verifique seu saldo de dias disponíveis e clique em "Solicitar Férias". Escolha o período desejado (mínimo 5 dias) e aguarde a aprovação do seu gestor. Recomendamos solicitar com pelo menos 30 dias de antecedência.',
-    categoria: 'ferias',
-    tags: ['férias', 'solicitar', 'descanso']
-  },
-  {
-    id: '9',
-    pergunta: 'Posso vender parte das minhas férias?',
-    resposta: 'Sim! Você pode vender até 1/3 das férias (10 dias se tiver direito a 30). Isso é chamado de "abono pecuniário". Marque essa opção ao solicitar suas férias. O valor é calculado proporcionalmente ao salário + 1/3 constitucional.',
-    categoria: 'ferias',
-    tags: ['férias', 'vender', 'abono']
-  },
-  {
-    id: '10',
-    pergunta: 'Quanto vou receber nas férias?',
-    resposta: 'Você recebe o salário proporcional aos dias de férias + 1/3 constitucional. Se optar pelo abono pecuniário ou adiantamento do 13º, esses valores são somados. Use nossa "Calculadora" para simular o valor líquido que irá receber.',
-    categoria: 'ferias',
-    tags: ['férias', 'pagamento', 'cálculo']
-  },
-  // Ponto
-  {
-    id: '11',
-    pergunta: 'Como registrar meu ponto?',
-    resposta: 'Acesse "Meu Ponto" e clique no botão de registrar. O sistema captura sua localização para validar se você está em um local autorizado. Registre entrada, saída para almoço, retorno do almoço e saída. Você pode adicionar observações se necessário.',
-    categoria: 'ponto',
-    tags: ['ponto', 'registro', 'entrada', 'saída']
-  },
-  {
-    id: '12',
-    pergunta: 'Esqueci de bater o ponto, o que fazer?',
-    resposta: 'Acesse "Meu Ponto" e vá em "Justificativas". Selecione a data, o tipo de ocorrência (esquecimento) e descreva o motivo. Anexe documentos se necessário. Seu gestor receberá a solicitação para aprovação.',
-    categoria: 'ponto',
-    tags: ['ponto', 'esquecimento', 'justificativa']
-  },
-  {
-    id: '13',
-    pergunta: 'Como justificar uma falta ou atraso?',
-    resposta: 'Em "Meu Ponto", acesse "Justificativas" e registre a ocorrência informando data, tipo (atestado, atraso, falta) e motivo. Para atestados médicos, anexe o documento digitalizado. Justificativas são analisadas em até 48h úteis.',
-    categoria: 'ponto',
-    tags: ['falta', 'atraso', 'atestado', 'justificativa']
-  },
-  // Benefícios
-  {
-    id: '14',
-    pergunta: 'Quais benefícios a empresa oferece?',
-    resposta: 'Oferecemos: Vale Alimentação/Refeição, Plano de Saúde (extensivo a dependentes), Plano Odontológico, Seguro de Vida, Vale Transporte, Auxílio Creche e Gympass. Consulte "Meus Benefícios" para detalhes de cada um.',
-    categoria: 'beneficios',
-    tags: ['benefícios', 'plano de saúde', 'vale']
-  },
-  {
-    id: '15',
-    pergunta: 'Como incluir dependentes no plano de saúde?',
-    resposta: 'Acesse "Meus Benefícios", selecione o plano de saúde e clique em "Adicionar Dependente". Informe os dados e anexe documentos comprobatórios (certidão de nascimento/casamento). A inclusão é processada em até 5 dias úteis.',
-    categoria: 'beneficios',
-    tags: ['dependente', 'plano de saúde', 'inclusão']
-  },
-  {
-    id: '16',
-    pergunta: 'Como funciona o vale alimentação/refeição?',
-    resposta: 'O crédito é depositado todo dia 1º do mês no cartão benefício. O valor varia conforme cargo e região. Você pode consultar saldo e extrato no app da operadora. Em "Meus Benefícios" você vê o número do cartão e valor mensal.',
-    categoria: 'beneficios',
-    tags: ['VA', 'VR', 'alimentação', 'refeição']
-  },
-  // Documentos
-  {
-    id: '17',
-    pergunta: 'Onde encontro meus documentos?',
-    resposta: 'Acesse "Meus Documentos" para ver contratos, termos, comprovantes de rendimentos, declarações e outros documentos. Você pode filtrar por tipo e baixar em PDF. Novos documentos geram notificações automáticas.',
-    categoria: 'documentos',
-    tags: ['documentos', 'contrato', 'comprovante']
-  },
-  {
-    id: '18',
-    pergunta: 'Como obter o informe de rendimentos?',
-    resposta: 'O informe de rendimentos para declaração de IR fica disponível em "Meus Documentos" a partir de fevereiro de cada ano, referente ao ano anterior. Você será notificado assim que estiver disponível.',
-    categoria: 'documentos',
-    tags: ['informe', 'rendimentos', 'imposto de renda', 'IR']
-  },
-  // Segurança
-  {
-    id: '19',
-    pergunta: 'Como alterar minha senha de acesso?',
-    resposta: 'Acesse "Meu Perfil" e vá em "Segurança" ou "Alterar Senha". Digite sua senha atual e a nova senha (mínimo 8 caracteres com letras e números). Por segurança, você será deslogado dos outros dispositivos.',
-    categoria: 'seguranca',
-    tags: ['senha', 'segurança', 'acesso']
-  },
-  {
-    id: '20',
-    pergunta: 'Meus dados estão seguros no portal?',
-    resposta: 'Sim! Utilizamos criptografia de ponta a ponta, autenticação segura e todas as informações são protegidas conforme a LGPD. Seus dados só são acessíveis por você e setores autorizados do RH/DP quando necessário.',
-    categoria: 'seguranca',
-    tags: ['segurança', 'privacidade', 'LGPD', 'dados']
-  },
-];
+export default function FAQ() {
+  const {
+    faqs,
+    faqsDestaque,
+    categorias,
+    isLoading,
+    error,
+    searchTerm,
+    categoriaAtiva,
+    setSearchTerm,
+    setCategoriaAtiva,
+    incrementarVisualizacao,
+    registrarUtilidade,
+    getFAQsRelacionadas,
+    refetch,
+  } = useFAQ();
 
-const FAQ = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
+  const { toast } = useToast();
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<Set<string>>(new Set());
 
-  const faqFiltrado = faqData.filter(item => {
-    const matchCategoria = categoriaAtiva === 'todos' || item.categoria === categoriaAtiva;
-    const matchSearch = searchTerm === '' || 
-      item.pergunta.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.resposta.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchCategoria && matchSearch;
-  });
-
-  const getCategoriaInfo = (categoriaId: string) => {
-    return categorias.find(c => c.id === categoriaId) || categorias[0];
+  // Ao expandir uma FAQ, incrementa visualização
+  const handleExpand = (faqId: string) => {
+    if (expandedItem !== faqId) {
+      setExpandedItem(faqId);
+      incrementarVisualizacao(faqId);
+    } else {
+      setExpandedItem(null);
+    }
   };
 
-  return (
-    <PageLayout title="FAQ">
-      <div className="space-y-6">
-        {/* Header */}
-        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/20">
-                <MessageCircle className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold">Perguntas Frequentes</h2>
-                <p className="text-sm text-muted-foreground">
-                  Encontre respostas rápidas para suas dúvidas mais comuns
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  // Registrar feedback
+  const handleFeedback = async (faqId: string, util: boolean) => {
+    if (feedbackGiven.has(faqId)) {
+      toast({
+        title: 'Feedback já registrado',
+        description: 'Você já avaliou esta resposta.',
+      });
+      return;
+    }
 
-        {/* Busca */}
+    const result = await registrarUtilidade(faqId, util);
+    
+    if (result.success) {
+      setFeedbackGiven(prev => new Set(prev).add(faqId));
+      toast({
+        title: 'Obrigado pelo feedback!',
+        description: util 
+          ? 'Ficamos felizes em ajudar.' 
+          : 'Vamos trabalhar para melhorar esta resposta.',
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <PageLayout title="FAQ" showBack>
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-full" />
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} className="h-8 w-20 flex-shrink-0" />
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageLayout title="FAQ" showBack>
+        <Card className="p-6 text-center">
+          <p className="text-destructive mb-4">Erro ao carregar FAQs: {error}</p>
+          <Button onClick={refetch}>Tentar novamente</Button>
+        </Card>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout title="FAQ" showBack onRefresh={refetch}>
+      <div className="space-y-6 animate-fade-in-up">
+        {/* Header com busca */}
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+            <MessageCircle className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Como podemos ajudar?</h2>
+            <p className="text-sm text-muted-foreground">
+              {faqs.length} perguntas frequentes disponíveis
+            </p>
+          </div>
+        </div>
+
+        {/* Campo de busca */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar pergunta, palavra-chave..."
+            placeholder="Buscar pergunta..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
 
-        {/* Categorias */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categorias.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = categoriaAtiva === cat.id;
-            return (
-              <Button
-                key={cat.id}
-                variant={isActive ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setCategoriaAtiva(cat.id)}
-                className="shrink-0 gap-2"
-              >
-                <Icon className="h-4 w-4" />
-                {cat.label}
-              </Button>
-            );
-          })}
-        </div>
-
-        {/* Resultados */}
-        {faqFiltrado.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="font-semibold mb-2">Nenhum resultado encontrado</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Tente buscar com outras palavras ou use o assistente virtual
-              </p>
-              <Button variant="outline" className="gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Perguntar ao Assistente
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {faqFiltrado.length} {faqFiltrado.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
-            </p>
-            
-            <Accordion type="single" collapsible className="space-y-2">
-              {faqFiltrado.map((item) => {
-                const catInfo = getCategoriaInfo(item.categoria);
-                const CatIcon = catInfo.icon;
+        {/* FAQs em destaque */}
+        {!searchTerm && categoriaAtiva === 'todos' && faqsDestaque.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              MAIS CONSULTADAS
+            </h3>
+            <div className="space-y-2">
+              {faqsDestaque.map(faq => {
+                const Icon = categoriaIcons[faq.categoria] || HelpCircle;
                 return (
-                  <AccordionItem 
-                    key={item.id} 
-                    value={item.id}
-                    className="border rounded-lg bg-card px-4"
+                  <Card 
+                    key={faq.id} 
+                    className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      setCategoriaAtiva(faq.categoria);
+                      setExpandedItem(faq.id);
+                      incrementarVisualizacao(faq.id);
+                    }}
                   >
-                    <AccordionTrigger className="hover:no-underline py-4">
-                      <div className="flex items-start gap-3 text-left">
-                        <div className={`p-2 rounded-lg ${catInfo.color.replace('text-', 'bg-')}/10 shrink-0`}>
-                          <CatIcon className={`h-4 w-4 ${catInfo.color}`} />
-                        </div>
-                        <div>
-                          <p className="font-medium">{item.pergunta}</p>
-                          <Badge variant="secondary" className="mt-1 text-xs">
-                            {catInfo.label}
-                          </Badge>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center`}>
+                        <Icon className={`w-4 h-4 ${categoriaColors[faq.categoria] || 'text-primary'}`} />
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      <div className="pl-12">
-                        <p className="text-muted-foreground leading-relaxed">
-                          {item.resposta}
-                        </p>
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {item.tags.map((tag) => (
-                            <Badge 
-                              key={tag} 
-                              variant="outline" 
-                              className="text-xs cursor-pointer hover:bg-muted"
-                              onClick={() => setSearchTerm(tag)}
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
+                      <p className="text-sm font-medium text-foreground flex-1">{faq.pergunta}</p>
+                      <Badge variant="secondary" className="text-xs">
+                        {faq.visualizacoes}
+                      </Badge>
+                    </div>
+                  </Card>
                 );
               })}
-            </Accordion>
+            </div>
           </div>
         )}
 
-        {/* CTA Assistente */}
-        <Card className="bg-muted/50 border-muted">
-          <CardContent className="py-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/20">
-                <MessageCircle className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">Não encontrou sua resposta?</h3>
-                <p className="text-sm text-muted-foreground">
-                  Use o assistente virtual de RH para tirar suas dúvidas
-                </p>
-              </div>
+        {/* Tabs de categorias */}
+        <div className="overflow-x-auto pb-2 -mx-4 px-4">
+          <div className="flex gap-2 min-w-max">
+            {categorias.map(cat => {
+              const Icon = categoriaIcons[cat.id] || HelpCircle;
+              const isActive = categoriaAtiva === cat.id;
+              
+              return (
+                <Button
+                  key={cat.id}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCategoriaAtiva(cat.id)}
+                  className="flex items-center gap-1.5"
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{cat.label}</span>
+                  {cat.count > 0 && (
+                    <Badge 
+                      variant={isActive ? "secondary" : "outline"} 
+                      className="text-xs ml-1"
+                    >
+                      {cat.count}
+                    </Badge>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Lista de FAQs */}
+        {faqs.length === 0 ? (
+          <Card className="p-8 text-center">
+            <HelpCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
+              {searchTerm 
+                ? `Nenhum resultado encontrado para "${searchTerm}"` 
+                : 'Nenhuma pergunta nesta categoria'}
+            </p>
+            {searchTerm && (
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setSearchTerm('')}
+              >
+                Limpar busca
+              </Button>
+            )}
+          </Card>
+        ) : (
+          <Accordion 
+            type="single" 
+            collapsible 
+            value={expandedItem || undefined}
+            onValueChange={(value) => {
+              if (value) {
+                handleExpand(value);
+              } else {
+                setExpandedItem(null);
+              }
+            }}
+            className="space-y-2"
+          >
+            {faqs.map(faq => {
+              const Icon = categoriaIcons[faq.categoria] || HelpCircle;
+              const relacionadas = getFAQsRelacionadas(faq.id);
+              const hasFeedback = feedbackGiven.has(faq.id);
+              
+              return (
+                <AccordionItem 
+                  key={faq.id} 
+                  value={faq.id}
+                  className="border rounded-lg px-4 data-[state=open]:bg-muted/30"
+                >
+                  <AccordionTrigger className="text-left hover:no-underline py-4">
+                    <div className="flex items-start gap-3 flex-1 pr-4">
+                      <div className={`w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <Icon className={`w-4 h-4 ${categoriaColors[faq.categoria] || 'text-primary'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground text-sm">{faq.pergunta}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {faq.categoria}
+                          </Badge>
+                          {faq.destaque && (
+                            <Badge variant="default" className="text-xs">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              Popular
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4">
+                    <div className="pl-11 space-y-4">
+                      {/* Resposta */}
+                      <div className="prose prose-sm max-w-none text-muted-foreground">
+                        <p className="whitespace-pre-line">{faq.resposta}</p>
+                      </div>
+
+                      {/* Tags */}
+                      {faq.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {faq.tags.map(tag => (
+                            <Badge 
+                              key={tag} 
+                              variant="outline" 
+                              className="text-xs cursor-pointer hover:bg-primary/10"
+                              onClick={() => setSearchTerm(tag)}
+                            >
+                              #{tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Feedback */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <p className="text-xs text-muted-foreground">
+                          Esta resposta foi útil?
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant={hasFeedback ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => handleFeedback(faq.id, true)}
+                            disabled={hasFeedback}
+                          >
+                            <ThumbsUp className="w-4 h-4 mr-1" />
+                            Sim ({faq.utilidade_positiva})
+                          </Button>
+                          <Button
+                            variant={hasFeedback ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => handleFeedback(faq.id, false)}
+                            disabled={hasFeedback}
+                          >
+                            <ThumbsDown className="w-4 h-4 mr-1" />
+                            Não ({faq.utilidade_negativa})
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* FAQs relacionadas */}
+                      {relacionadas.length > 0 && (
+                        <div className="pt-2 border-t">
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Perguntas relacionadas:
+                          </p>
+                          <div className="space-y-1">
+                            {relacionadas.map(rel => (
+                              <button
+                                key={rel.id}
+                                onClick={() => {
+                                  setExpandedItem(rel.id);
+                                  incrementarVisualizacao(rel.id);
+                                }}
+                                className="block text-left text-sm text-primary hover:underline"
+                              >
+                                → {rel.pergunta}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        )}
+
+        {/* Assistente Virtual */}
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <MessageCircle className="w-6 h-6 text-primary" />
             </div>
-          </CardContent>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">Não encontrou o que procurava?</p>
+              <p className="text-sm text-muted-foreground">
+                Fale com nosso assistente virtual ou abra uma solicitação ao RH.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" className="flex-1" asChild>
+              <a href="/solicitacoes">Abrir solicitação</a>
+            </Button>
+            <Button className="flex-1">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Assistente Virtual
+            </Button>
+          </div>
         </Card>
       </div>
     </PageLayout>
   );
-};
-
-export default FAQ;
+}
