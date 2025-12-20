@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, Send, Users, TrendingUp, MessageSquare, Target, ChevronRight, User } from 'lucide-react';
+import { Star, Send, Users, TrendingUp, MessageSquare, Target, ChevronRight, User, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCard } from '@/components/portal/StatCard';
+import { FeedbackDashboard } from '@/components/portal/FeedbackDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFeedback360 } from '@/hooks/useFeedback360';
 import { useOrganograma } from '@/hooks/useOrganograma';
@@ -24,7 +25,9 @@ export default function Feedback360() {
     ciclos, 
     competencias, 
     avaliacoesEnviadas, 
-    avaliacoesRecebidas, 
+    avaliacoesRecebidas,
+    mediasCompetencias,
+    evolucaoCiclos,
     isLoading, 
     criarAvaliacao, 
     enviarAvaliacao,
@@ -245,12 +248,16 @@ export default function Feedback360() {
 
         {/* Tabs */}
         <Tabs defaultValue="pendentes" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="pendentes">
               Pendentes {stats.pendentes > 0 && <Badge variant="destructive" className="ml-2">{stats.pendentes}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="enviadas">Enviadas</TabsTrigger>
             <TabsTrigger value="recebidas">Recebidas</TabsTrigger>
+            <TabsTrigger value="resultados" className="gap-1">
+              <BarChart3 className="h-4 w-4" />
+              Resultados
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pendentes" className="space-y-4">
@@ -465,6 +472,15 @@ export default function Feedback360() {
                 </Card>
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="resultados">
+            <FeedbackDashboard
+              mediasCompetencias={mediasCompetencias}
+              evolucaoCiclos={evolucaoCiclos}
+              mediaGeral={stats.media}
+              totalAvaliacoes={stats.recebidas}
+            />
           </TabsContent>
         </Tabs>
       </div>

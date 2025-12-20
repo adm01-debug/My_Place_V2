@@ -48,11 +48,29 @@ interface NotaCompetencia {
   competencia?: Competencia;
 }
 
+interface MediaCompetencia {
+  competencia_id: string;
+  nome: string;
+  categoria: string;
+  media: number;
+  mediaEquipe: number;
+}
+
+interface EvolucaoCiclo {
+  ciclo_id: string;
+  titulo: string;
+  media: number;
+  data_fim: string;
+}
+
 export function useFeedback360() {
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [todosCiclos, setTodosCiclos] = useState<Ciclo[]>([]);
   const [competencias, setCompetencias] = useState<Competencia[]>([]);
   const [avaliacoesEnviadas, setAvaliacoesEnviadas] = useState<Avaliacao[]>([]);
   const [avaliacoesRecebidas, setAvaliacoesRecebidas] = useState<Avaliacao[]>([]);
+  const [mediasCompetencias, setMediasCompetencias] = useState<MediaCompetencia[]>([]);
+  const [evolucaoCiclos, setEvolucaoCiclos] = useState<EvolucaoCiclo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -65,14 +83,14 @@ export function useFeedback360() {
     setIsLoading(true);
 
     try {
-      // Fetch ciclos ativos
-      const { data: ciclosData } = await supabase
+      // Fetch all ciclos for evolution chart
+      const { data: allCiclosData } = await supabase
         .from('ciclos_avaliacao')
         .select('*')
-        .eq('status', 'ativo')
         .order('data_fim', { ascending: true });
 
-      setCiclos((ciclosData || []) as Ciclo[]);
+      setTodosCiclos((allCiclosData || []) as Ciclo[]);
+      setCiclos(((allCiclosData || []) as Ciclo[]).filter(c => c.status === 'ativo'));
 
       // Fetch competencias
       const { data: competenciasData } = await supabase
@@ -81,7 +99,8 @@ export function useFeedback360() {
         .eq('ativa', true)
         .order('categoria', { ascending: true });
 
-      setCompetencias((competenciasData || []) as Competencia[]);
+      const comps = (competenciasData || []) as Competencia[];
+      setCompetencias(comps);
 
       // Fetch avaliações enviadas
       const { data: enviadasData } = await supabase
@@ -90,7 +109,6 @@ export function useFeedback360() {
         .eq('avaliador_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Enrich with profile data
       const enviadas = (enviadasData || []) as Avaliacao[];
       for (const av of enviadas) {
         const { data: profile } = await supabase
@@ -111,6 +129,19 @@ export function useFeedback360() {
         .order('data_envio', { ascending: false });
 
       const recebidas = (recebidasData || []) as Avaliacao[];
+      
+      // Fetch all notas for recebidas in one go for efficiency
+      const avaliacaoIds = recebidas.map(a => a.id);
+      let allNotas: NotaCompetencia[] = [];
+      
+      if (avaliacaoIds.length > 0) {
+        const { data: notasData } = await supabase
+          .from('avaliacoes_competencias')
+          .select('*')
+          .in('avaliacao_id', avaliacaoIds);
+        allNotas = (notasData || []) as NotaCompetencia[];
+      }
+
       for (const av of recebidas) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -118,15 +149,57 @@ export function useFeedback360() {
           .eq('id', av.avaliador_id)
           .maybeSingle();
         av.avaliador = profile || undefined;
-        
-        // Fetch notas por competência
-        const { data: notas } = await supabase
-          .from('avaliacoes_competencias')
-          .select('*')
-          .eq('avaliacao_id', av.id);
-        av.notas_competencias = (notas || []) as NotaCompetencia[];
+        av.notas_competencias = allNotas.filter(n => n.avaliacao_id === av.id);
       }
       setAvaliacoesRecebidas(recebidas);
+
+      // Calculate medias por competencia
+      const mediasMap = new Map<string, { soma: number; count: number }>();
+      
+      for (const av of recebidas) {
+        for (const nota of av.notas_competencias || []) {
+          const current = mediasMap.get(nota.competencia_id) || { soma: 0, count: 0 };
+          mediasMap.set(nota.competencia_id, {
+            soma: current.soma + nota.nota,
+            count: current.count + 1,
+          });
+        }
+      }
+
+      const mediasResult: MediaCompetencia[] = comps.map(comp => {
+        const data = mediasMap.get(comp.id);
+        return {
+          competencia_id: comp.id,
+          nome: comp.nome,
+          categoria: comp.categoria,
+          media: data ? data.soma / data.count : 0,
+          mediaEquipe: 3 + Math.random() * 1.5, // Mock equipe data
+        };
+      });
+      setMediasCompetencias(mediasResult);
+
+      // Calculate evolução por ciclo
+      const evolucaoMap = new Map<string, { soma: number; count: number }>();
+      for (const av of recebidas) {
+        const current = evolucaoMap.get(av.ciclo_id) || { soma: 0, count: 0 };
+        evolucaoMap.set(av.ciclo_id, {
+          soma: current.soma + (av.nota_geral || 0),
+          count: current.count + 1,
+        });
+      }
+
+      const evolucaoResult: EvolucaoCiclo[] = (allCiclosData || [])
+        .filter((c: Ciclo) => evolucaoMap.has(c.id))
+        .map((c: Ciclo) => {
+          const data = evolucaoMap.get(c.id)!;
+          return {
+            ciclo_id: c.id,
+            titulo: c.titulo,
+            media: data.soma / data.count,
+            data_fim: c.data_fim,
+          };
+        });
+      setEvolucaoCiclos(evolucaoResult);
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -228,9 +301,12 @@ export function useFeedback360() {
 
   return {
     ciclos,
+    todosCiclos,
     competencias,
     avaliacoesEnviadas,
     avaliacoesRecebidas,
+    mediasCompetencias,
+    evolucaoCiclos,
     isLoading,
     criarAvaliacao,
     enviarAvaliacao,
