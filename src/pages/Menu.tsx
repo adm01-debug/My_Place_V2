@@ -1,7 +1,8 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator
+  TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator,
+  Network
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -79,6 +80,12 @@ const menuSections = [
     title: 'Desenvolvimento',
     items: [
       { icon: BookOpen, label: 'Meus Treinamentos', to: '/treinamentos', color: 'text-finance', badge: '2' },
+    ],
+  },
+  {
+    title: 'Empresa',
+    items: [
+      { icon: Network, label: 'Organograma', to: '/organograma', color: 'text-hr' },
     ],
   },
   {

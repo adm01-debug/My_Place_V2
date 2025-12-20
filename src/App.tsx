@@ -29,6 +29,7 @@ import Admin from "./pages/Admin";
 import DashboardGestor from "./pages/DashboardGestor";
 import Calculadora from "./pages/Calculadora";
 import FAQ from "./pages/FAQ";
+import Organograma from "./pages/Organograma";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ function AnimatedRoutes() {
         <Route path="/gestao" element={<ProtectedRoute><AnimatedPage><DashboardGestor /></AnimatedPage></ProtectedRoute>} />
         <Route path="/calculadora" element={<ProtectedRoute><AnimatedPage><Calculadora /></AnimatedPage></ProtectedRoute>} />
         <Route path="/faq" element={<ProtectedRoute><AnimatedPage><FAQ /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/organograma" element={<ProtectedRoute><AnimatedPage><Organograma /></AnimatedPage></ProtectedRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
