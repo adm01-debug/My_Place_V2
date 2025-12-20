@@ -405,6 +405,63 @@ export type Database = {
         }
         Relationships: []
       }
+      eventos_corporativos: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          created_at: string
+          criado_por: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string
+          link_reuniao: string | null
+          local: string | null
+          online: boolean | null
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          link_reuniao?: string | null
+          local?: string | null
+          online?: boolean | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          link_reuniao?: string | null
+          local?: string | null
+          online?: boolean | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ferias: {
         Row: {
           aprovado_por: string | null
