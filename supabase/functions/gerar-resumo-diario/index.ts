@@ -17,74 +17,127 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('[resumo-diario] Gerando resumo diário...');
+    const hoje = new Date();
+    const diaSemana = hoje.getDay();
+    
+    // Só envia resumo em dias úteis (segunda a sexta)
+    if (diaSemana === 0 || diaSemana === 6) {
+      console.log('[resumo-diario] Fim de semana - não gerar resumo');
+      return new Response(
+        JSON.stringify({ success: true, message: 'Fim de semana - resumo não gerado' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Buscar todos os usuários ativos
+    console.log('[resumo-diario] Gerando resumo diário...');
+    let resumosEnviados = 0;
+
     const { data: usuarios } = await supabase
       .from('profiles')
       .select('id, nome, email');
 
-    const hoje = new Date();
-    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const ontem = new Date(hoje);
+    ontem.setDate(hoje.getDate() - 1);
 
     for (const usuario of usuarios || []) {
-      // Contar notificações não lidas
-      const { count: notifsNaoLidas } = await supabase
-        .from('notificacoes')
+      const pendencias: string[] = [];
+
+      // 1. Registros de ponto incompletos (ontem)
+      const { data: pontoOntem } = await supabase
+        .from('registros_ponto')
+        .select('id, tipo')
+        .eq('user_id', usuario.id)
+        .gte('data_hora', ontem.toISOString().split('T')[0])
+        .lt('data_hora', hoje.toISOString().split('T')[0]);
+
+      if (pontoOntem && pontoOntem.length > 0 && pontoOntem.length < 4) {
+        pendencias.push('⏰ Registros de ponto incompletos ontem');
+      }
+
+      // 2. Justificativas pendentes de aprovação
+      const { count: justificativasPendentes } = await supabase
+        .from('justificativas_ponto')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', usuario.id)
-        .eq('lida', false);
+        .eq('status', 'pendente');
 
-      // Contar treinamentos pendentes
+      if ((justificativasPendentes || 0) > 0) {
+        pendencias.push(`📋 ${justificativasPendentes} justificativa(s) aguardando aprovação`);
+      }
+
+      // 3. Treinamentos em andamento
       const { count: treinamentosPendentes } = await supabase
         .from('treinamentos_colaborador')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', usuario.id)
-        .eq('status', 'pendente');
+        .in('status', ['pendente', 'em_andamento']);
 
-      // Verificar saldo de férias (dias do período aquisitivo)
-      const { data: feriasPendentes } = await supabase
-        .from('ferias')
-        .select('dias_solicitados')
-        .eq('user_id', usuario.id)
-        .eq('status', 'pendente');
+      if ((treinamentosPendentes || 0) > 0) {
+        pendencias.push(`📚 ${treinamentosPendentes} treinamento(s) pendente(s)`);
+      }
 
-      // Verificar solicitações pendentes
+      // 4. Solicitações pendentes
       const { count: solicitacoesPendentes } = await supabase
         .from('solicitacoes')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', usuario.id)
         .eq('status', 'pendente');
 
-      // Gerar resumo se houver pendências
-      const pendencias = [];
-      
-      if ((notifsNaoLidas || 0) > 0) {
-        pendencias.push(`${notifsNaoLidas} notificações não lidas`);
-      }
-      if ((treinamentosPendentes || 0) > 0) {
-        pendencias.push(`${treinamentosPendentes} treinamentos pendentes`);
-      }
-      if ((feriasPendentes?.length || 0) > 0) {
-        pendencias.push(`${feriasPendentes?.length} solicitação(ões) de férias aguardando`);
+      if ((solicitacoesPendentes || 0) > 0) {
+        pendencias.push(`📝 ${solicitacoesPendentes} solicitação(ões) em análise`);
       }
 
+      // 5. Notificações não lidas (se mais de 5)
+      const { count: notifsNaoLidas } = await supabase
+        .from('notificacoes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', usuario.id)
+        .eq('lida', false);
+
+      if ((notifsNaoLidas || 0) > 5) {
+        pendencias.push(`🔔 ${notifsNaoLidas} notificações não lidas`);
+      }
+
+      // 6. Férias pendentes de aprovação
+      const { count: feriasPendentes } = await supabase
+        .from('ferias')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', usuario.id)
+        .eq('status', 'pendente');
+
+      if ((feriasPendentes || 0) > 0) {
+        pendencias.push(`🏖️ ${feriasPendentes} solicitação(ões) de férias pendente(s)`);
+      }
+
+      // Se houver pendências, criar notificação de resumo
       if (pendencias.length > 0) {
-        await supabase.from('notificacoes').insert({
-          user_id: usuario.id,
-          titulo: '📋 Resumo do Dia',
-          mensagem: `Você tem: ${pendencias.join(', ')}.`,
-          tipo: 'info',
-          link: '/',
+        const itensExibir = pendencias.slice(0, 3);
+        const temMais = pendencias.length > 3 ? `\n... e mais ${pendencias.length - 3} item(s)` : '';
+
+        const { error } = await supabase.rpc('criar_notificacao', {
+          p_user_id: usuario.id,
+          p_titulo: '📊 Seu resumo de hoje',
+          p_mensagem: itensExibir.join('\n') + temMais,
+          p_tipo: 'info',
+          p_link: '/',
+          p_dados: { pendencias: pendencias.length, data: hoje.toISOString().split('T')[0] }
         });
-        console.log(`[resumo-diario] Resumo criado para ${usuario.nome}`);
+
+        if (!error) {
+          resumosEnviados++;
+          console.log(`[resumo-diario] Resumo criado para ${usuario.nome}`);
+        }
       }
     }
+
+    console.log(`[resumo-diario] Total: ${resumosEnviados} resumos enviados`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        usuarios_processados: usuarios?.length || 0
+        resumos_enviados: resumosEnviados,
+        usuarios_processados: usuarios?.length || 0,
+        timestamp: new Date().toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
