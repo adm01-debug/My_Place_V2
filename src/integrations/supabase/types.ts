@@ -596,6 +596,53 @@ export type Database = {
           },
         ]
       }
+      key_results: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          meta_id: string
+          peso: number | null
+          titulo: string
+          unidade: string | null
+          updated_at: string
+          valor_atual: number
+          valor_meta: number
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta_id: string
+          peso?: number | null
+          titulo: string
+          unidade?: string | null
+          updated_at?: string
+          valor_atual?: number
+          valor_meta?: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta_id?: string
+          peso?: number | null
+          titulo?: string
+          unidade?: string | null
+          updated_at?: string
+          valor_atual?: number
+          valor_meta?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_results_meta_id_fkey"
+            columns: ["meta_id"]
+            isOneToOne: false
+            referencedRelation: "metas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locais_permitidos: {
         Row: {
           ativo: boolean
