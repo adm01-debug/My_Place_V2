@@ -126,12 +126,12 @@ export function useTreinamentos() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('treinamentos_colaborador')
+      .from('treinamentos_colaborador' as any)
       .update({
         status: 'em_andamento',
         data_inicio: new Date().toISOString(),
         progresso: 0,
-      })
+      } as any)
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 
@@ -156,8 +156,8 @@ export function useTreinamentos() {
     }
 
     const { error } = await supabase
-      .from('treinamentos_colaborador')
-      .update(updates)
+      .from('treinamentos_colaborador' as any)
+      .update(updates as any)
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 
@@ -173,13 +173,13 @@ export function useTreinamentos() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('treinamentos_colaborador')
+      .from('treinamentos_colaborador' as any)
       .update({
         status: 'concluido',
         progresso: 100,
         data_conclusao: new Date().toISOString(),
         nota: nota || null,
-      })
+      } as any)
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 

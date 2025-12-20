@@ -56,7 +56,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <PageLayout title="Dashboard" showNotifications>
+      <PageLayout title="Dashboard">
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <StatCardSkeleton />
@@ -79,7 +79,7 @@ export default function Dashboard() {
     .toUpperCase() || 'U';
 
   return (
-    <PageLayout title="Dashboard" showNotifications onRefresh={refetch}>
+    <PageLayout title="Dashboard" onRefresh={refetch}>
       <div className="space-y-6 animate-fade-in-up">
         {/* Header com Avatar */}
         <div className="flex items-center gap-4">
