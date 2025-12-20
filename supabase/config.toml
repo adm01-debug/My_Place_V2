@@ -1,1 +1,13 @@
 project_id = "kovduclqrnkdwhjygaej"
+
+[functions.verificar-aniversariantes]
+verify_jwt = false
+
+[functions.verificar-vencimentos]
+verify_jwt = false
+
+[functions.gerar-resumo-diario]
+verify_jwt = false
+
+[functions.webhook-integracoes]
+verify_jwt = false

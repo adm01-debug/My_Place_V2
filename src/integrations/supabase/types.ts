@@ -944,6 +944,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      criar_notificacao: {
+        Args: {
+          p_dados?: Json
+          p_link?: string
+          p_mensagem: string
+          p_tipo?: string
+          p_titulo: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       fn_calcular_distancia: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
