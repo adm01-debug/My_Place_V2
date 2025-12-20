@@ -706,6 +706,7 @@ export type Database = {
           data_nascimento: string | null
           departamento: string | null
           email: string
+          gestor_id: string | null
           id: string
           matricula: string | null
           nome: string
@@ -719,6 +720,7 @@ export type Database = {
           data_nascimento?: string | null
           departamento?: string | null
           email: string
+          gestor_id?: string | null
           id: string
           matricula?: string | null
           nome: string
@@ -732,12 +734,21 @@ export type Database = {
           data_nascimento?: string | null
           departamento?: string | null
           email?: string
+          gestor_id?: string | null
           id?: string
           matricula?: string | null
           nome?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registros_ponto: {
         Row: {
@@ -970,6 +981,30 @@ export type Database = {
           distancia_metros: number
           local_id: string
           local_nome: string
+        }[]
+      }
+      get_organograma: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          cargo: string
+          departamento: string
+          gestor_id: string
+          id: string
+          nivel: number
+          nome: string
+        }[]
+      }
+      get_subordinados: {
+        Args: { p_gestor_id: string }
+        Returns: {
+          avatar_url: string
+          cargo: string
+          departamento: string
+          gestor_id: string
+          id: string
+          nivel: number
+          nome: string
         }[]
       }
       has_role: {
