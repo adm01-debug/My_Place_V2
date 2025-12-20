@@ -33,6 +33,7 @@ import Organograma from "./pages/Organograma";
 import Calendario from "./pages/Calendario";
 import Metas from "./pages/Metas";
 import Feedback360 from "./pages/Feedback360";
+import PesquisasClima from "./pages/PesquisasClima";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ function AnimatedRoutes() {
         <Route path="/calendario" element={<ProtectedRoute><AnimatedPage><Calendario /></AnimatedPage></ProtectedRoute>} />
         <Route path="/metas" element={<ProtectedRoute><AnimatedPage><Metas /></AnimatedPage></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><AnimatedPage><Feedback360 /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/clima" element={<ProtectedRoute><AnimatedPage><PesquisasClima /></AnimatedPage></ProtectedRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>

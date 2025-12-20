@@ -2,7 +2,7 @@ import {
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
   TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator,
-  Network, CalendarDays, Target, Users
+  Network, CalendarDays, Target, Users, Heart
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -89,6 +89,7 @@ const menuSections = [
     items: [
       { icon: Network, label: 'Organograma', to: '/organograma', color: 'text-hr' },
       { icon: CalendarDays, label: 'Calendário', to: '/calendario', color: 'text-projects' },
+      { icon: Heart, label: 'Clima Organizacional', to: '/clima', color: 'text-marketing' },
     ],
   },
   {
