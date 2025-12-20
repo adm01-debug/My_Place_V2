@@ -78,7 +78,8 @@ serve(async (req) => {
           throw new Error('Colaborador não encontrado')
         }
         
-        const [nome, ...sobrenome] = (profile.nome_completo || '').split(' ')
+        const nomeCompleto = profile.nome || ''
+        const [nome, ...sobrenome] = nomeCompleto.split(' ')
         
         const contactData: BitrixContact = {
           NAME: nome || 'Colaborador',
@@ -132,17 +133,17 @@ serve(async (req) => {
         // Buscar dados do colaborador
         const { data: profile } = await supabase
           .from('profiles')
-          .select('nome_completo, cargo, departamento')
+          .select('nome, cargo, departamento')
           .eq('id', user_id)
           .single()
         
         // Criar tarefa no Bitrix24
         const taskData = {
-          TITLE: `🏖️ Férias - ${profile?.nome_completo || 'Colaborador'}`,
+          TITLE: `🏖️ Férias - ${profile?.nome || 'Colaborador'}`,
           DESCRIPTION: `
             **Solicitação de Férias**
             
-            Colaborador: ${profile?.nome_completo}
+            Colaborador: ${profile?.nome || 'Colaborador'}
             Cargo: ${profile?.cargo || '-'}
             Departamento: ${profile?.departamento || '-'}
             

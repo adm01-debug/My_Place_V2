@@ -49,7 +49,7 @@ serve(async (req) => {
     // Buscar perfil
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('nome_completo, cpf, data_admissao, cargo')
+      .select('nome, cpf, data_admissao, cargo')
       .eq('id', user.id)
       .single()
 
@@ -145,7 +145,7 @@ serve(async (req) => {
       </div>
       <div class="info-item">
         <label>Nome Completo</label>
-        <span>${profile?.nome_completo || 'COLABORADOR'}</span>
+        <span>${profile?.nome || 'COLABORADOR'}</span>
       </div>
     </div>
   </div>

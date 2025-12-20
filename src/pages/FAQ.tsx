@@ -115,14 +115,14 @@ export default function FAQ() {
       <PageLayout title="FAQ" showBack>
         <Card className="p-6 text-center">
           <p className="text-destructive mb-4">Erro ao carregar FAQs: {error}</p>
-          <Button onClick={refetch}>Tentar novamente</Button>
+          <Button onClick={() => refetch()}>Tentar novamente</Button>
         </Card>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="FAQ" showBack onRefresh={refetch}>
+    <PageLayout title="FAQ" showBack onRefresh={async () => { await refetch(); }}>
       <div className="space-y-6 animate-fade-in-up">
         {/* Header com busca */}
         <div className="text-center space-y-4">

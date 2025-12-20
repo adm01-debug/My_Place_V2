@@ -677,6 +677,7 @@ export type Database = {
       ferias: {
         Row: {
           aprovado_por: string | null
+          bitrix_task_id: string | null
           created_at: string
           data_fim: string
           data_inicio: string
@@ -690,6 +691,7 @@ export type Database = {
         }
         Insert: {
           aprovado_por?: string | null
+          bitrix_task_id?: string | null
           created_at?: string
           data_fim: string
           data_inicio: string
@@ -703,6 +705,7 @@ export type Database = {
         }
         Update: {
           aprovado_por?: string | null
+          bitrix_task_id?: string | null
           created_at?: string
           data_fim?: string
           data_inicio?: string
@@ -722,11 +725,17 @@ export type Database = {
           created_at: string
           descontos: number
           detalhes: Json | null
+          faltas: number | null
+          horas_extras: number | null
+          horas_trabalhadas: number | null
           id: string
           mes: number
           pdf_url: string | null
+          salario_base: number | null
           salario_bruto: number
           salario_liquido: number
+          total_descontos: number | null
+          total_proventos: number | null
           user_id: string
         }
         Insert: {
@@ -734,11 +743,17 @@ export type Database = {
           created_at?: string
           descontos?: number
           detalhes?: Json | null
+          faltas?: number | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
           id?: string
           mes: number
           pdf_url?: string | null
+          salario_base?: number | null
           salario_bruto: number
           salario_liquido: number
+          total_descontos?: number | null
+          total_proventos?: number | null
           user_id: string
         }
         Update: {
@@ -746,11 +761,17 @@ export type Database = {
           created_at?: string
           descontos?: number
           detalhes?: Json | null
+          faltas?: number | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
           id?: string
           mes?: number
           pdf_url?: string | null
+          salario_base?: number | null
           salario_bruto?: number
           salario_liquido?: number
+          total_descontos?: number | null
+          total_proventos?: number | null
           user_id?: string
         }
         Relationships: []
@@ -1137,7 +1158,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bitrix_id: string | null
           cargo: string | null
+          cpf: string | null
           created_at: string
           data_admissao: string | null
           data_nascimento: string | null
@@ -1151,7 +1174,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bitrix_id?: string | null
           cargo?: string | null
+          cpf?: string | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null
@@ -1165,7 +1190,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bitrix_id?: string | null
           cargo?: string | null
+          cpf?: string | null
           created_at?: string
           data_admissao?: string | null
           data_nascimento?: string | null

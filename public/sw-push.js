@@ -222,31 +222,85 @@ async function syncRegistrosPonto() {
     
     console.log('[SW] Encontrados', registros.length, 'registros para sincronizar');
     
-    // Tentar enviar cada registro
-    for (const registro of registros) {
+    // Buscar token de autenticação do localStorage (via cliente)
+    const clients = await self.clients.matchAll({ type: 'window' });
+    let authToken = null;
+    
+    for (const client of clients) {
       try {
-        const response = await fetch('/api/registros-ponto', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registro.data)
+        const messageChannel = new MessageChannel();
+        client.postMessage({ type: 'GET_AUTH_TOKEN' }, [messageChannel.port2]);
+        
+        authToken = await new Promise((resolve) => {
+          messageChannel.port1.onmessage = (event) => {
+            resolve(event.data.token);
+          };
+          // Timeout após 2 segundos
+          setTimeout(() => resolve(null), 2000);
         });
         
-        if (response.ok) {
-          // Remover do IndexedDB após sucesso
-          await deleteOfflineRegistro(db, registro.id);
-          console.log('[SW] Registro sincronizado:', registro.id);
-        }
+        if (authToken) break;
       } catch (err) {
-        console.error('[SW] Erro ao sincronizar registro:', registro.id, err);
+        console.warn('[SW] Erro ao obter token do cliente:', err);
       }
     }
     
-    // Notificar usuário
-    await self.registration.showNotification('Ponto sincronizado', {
-      body: 'Seus registros de ponto offline foram sincronizados.',
-      icon: '/pwa-192x192.png',
-      tag: 'sync-success'
+    if (!authToken) {
+      console.warn('[SW] Sem token de autenticação, tentando sincronização anônima...');
+      // Guardar para tentar depois
+      return;
+    }
+    
+    // Preparar dados para envio
+    const dadosParaEnviar = registros.map(r => ({
+      ...r.data,
+      offline_id: String(r.id),
+    }));
+    
+    // Enviar para a edge function
+    const supabaseUrl = 'https://kovduclqrnkdwhjygaej.supabase.co';
+    const response = await fetch(`${supabaseUrl}/functions/v1/sync-ponto-offline`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(dadosParaEnviar)
     });
+    
+    if (response.ok) {
+      const result = await response.json();
+      console.log('[SW] Resultado da sincronização:', result);
+      
+      // Remover registros sincronizados com sucesso
+      for (const successId of result.details.success) {
+        const registroId = registros.find(r => String(r.id) === successId)?.id;
+        if (registroId) {
+          await deleteOfflineRegistro(db, registroId);
+          console.log('[SW] Registro removido do offline:', registroId);
+        }
+      }
+      
+      // Notificar usuário
+      if (result.success > 0) {
+        await self.registration.showNotification('Ponto sincronizado', {
+          body: `${result.success} registro(s) de ponto sincronizado(s) com sucesso.`,
+          icon: '/pwa-192x192.png',
+          tag: 'sync-success'
+        });
+      }
+      
+      if (result.failed > 0) {
+        await self.registration.showNotification('Erro na sincronização', {
+          body: `${result.failed} registro(s) não puderam ser sincronizados.`,
+          icon: '/pwa-192x192.png',
+          tag: 'sync-error'
+        });
+      }
+    } else {
+      const errorText = await response.text();
+      console.error('[SW] Erro na resposta:', response.status, errorText);
+    }
     
   } catch (err) {
     console.error('[SW] Erro no sync:', err);

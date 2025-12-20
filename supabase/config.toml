@@ -20,3 +20,21 @@ verify_jwt = true
 
 [functions.dashboard-gestor]
 verify_jwt = true
+
+[functions.sync-ponto-offline]
+verify_jwt = true
+
+[functions.gerar-holerite-pdf]
+verify_jwt = true
+
+[functions.gerar-informe-rendimentos]
+verify_jwt = true
+
+[functions.bitrix24-sync]
+verify_jwt = false
+
+[functions.gerar-espelho-ponto]
+verify_jwt = true
+
+[functions.gerar-feedback-360-pdf]
+verify_jwt = true
