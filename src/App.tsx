@@ -9,6 +9,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
@@ -24,6 +25,7 @@ import Documentos from "./pages/Documentos";
 import Solicitacoes from "./pages/Solicitacoes";
 import Comunicados from "./pages/Comunicados";
 import Menu from "./pages/Menu";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +51,7 @@ function AnimatedRoutes() {
         <Route path="/solicitacoes" element={<ProtectedRoute><AnimatedPage><Solicitacoes /></AnimatedPage></ProtectedRoute>} />
         <Route path="/comunicados" element={<ProtectedRoute><AnimatedPage><Comunicados /></AnimatedPage></ProtectedRoute>} />
         <Route path="/menu" element={<ProtectedRoute><AnimatedPage><Menu /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedAdminRoute><AnimatedPage><Admin /></AnimatedPage></ProtectedAdminRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
