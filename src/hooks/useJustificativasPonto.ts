@@ -3,23 +3,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-type MotivoJustificativa = 
-  | 'esquecimento' | 'problema_sistema' | 'trabalho_externo'
-  | 'reuniao_externa' | 'atestado_medico' | 'outros';
+type TipoJustificativa = 
+  | 'atestado' 
+  | 'falta_justificada' 
+  | 'atraso' 
+  | 'saida_antecipada'
+  | 'esquecimento'
+  | 'outros';
 
 type StatusJustificativa = 'pendente' | 'aprovado' | 'rejeitado';
 
-interface Justificativa {
+export interface Justificativa {
   id: string;
-  registro_ponto_id: string;
-  motivo: MotivoJustificativa;
-  descricao: string;
+  user_id: string;
+  registro_ponto_id: string | null;
+  data: string;
+  tipo: TipoJustificativa;
+  motivo: string;
   anexo_url: string | null;
   status: StatusJustificativa;
+  resposta: string | null;
   aprovado_por: string | null;
-  aprovado_em: string | null;
-  motivo_rejeicao: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export function useJustificativasPonto() {
@@ -34,10 +40,10 @@ export function useJustificativasPonto() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('justificativas_ponto' as any)
+      .from('justificativas_ponto')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching justificativas:', error);
@@ -54,46 +60,76 @@ export function useJustificativasPonto() {
   };
 
   const criarJustificativa = async (
-    registroPontoId: string,
-    motivo: MotivoJustificativa,
-    descricao: string,
+    data: string,
+    tipo: TipoJustificativa,
+    motivo: string,
+    registroPontoId?: string,
     anexoUrl?: string
   ) => {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
-    const { data, error } = await supabase
-      .from('justificativas_ponto' as any)
+    const { data: result, error } = await supabase
+      .from('justificativas_ponto')
       .insert({
-        registro_ponto_id: registroPontoId,
         user_id: user.id,
+        data,
+        tipo,
         motivo,
-        descricao,
+        registro_ponto_id: registroPontoId || null,
         anexo_url: anexoUrl || null,
-      } as any)
+        status: 'pendente',
+      })
       .select()
-      .single() as { data: any; error: any };
+      .single();
 
     if (error) {
       return { success: false, error: error.message };
     }
 
-    setJustificativas(prev => [data as Justificativa, ...prev]);
-    return { success: true, data };
+    setJustificativas(prev => [result as Justificativa, ...prev]);
+    return { success: true, data: result };
+  };
+
+  const uploadAnexo = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('atestados')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Error uploading anexo:', error);
+      toast({
+        title: 'Erro ao enviar arquivo',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('atestados')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
   };
 
   const atualizarJustificativa = async (
     justificativaId: string,
-    descricao: string,
+    motivo: string,
     anexoUrl?: string
   ) => {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('justificativas_ponto' as any)
+      .from('justificativas_ponto')
       .update({
-        descricao,
+        motivo,
         anexo_url: anexoUrl,
-      } as any)
+      })
       .eq('id', justificativaId)
       .eq('user_id', user.id)
       .eq('status', 'pendente');
@@ -110,6 +146,10 @@ export function useJustificativasPonto() {
     return justificativas.find(j => j.registro_ponto_id === registroPontoId);
   };
 
+  const getJustificativaPorData = (data: string): Justificativa | undefined => {
+    return justificativas.find(j => j.data === data);
+  };
+
   const getPendentes = (): Justificativa[] => {
     return justificativas.filter(j => j.status === 'pendente');
   };
@@ -122,8 +162,10 @@ export function useJustificativasPonto() {
     justificativas,
     isLoading,
     criarJustificativa,
+    uploadAnexo,
     atualizarJustificativa,
     getJustificativaPorRegistro,
+    getJustificativaPorData,
     getPendentes,
     refetch: fetchJustificativas,
   };
