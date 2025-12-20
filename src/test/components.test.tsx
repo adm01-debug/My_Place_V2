@@ -148,18 +148,18 @@ describe('AlertCard', () => {
 // TESTES: FilterBar
 // =====================================================
 
-describe('FilterBar', () => {
+describe('InlineFilter', () => {
   it('deve renderizar com filtros', async () => {
-    const { FilterBar } = await import('@/components/portal/FilterBar');
+    const { InlineFilter } = await import('@/components/portal/FilterBar');
     
     render(
-      <FilterBar 
-        filters={[
-          { id: 'all', label: 'Todos' },
-          { id: 'active', label: 'Ativos' },
+      <InlineFilter 
+        options={[
+          { value: 'all', label: 'Todos' },
+          { value: 'active', label: 'Ativos' },
         ]}
-        activeFilter="all"
-        onFilterChange={vi.fn()}
+        value="all"
+        onChange={vi.fn()}
       />
     );
     
@@ -167,18 +167,18 @@ describe('FilterBar', () => {
     expect(screen.getByText('Ativos')).toBeDefined();
   });
 
-  it('deve chamar onFilterChange quando filtro clicado', async () => {
-    const { FilterBar } = await import('@/components/portal/FilterBar');
+  it('deve chamar onChange quando filtro clicado', async () => {
+    const { InlineFilter } = await import('@/components/portal/FilterBar');
     const onChange = vi.fn();
     
     render(
-      <FilterBar 
-        filters={[
-          { id: 'all', label: 'Todos' },
-          { id: 'active', label: 'Ativos' },
+      <InlineFilter 
+        options={[
+          { value: 'all', label: 'Todos' },
+          { value: 'active', label: 'Ativos' },
         ]}
-        activeFilter="all"
-        onFilterChange={onChange}
+        value="all"
+        onChange={onChange}
       />
     );
     
