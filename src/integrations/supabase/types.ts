@@ -626,6 +626,54 @@ export type Database = {
         }
         Relationships: []
       }
+      faq: {
+        Row: {
+          ativo: boolean | null
+          categoria: string
+          created_at: string
+          destaque: boolean | null
+          id: string
+          ordem: number | null
+          pergunta: string
+          resposta: string
+          tags: string[] | null
+          updated_at: string
+          utilidade_negativa: number | null
+          utilidade_positiva: number | null
+          visualizacoes: number | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria?: string
+          created_at?: string
+          destaque?: boolean | null
+          id?: string
+          ordem?: number | null
+          pergunta: string
+          resposta: string
+          tags?: string[] | null
+          updated_at?: string
+          utilidade_negativa?: number | null
+          utilidade_positiva?: number | null
+          visualizacoes?: number | null
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string
+          created_at?: string
+          destaque?: boolean | null
+          id?: string
+          ordem?: number | null
+          pergunta?: string
+          resposta?: string
+          tags?: string[] | null
+          updated_at?: string
+          utilidade_negativa?: number | null
+          utilidade_positiva?: number | null
+          visualizacoes?: number | null
+        }
+        Relationships: []
+      }
       ferias: {
         Row: {
           aprovado_por: string | null
@@ -1478,7 +1526,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      incrementar_visualizacao_faq: {
+        Args: { p_faq_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      registrar_utilidade_faq: {
+        Args: { p_faq_id: string; p_util: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
