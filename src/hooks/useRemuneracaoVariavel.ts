@@ -111,14 +111,14 @@ export function useRemuneracaoVariavel(ano?: number) {
 
     // Fetch metas ativas
     const { data: metasData } = await supabase
-      .from('metas')
+      .from('metas' as any)
       .select('*')
       .eq('user_id', user.id)
       .in('status', ['em_andamento', 'atingida'])
-      .order('data_fim', { ascending: true });
+      .order('data_fim', { ascending: true }) as { data: any[] | null };
 
     // Processar metas com percentual calculado
-    const metas = (metasData || []).map(meta => ({
+    const metas = (metasData || []).map((meta: any) => ({
       ...meta,
       percentual: meta.valor_meta > 0 
         ? Math.min(100, Math.round((meta.valor_atual / meta.valor_meta) * 100))
@@ -161,11 +161,11 @@ export function useRemuneracaoVariavel(ano?: number) {
     const novoStatus = valorAtual >= meta.valor_meta ? 'atingida' : 'em_andamento';
 
     const { error } = await supabase
-      .from('metas')
+      .from('metas' as any)
       .update({
         valor_atual: valorAtual,
         status: novoStatus,
-      })
+      } as any)
       .eq('id', metaId)
       .eq('user_id', user.id);
 

@@ -56,11 +56,11 @@ export function useLocaisPermitidos() {
     longitude: number
   ): Promise<{ valido: boolean; local: ValidacaoLocal | null; todosLocais: ValidacaoLocal[] }> => {
     try {
-      const { data, error } = await supabase
-        .rpc('fn_validar_localizacao' as any, {
+      const { data, error } = await (supabase as any)
+        .rpc('fn_validar_localizacao', {
           p_latitude: latitude,
           p_longitude: longitude,
-        }) as { data: any; error: any };
+        });
 
       if (error) {
         console.error('Error validating location:', error);
