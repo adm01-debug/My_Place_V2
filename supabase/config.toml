@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.webhook-integracoes]
 verify_jwt = false
+
+[functions.enviar-push]
+verify_jwt = false
+
+[functions.assistente-rh]
+verify_jwt = true
+
+[functions.dashboard-gestor]
+verify_jwt = true

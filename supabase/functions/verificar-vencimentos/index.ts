@@ -7,6 +7,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função auxiliar para enviar push notification
+async function enviarPush(supabaseUrl: string, supabaseServiceKey: string, userId: string, titulo: string, mensagem: string, url: string, tipo: string) {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/enviar-push`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        title: titulo,
+        body: mensagem,
+        url,
+        tipo
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`[vencimentos] Push enviado para ${userId}`);
+    }
+  } catch (error) {
+    console.error('[vencimentos] Erro ao enviar push:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -58,16 +84,24 @@ serve(async (req) => {
       const diasRestantes = Math.ceil((new Date(tr.data_limite).getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
       const isObrigatorio = treinamento?.obrigatorio;
       
+      const titulo = isObrigatorio ? '🔴 Treinamento obrigatório vencendo!' : '⏰ Treinamento vencendo';
+      const mensagem = `"${treinamento?.titulo}" vence em ${diasRestantes} dia(s). Complete antes do prazo!`;
+      const tipo = isObrigatorio ? 'alert' : 'warning';
+      
       const { error } = await supabase.rpc('criar_notificacao', {
         p_user_id: tr.user_id,
-        p_titulo: isObrigatorio ? '🔴 Treinamento obrigatório vencendo!' : '⏰ Treinamento vencendo',
-        p_mensagem: `"${treinamento?.titulo}" vence em ${diasRestantes} dia(s). Complete antes do prazo!`,
-        p_tipo: isObrigatorio ? 'alert' : 'warning',
+        p_titulo: titulo,
+        p_mensagem: mensagem,
+        p_tipo: tipo,
         p_link: '/treinamentos',
         p_dados: { treinamento_colaborador_id: tr.id, data_limite: tr.data_limite }
       });
       
-      if (!error) notificacoesCriadas++;
+      if (!error) {
+        notificacoesCriadas++;
+        // Enviar push notification
+        await enviarPush(supabaseUrl, supabaseServiceKey, tr.user_id, titulo, mensagem, '/treinamentos', tipo);
+      }
     }
 
     // 2. Parcelas de empréstimo vencendo (3 dias)

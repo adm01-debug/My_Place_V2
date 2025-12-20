@@ -39,6 +39,19 @@ export function usePushNotifications() {
     }
   }, []);
 
+  // Verificar subscription no banco de dados
+  const checkDatabaseSubscription = useCallback(async () => {
+    if (!user) return false;
+    
+    const { data } = await supabase
+      .from('push_subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1);
+    
+    return data && data.length > 0;
+  }, [user]);
+
   // Verificar suporte e estado atual
   useEffect(() => {
     const checkSupport = async () => {
@@ -54,16 +67,17 @@ export function usePushNotifications() {
         // Registrar service worker
         const registration = await registerServiceWorker();
         
-        if (registration) {
-          // Verificar subscription existente
+        if (registration && user) {
+          // Verificar subscription local e no banco
           const subscription = await registration.pushManager.getSubscription();
-          setIsSubscribed(!!subscription);
+          const dbSubscription = await checkDatabaseSubscription();
+          setIsSubscribed(!!subscription || dbSubscription);
         }
       }
     };
 
     checkSupport();
-  }, [registerServiceWorker]);
+  }, [registerServiceWorker, user, checkDatabaseSubscription]);
 
   // Solicitar permissão
   const requestPermission = useCallback(async (): Promise<boolean> => {
@@ -130,7 +144,7 @@ export function usePushNotifications() {
         applicationServerKey: applicationServerKey.buffer as ArrayBuffer
       });
 
-      // Preparar dados para salvar
+      // Preparar dados
       const subscriptionData: PushSubscriptionData = {
         endpoint: subscription.endpoint,
         keys: {
@@ -139,7 +153,24 @@ export function usePushNotifications() {
         },
       };
 
-      // Salvar no localStorage
+      // Salvar no banco de dados
+      const { error: dbError } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: user.id,
+          endpoint: subscriptionData.endpoint,
+          p256dh: subscriptionData.keys.p256dh,
+          auth: subscriptionData.keys.auth,
+        }, {
+          onConflict: 'user_id,endpoint'
+        });
+
+      if (dbError) {
+        console.error('[Push] Erro ao salvar subscription:', dbError);
+        throw dbError;
+      }
+
+      // Salvar também no localStorage como backup
       localStorage.setItem('push_subscription', JSON.stringify(subscriptionData));
       localStorage.setItem('push_user_id', user.id);
       
@@ -175,14 +206,27 @@ export function usePushNotifications() {
 
   // Cancelar inscrição
   const unsubscribe = useCallback(async (): Promise<boolean> => {
+    if (!user) return false;
+    
     setIsLoading(true);
 
     try {
+      // Remover do navegador
       if (swRegistration) {
         const subscription = await swRegistration.pushManager.getSubscription();
         if (subscription) {
           await subscription.unsubscribe();
         }
+      }
+
+      // Remover do banco de dados
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('[Push] Erro ao remover subscription:', error);
       }
 
       localStorage.removeItem('push_subscription');
@@ -206,7 +250,7 @@ export function usePushNotifications() {
       setIsLoading(false);
       return false;
     }
-  }, [swRegistration, toast]);
+  }, [user, swRegistration, toast]);
 
   // Mostrar notificação local (para testes ou fallback)
   const showLocalNotification = useCallback(async (
