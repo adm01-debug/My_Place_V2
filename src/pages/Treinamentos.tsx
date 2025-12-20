@@ -1,17 +1,62 @@
-import { BookOpen, AlertTriangle, CheckCircle, Download, Play } from 'lucide-react';
+import { BookOpen, AlertTriangle, CheckCircle, Download, Play, ExternalLink } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
-import { useLoadingState } from '@/hooks/useLoadingState';
-import { mockTreinamentos } from '@/data/mockData';
+import { useTreinamentos } from '@/hooks/useTreinamentos';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 export default function Treinamentos() {
-  const t = mockTreinamentos;
-  const isLoading = useLoadingState(800);
+  const { 
+    pendentes, 
+    emAndamento,
+    realizados, 
+    totalRealizados, 
+    totalPendentes, 
+    horasTotal,
+    trilha, 
+    isLoading,
+    iniciarTreinamento,
+    refetch 
+  } = useTreinamentos();
+  const { toast } = useToast();
+
+  const handleIniciar = async (id: string, url?: string | null) => {
+    const result = await iniciarTreinamento(id);
+    
+    if (result.success) {
+      toast({
+        title: 'Treinamento iniciado!',
+        description: 'Bom estudo!',
+      });
+      
+      // Se tiver URL, abrir em nova aba
+      if (url) {
+        window.open(url, '_blank');
+      }
+    } else {
+      toast({
+        title: 'Erro ao iniciar',
+        description: result.error,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownloadCertificado = (url?: string | null) => {
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      toast({
+        title: 'Certificado indisponível',
+        description: 'O certificado ainda não foi gerado.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -31,54 +76,156 @@ export default function Treinamentos() {
   }
 
   return (
-    <PageLayout title="Meus Treinamentos" showBack>
+    <PageLayout title="Meus Treinamentos" showBack onRefresh={refetch}>
       <div className="space-y-6 animate-fade-in-up">
+        {/* Estatísticas */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="p-3 text-center"><p className="text-2xl font-bold text-finance">{t.totalRealizados}</p><p className="text-xs text-muted-foreground">Realizados</p></Card>
-          <Card className="p-3 text-center"><p className="text-2xl font-bold text-projects">{t.totalPendentes}</p><p className="text-xs text-muted-foreground">Pendentes</p></Card>
-          <Card className="p-3 text-center"><p className="text-2xl font-bold text-primary">{t.horasTotal}h</p><p className="text-xs text-muted-foreground">Total</p></Card>
+          <Card className="p-3 text-center">
+            <p className="text-2xl font-bold text-finance">{totalRealizados}</p>
+            <p className="text-xs text-muted-foreground">Realizados</p>
+          </Card>
+          <Card className="p-3 text-center">
+            <p className="text-2xl font-bold text-projects">{totalPendentes}</p>
+            <p className="text-xs text-muted-foreground">Pendentes</p>
+          </Card>
+          <Card className="p-3 text-center">
+            <p className="text-2xl font-bold text-primary">{horasTotal}h</p>
+            <p className="text-xs text-muted-foreground">Total</p>
+          </Card>
         </div>
 
-        {t.pendentes.length > 0 && (
+        {/* Em Andamento */}
+        {emAndamento.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">⚠️ Pendentes</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+              🔄 Em Andamento
+            </h3>
             <div className="space-y-3">
-              {t.pendentes.map((tr) => (
-                <Card key={tr.id} className="p-4 border-l-4 border-l-projects">
+              {emAndamento.map((tr) => (
+                <Card key={tr.id} className="p-4 border-l-4 border-l-primary">
                   <div className="flex justify-between mb-2">
-                    <Badge variant={tr.tipo === 'obrigatorio' ? 'destructive' : 'secondary'}>{tr.tipo === 'obrigatorio' ? '🔴 Obrigatório' : '🟡 Recomendado'}</Badge>
-                    <span className="text-xs text-muted-foreground">{tr.cargaHoraria}h</span>
+                    <Badge variant="secondary">Em progresso</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {tr.treinamento?.carga_horaria}h
+                    </span>
                   </div>
-                  <p className="font-semibold text-foreground">{tr.titulo}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Prazo: {format(tr.prazo!, 'dd/MM/yyyy')}</p>
-                  <Button size="sm" className="w-full mt-3"><Play className="w-4 h-4 mr-1" /> Iniciar</Button>
+                  <p className="font-semibold text-foreground">{tr.treinamento?.titulo}</p>
+                  <Progress value={tr.progresso} className="h-2 mt-2" />
+                  <p className="text-xs text-muted-foreground mt-1">{tr.progresso}% concluído</p>
+                  {tr.treinamento?.url_treinamento && (
+                    <Button 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => window.open(tr.treinamento?.url_treinamento!, '_blank')}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" /> Continuar
+                    </Button>
+                  )}
                 </Card>
               ))}
             </div>
           </div>
         )}
 
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">✅ Realizados</h3>
-          <div className="space-y-3">
-            {t.realizados.map((tr) => (
-              <Card key={tr.id} className="p-4">
-                <div className="flex items-start justify-between">
-                  <div><p className="font-medium text-foreground">{tr.titulo}</p><p className="text-xs text-muted-foreground">{format(tr.dataRealizacao!, 'dd/MM/yyyy')} | {tr.cargaHoraria}h | Nota: {tr.nota}</p></div>
-                  <Button variant="ghost" size="sm"><Download className="w-4 h-4" /></Button>
-                </div>
-              </Card>
-            ))}
+        {/* Pendentes */}
+        {pendentes.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+              ⚠️ Pendentes
+            </h3>
+            <div className="space-y-3">
+              {pendentes.map((tr) => (
+                <Card key={tr.id} className="p-4 border-l-4 border-l-projects">
+                  <div className="flex justify-between mb-2">
+                    <Badge variant={tr.treinamento?.tipo === 'obrigatorio' ? 'destructive' : 'secondary'}>
+                      {tr.treinamento?.tipo === 'obrigatorio' ? '🔴 Obrigatório' : '🟡 Recomendado'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {tr.treinamento?.carga_horaria}h
+                    </span>
+                  </div>
+                  <p className="font-semibold text-foreground">{tr.treinamento?.titulo}</p>
+                  {tr.treinamento?.descricao && (
+                    <p className="text-xs text-muted-foreground mt-1">{tr.treinamento.descricao}</p>
+                  )}
+                  {tr.prazo && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Prazo: {format(new Date(tr.prazo), 'dd/MM/yyyy')}
+                    </p>
+                  )}
+                  <Button 
+                    size="sm" 
+                    className="w-full mt-3"
+                    onClick={() => handleIniciar(tr.id, tr.treinamento?.url_treinamento)}
+                  >
+                    <Play className="w-4 h-4 mr-1" /> Iniciar
+                  </Button>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {t.trilha && (
+        {/* Realizados */}
+        {realizados.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+              ✅ Realizados
+            </h3>
+            <div className="space-y-3">
+              {realizados.map((tr) => (
+                <Card key={tr.id} className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">{tr.treinamento?.titulo}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {tr.data_conclusao && format(new Date(tr.data_conclusao), 'dd/MM/yyyy')} 
+                        {' | '}{tr.treinamento?.carga_horaria}h
+                        {tr.nota && ` | Nota: ${tr.nota}`}
+                      </p>
+                      {tr.validade && (
+                        <p className="text-xs text-muted-foreground">
+                          Válido até: {format(new Date(tr.validade), 'dd/MM/yyyy')}
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDownloadCertificado(tr.certificado_url)}
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trilha de Desenvolvimento */}
+        {trilha && (
           <Card className="p-4 bg-hr-light/30">
             <h3 className="font-semibold mb-2">📈 Trilha de Desenvolvimento</h3>
-            <p className="text-sm mb-2">Nível: <span className="font-medium">{t.trilha.nivelAtual}</span> → {t.trilha.proximoNivel}</p>
-            <Progress value={t.trilha.progressoPercentual} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-1">Faltam {t.trilha.treinamentosFaltantes} treinamentos</p>
+            <p className="text-sm mb-2">
+              Nível: <span className="font-medium">{trilha.nivel_atual}</span>
+              {trilha.proximo_nivel && ` → ${trilha.proximo_nivel}`}
+            </p>
+            <Progress value={trilha.progresso_percentual} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-1">
+              {trilha.treinamentos_faltantes > 0 
+                ? `Faltam ${trilha.treinamentos_faltantes} treinamentos`
+                : 'Trilha concluída! 🎉'}
+            </p>
           </Card>
+        )}
+
+        {/* Mensagem quando não há treinamentos */}
+        {pendentes.length === 0 && emAndamento.length === 0 && realizados.length === 0 && (
+          <div className="text-center py-8">
+            <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground">Nenhum treinamento encontrado</p>
+          </div>
         )}
       </div>
     </PageLayout>
