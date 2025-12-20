@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MessageSquare, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { FilterBar } from '@/components/portal/FilterBar';
 import { useSolicitacoes } from '@/hooks/useSolicitacoes';
+import { useFilters, FilterConfig } from '@/hooks/useFilters';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -43,6 +45,43 @@ const tiposConfig: Record<string, string> = {
   outros: 'Outros',
 };
 
+const filterConfigs: FilterConfig[] = [
+  {
+    key: 'status',
+    label: 'Status',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      { value: 'pendente', label: 'Pendente' },
+      { value: 'em_analise', label: 'Em análise' },
+      { value: 'aprovado', label: 'Aprovado' },
+      { value: 'rejeitado', label: 'Rejeitado' },
+      { value: 'concluido', label: 'Concluído' },
+    ],
+  },
+  {
+    key: 'tipo',
+    label: 'Tipo',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      ...Object.entries(tiposConfig).map(([value, label]) => ({ value, label })),
+    ],
+  },
+  {
+    key: 'prioridade',
+    label: 'Prioridade',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todas' },
+      { value: 'baixa', label: 'Baixa' },
+      { value: 'normal', label: 'Normal' },
+      { value: 'alta', label: 'Alta' },
+      { value: 'urgente', label: 'Urgente' },
+    ],
+  },
+];
+
 export default function Solicitacoes() {
   const [showNova, setShowNova] = useState(false);
   const [tipo, setTipo] = useState('');
@@ -54,8 +93,23 @@ export default function Solicitacoes() {
   const { solicitacoes, isLoading, criarSolicitacao, refetch } = useSolicitacoes();
   const { toast } = useToast();
 
-  const abertas = solicitacoes.filter(s => !['concluido', 'rejeitado'].includes(s.status));
-  const concluidas = solicitacoes.filter(s => ['concluido', 'rejeitado'].includes(s.status));
+  const {
+    filteredItems,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilter,
+    clearFilters,
+    activeFilterCount,
+    sortKey,
+    sortDirection,
+    toggleSort,
+  } = useFilters(solicitacoes, filterConfigs);
+
+  const { abertas, concluidas } = useMemo(() => ({
+    abertas: filteredItems.filter(s => !['concluido', 'rejeitado'].includes(s.status)),
+    concluidas: filteredItems.filter(s => ['concluido', 'rejeitado'].includes(s.status)),
+  }), [filteredItems]);
 
   const handleSubmit = async () => {
     if (!tipo || !titulo) {
@@ -113,6 +167,17 @@ export default function Solicitacoes() {
         <Button className="w-full" onClick={() => setShowNova(true)}>
           <Plus className="w-4 h-4 mr-2" /> Nova Solicitação
         </Button>
+
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filters={filters}
+          onFilterChange={setFilter}
+          onClearFilters={clearFilters}
+          filterConfigs={filterConfigs}
+          activeFilterCount={activeFilterCount}
+          searchPlaceholder="Buscar solicitações..."
+        />
 
         {abertas.length > 0 && (
           <div>

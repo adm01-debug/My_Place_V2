@@ -16,14 +16,20 @@ import {
 } from '@/components/ui/popover';
 import { FilterConfig, FilterOption } from '@/hooks/useFilters';
 
+interface DateRange {
+  from: Date | null;
+  to: Date | null;
+}
+
 interface FilterBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  filters: Record<string, string | null>;
+  filters: Record<string, string | DateRange | null>;
   filterConfigs: FilterConfig[];
-  onFilterChange: (key: string, value: string | null) => void;
+  onFilterChange: (key: string, value: string | DateRange | null) => void;
   onClearFilters: () => void;
   activeFilterCount: number;
+  searchPlaceholder?: string;
   placeholder?: string;
   sortOptions?: { key: string; label: string }[];
   sortKey?: string | null;
@@ -39,6 +45,7 @@ export function FilterBar({
   onFilterChange,
   onClearFilters,
   activeFilterCount,
+  searchPlaceholder,
   placeholder = 'Buscar...',
   sortOptions,
   sortKey,
@@ -52,7 +59,7 @@ export function FilterBar({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={placeholder}
+            placeholder={searchPlaceholder || placeholder}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9 pr-9"
@@ -176,7 +183,7 @@ export function FilterBar({
             </Badge>
           )}
           {Object.entries(filters).map(([key, value]) => {
-            if (!value) return null;
+            if (!value || typeof value !== 'string') return null;
             const config = filterConfigs.find(c => c.key === key);
             const option = config?.options.find(o => o.value === value);
             return (

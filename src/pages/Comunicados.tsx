@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Bell, Download, Eye, CheckCheck, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { ListItemSkeleton } from '@/components/portal/Skeletons';
+import { FilterBar } from '@/components/portal/FilterBar';
 import { useComunicados } from '@/hooks/useComunicados';
+import { useFilters, FilterConfig } from '@/hooks/useFilters';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import {
@@ -15,11 +17,46 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const filterConfigs: FilterConfig[] = [
+  {
+    key: 'categoria',
+    label: 'Categoria',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todas' },
+      { value: 'geral', label: 'Geral' },
+      { value: 'rh', label: 'RH' },
+      { value: 'financeiro', label: 'Financeiro' },
+      { value: 'institucional', label: 'Institucional' },
+      { value: 'eventos', label: 'Eventos' },
+    ],
+  },
+  {
+    key: 'lido',
+    label: 'Leitura',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      { value: 'nao_lido', label: 'Não lidos' },
+      { value: 'lido', label: 'Lidos' },
+    ],
+  },
+  {
+    key: 'importante',
+    label: 'Importância',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      { value: 'importante', label: 'Importantes' },
+    ],
+  },
+];
+
 export default function Comunicados() {
   const [selectedComunicado, setSelectedComunicado] = useState<any | null>(null);
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const { 
-    comunicados, 
+    comunicados: rawComunicados, 
     totalNaoLidos, 
     isLoading, 
     marcarComoLido,
@@ -27,6 +64,36 @@ export default function Comunicados() {
     refetch 
   } = useComunicados();
   const { toast } = useToast();
+
+  // Prepare data for filtering with custom lido/importante fields
+  const comunicadosForFilter = useMemo(() => 
+    rawComunicados.map(c => ({
+      ...c,
+      lido: c.lido ? 'lido' : 'nao_lido',
+      importante: c.importante ? 'importante' : 'normal',
+    })),
+    [rawComunicados]
+  );
+
+  const {
+    filteredItems,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilter,
+    clearFilters,
+    activeFilterCount,
+  } = useFilters(comunicadosForFilter, filterConfigs);
+
+  // Map back to original format for display
+  const comunicados = useMemo(() => 
+    filteredItems.map(c => ({
+      ...c,
+      lido: c.lido === 'lido',
+      importante: c.importante === 'importante',
+    })),
+    [filteredItems]
+  );
 
   const handleOpenComunicado = async (comunicado: any) => {
     setSelectedComunicado(comunicado);
@@ -92,6 +159,18 @@ export default function Comunicados() {
   return (
     <PageLayout title="Comunicados" showBack onRefresh={refetch}>
       <div className="space-y-4 animate-fade-in-up">
+        {/* Filtros */}
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filters={filters}
+          onFilterChange={setFilter}
+          onClearFilters={clearFilters}
+          filterConfigs={filterConfigs}
+          activeFilterCount={activeFilterCount}
+          searchPlaceholder="Buscar comunicados..."
+        />
+
         {/* Botão marcar todos como lidos */}
         {totalNaoLidos > 0 && (
           <div className="flex justify-between items-center">

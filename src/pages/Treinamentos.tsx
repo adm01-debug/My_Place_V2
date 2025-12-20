@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { BookOpen, AlertTriangle, CheckCircle, Download, Play, ExternalLink } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,15 +6,41 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { FilterBar } from '@/components/portal/FilterBar';
 import { useTreinamentos } from '@/hooks/useTreinamentos';
+import { useFilters, FilterConfig } from '@/hooks/useFilters';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
+const filterConfigs: FilterConfig[] = [
+  {
+    key: 'status',
+    label: 'Status',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      { value: 'pendente', label: 'Pendente' },
+      { value: 'em_andamento', label: 'Em Andamento' },
+      { value: 'concluido', label: 'Concluído' },
+    ],
+  },
+  {
+    key: 'tipo',
+    label: 'Tipo',
+    type: 'select',
+    options: [
+      { value: 'all', label: 'Todos' },
+      { value: 'obrigatorio', label: 'Obrigatório' },
+      { value: 'opcional', label: 'Opcional' },
+    ],
+  },
+];
+
 export default function Treinamentos() {
   const { 
-    pendentes, 
-    emAndamento,
-    realizados, 
+    pendentes: rawPendentes, 
+    emAndamento: rawEmAndamento,
+    realizados: rawRealizados, 
     totalRealizados, 
     totalPendentes, 
     horasTotal,
@@ -23,6 +50,29 @@ export default function Treinamentos() {
     refetch 
   } = useTreinamentos();
   const { toast } = useToast();
+
+  // Combine all trainings for filtering
+  const allTreinamentos = useMemo(() => [
+    ...rawPendentes.map(t => ({ ...t, status: 'pendente' })),
+    ...rawEmAndamento.map(t => ({ ...t, status: 'em_andamento' })),
+    ...rawRealizados.map(t => ({ ...t, status: 'concluido' })),
+  ], [rawPendentes, rawEmAndamento, rawRealizados]);
+
+  const {
+    filteredItems,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilter,
+    clearFilters,
+    activeFilterCount,
+  } = useFilters(allTreinamentos, filterConfigs);
+
+  const { pendentes, emAndamento, realizados } = useMemo(() => ({
+    pendentes: filteredItems.filter(t => t.status === 'pendente'),
+    emAndamento: filteredItems.filter(t => t.status === 'em_andamento'),
+    realizados: filteredItems.filter(t => t.status === 'concluido'),
+  }), [filteredItems]);
 
   const handleIniciar = async (id: string, url?: string | null) => {
     const result = await iniciarTreinamento(id);
@@ -93,6 +143,18 @@ export default function Treinamentos() {
             <p className="text-xs text-muted-foreground">Total</p>
           </Card>
         </div>
+
+        {/* Filtros */}
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filters={filters}
+          onFilterChange={setFilter}
+          onClearFilters={clearFilters}
+          filterConfigs={filterConfigs}
+          activeFilterCount={activeFilterCount}
+          searchPlaceholder="Buscar treinamentos..."
+        />
 
         {/* Em Andamento */}
         {emAndamento.length > 0 && (
