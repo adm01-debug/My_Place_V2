@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { ProfileSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { PushNotificationSettings } from '@/components/portal/PushNotificationSettings';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { useAuth } from '@/contexts/AuthContext';
@@ -281,6 +282,9 @@ export default function Perfil() {
             Para atualizar seus dados bancários, clique em "Solicitar Alteração"
           </p>
         </Card>
+
+        {/* Notificações Push */}
+        <PushNotificationSettings />
 
         {/* Segurança - Autenticação Biométrica */}
         {isAvailable && (
