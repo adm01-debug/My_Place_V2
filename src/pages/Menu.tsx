@@ -1,7 +1,7 @@
 import { 
   User, Wallet, Clock, Umbrella, CreditCard, Gift, BookOpen, 
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
-  TrendingUp, Moon, Sun, Download, Smartphone, Shield
+  TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -197,14 +197,17 @@ export default function Menu() {
           </Card>
         </div>
 
-        {/* Admin Panel Link */}
+        {/* Admin/Gestor Panel Links */}
         {isAdmin && (
           <div className="animate-fade-in-up">
             <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <span className="w-1 h-4 rounded-full bg-destructive" />
               Administração
             </h3>
-            <MenuItem icon={Shield} label="Painel Admin" to="/admin" color="text-destructive" />
+            <div className="space-y-2">
+              <MenuItem icon={Shield} label="Painel Admin" to="/admin" color="text-destructive" />
+              <MenuItem icon={BarChart3} label="Dashboard Gestão" to="/gestao" color="text-hr" />
+            </div>
           </div>
         )}
 
