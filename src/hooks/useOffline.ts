@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OfflineRegistroPonto {
   id: number;
@@ -8,7 +9,8 @@ interface OfflineRegistroPonto {
     data_hora: string;
     latitude?: number;
     longitude?: number;
-    dispositivo?: string;
+    endereco?: string;
+    observacao?: string;
   };
   timestamp: number;
 }
@@ -18,6 +20,21 @@ export function useOffline() {
   const [offlineCount, setOfflineCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast } = useToast();
+
+  // Listener para o Service Worker solicitar token
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'GET_AUTH_TOKEN') {
+        const { data: { session } } = await supabase.auth.getSession();
+        event.ports[0]?.postMessage({ token: session?.access_token || null });
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleMessage);
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   // Atualizar estado online/offline
   useEffect(() => {
@@ -69,7 +86,15 @@ export function useOffline() {
         );
       });
     }
-    return 0;
+    
+    // Fallback: check localStorage
+    try {
+      const offlineData = JSON.parse(localStorage.getItem('offline-ponto') || '[]');
+      setOfflineCount(offlineData.length);
+      return offlineData.length;
+    } catch {
+      return 0;
+    }
   }, []);
 
   // Salvar registro de ponto offline
@@ -127,22 +152,58 @@ export function useOffline() {
         await (registration as any).sync.register('sync-ponto');
       }
       
-      // Fallback: sync localStorage
-      const offlineData = JSON.parse(localStorage.getItem('offline-ponto') || '[]');
+      // Fallback: sync localStorage data via edge function
+      const offlineData: OfflineRegistroPonto[] = JSON.parse(localStorage.getItem('offline-ponto') || '[]');
       if (offlineData.length > 0) {
-        // Aqui você faria o POST para o backend
-        // Por enquanto, apenas limpa os dados
-        localStorage.removeItem('offline-ponto');
-        setOfflineCount(0);
-        toast({
-          title: 'Sincronização concluída',
-          description: `${offlineData.length} registro(s) sincronizado(s).`,
-        });
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          const { data, error } = await supabase.functions.invoke('sync-ponto-offline', {
+            body: offlineData.map(item => ({
+              ...item.data,
+              offline_id: String(item.id),
+            })),
+          });
+          
+          if (!error && data) {
+            // Remover registros sincronizados com sucesso
+            const successIds = new Set(data.details?.success || []);
+            const remaining = offlineData.filter(item => !successIds.has(String(item.id)));
+            
+            if (remaining.length === 0) {
+              localStorage.removeItem('offline-ponto');
+            } else {
+              localStorage.setItem('offline-ponto', JSON.stringify(remaining));
+            }
+            
+            setOfflineCount(remaining.length);
+            
+            if (data.success > 0) {
+              toast({
+                title: 'Sincronização concluída',
+                description: `${data.success} registro(s) sincronizado(s).`,
+              });
+            }
+            
+            if (data.failed > 0) {
+              toast({
+                title: 'Alguns registros falharam',
+                description: `${data.failed} registro(s) não puderam ser sincronizados.`,
+                variant: 'destructive',
+              });
+            }
+          }
+        }
       }
       
       await getOfflineCount();
     } catch (err) {
       console.error('Erro ao sincronizar:', err);
+      toast({
+        title: 'Erro na sincronização',
+        description: 'Não foi possível sincronizar os dados offline.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSyncing(false);
     }

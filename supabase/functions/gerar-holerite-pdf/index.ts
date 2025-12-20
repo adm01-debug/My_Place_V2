@@ -10,22 +10,27 @@ interface HoleriteData {
   id: string
   mes: number
   ano: number
+  salario_bruto: number
   salario_base: number
   salario_liquido: number
   total_proventos: number
   total_descontos: number
+  descontos: number
+  horas_trabalhadas: number
+  horas_extras: number
+  faltas: number
   detalhes: {
     proventos: Array<{ codigo: string; descricao: string; referencia: string; valor: number }>
     descontos: Array<{ codigo: string; descricao: string; referencia: string; valor: number }>
-  }
+  } | null
 }
 
 interface ProfileData {
-  nome_completo: string
-  cargo: string
-  departamento: string
-  matricula: string
-  data_admissao: string
+  nome: string
+  cargo: string | null
+  departamento: string | null
+  matricula: string | null
+  data_admissao: string | null
 }
 
 const mesesNomes = [
@@ -46,7 +51,12 @@ function formatDate(dateStr: string): string {
 }
 
 function generateHoleriteHTML(holerite: HoleriteData, profile: ProfileData, empresa: string): string {
-  const { proventos = [], descontos = [] } = holerite.detalhes || {}
+  const detalhes = holerite.detalhes || { proventos: [], descontos: [] }
+  const proventos = detalhes.proventos || []
+  const descontos = detalhes.descontos || []
+  const salarioBase = holerite.salario_base || holerite.salario_bruto || 0
+  const totalProventos = holerite.total_proventos || holerite.salario_bruto || 0
+  const totalDescontos = holerite.total_descontos || holerite.descontos || 0
   
   return `
 <!DOCTYPE html>
@@ -93,7 +103,7 @@ function generateHoleriteHTML(holerite: HoleriteData, profile: ProfileData, empr
   <div class="info-grid">
     <div class="info-box">
       <label>Colaborador</label>
-      <span>${profile.nome_completo}</span>
+      <span>${profile.nome || 'Colaborador'}</span>
     </div>
     <div class="info-box">
       <label>Matrícula</label>
@@ -113,7 +123,7 @@ function generateHoleriteHTML(holerite: HoleriteData, profile: ProfileData, empr
     </div>
     <div class="info-box">
       <label>Salário Base</label>
-      <span>${formatCurrency(holerite.salario_base)}</span>
+      <span>${formatCurrency(salarioBase)}</span>
     </div>
   </div>
 
@@ -148,8 +158,8 @@ function generateHoleriteHTML(holerite: HoleriteData, profile: ProfileData, empr
       `).join('')}
       <tr class="total-row">
         <td colspan="3" class="text-right"><strong>TOTAIS</strong></td>
-        <td class="text-right"><strong>${formatCurrency(holerite.total_proventos)}</strong></td>
-        <td class="text-right"><strong>${formatCurrency(holerite.total_descontos)}</strong></td>
+        <td class="text-right"><strong>${formatCurrency(totalProventos)}</strong></td>
+        <td class="text-right"><strong>${formatCurrency(totalDescontos)}</strong></td>
       </tr>
     </tbody>
   </table>
@@ -157,11 +167,11 @@ function generateHoleriteHTML(holerite: HoleriteData, profile: ProfileData, empr
   <div class="totals">
     <div class="total-box">
       <label>Total Proventos</label>
-      <span style="color: #16a34a;">${formatCurrency(holerite.total_proventos)}</span>
+      <span style="color: #16a34a;">${formatCurrency(totalProventos)}</span>
     </div>
     <div class="total-box">
       <label>Total Descontos</label>
-      <span style="color: #dc2626;">${formatCurrency(holerite.total_descontos)}</span>
+      <span style="color: #dc2626;">${formatCurrency(totalDescontos)}</span>
     </div>
     <div class="total-box highlight">
       <label>Líquido a Receber</label>
@@ -241,14 +251,14 @@ serve(async (req) => {
     // Buscar profile
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('nome_completo, cargo, departamento, matricula, data_admissao')
+      .select('nome, cargo, departamento, matricula, data_admissao')
       .eq('id', user.id)
       .single()
 
     // Gerar HTML
     const html = generateHoleriteHTML(
       holerite as HoleriteData,
-      profile as ProfileData || { nome_completo: 'Colaborador', cargo: '', departamento: '', matricula: '', data_admissao: '' },
+      profile as ProfileData || { nome: 'Colaborador', cargo: null, departamento: null, matricula: null, data_admissao: null },
       'PROMO BRINDES LTDA'
     )
 
