@@ -32,6 +32,7 @@ import FAQ from "./pages/FAQ";
 import Organograma from "./pages/Organograma";
 import Calendario from "./pages/Calendario";
 import Metas from "./pages/Metas";
+import Feedback360 from "./pages/Feedback360";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ function AnimatedRoutes() {
         <Route path="/organograma" element={<ProtectedRoute><AnimatedPage><Organograma /></AnimatedPage></ProtectedRoute>} />
         <Route path="/calendario" element={<ProtectedRoute><AnimatedPage><Calendario /></AnimatedPage></ProtectedRoute>} />
         <Route path="/metas" element={<ProtectedRoute><AnimatedPage><Metas /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><AnimatedPage><Feedback360 /></AnimatedPage></ProtectedRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>

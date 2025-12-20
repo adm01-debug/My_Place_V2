@@ -44,6 +44,104 @@ export type Database = {
         }
         Relationships: []
       }
+      avaliacoes: {
+        Row: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          comentario_geral: string | null
+          created_at: string
+          data_envio: string | null
+          id: string
+          nota_geral: number | null
+          pontos_fortes: string | null
+          pontos_melhoria: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          comentario_geral?: string | null
+          created_at?: string
+          data_envio?: string | null
+          id?: string
+          nota_geral?: number | null
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          avaliado_id?: string
+          avaliador_id?: string
+          ciclo_id?: string
+          comentario_geral?: string | null
+          created_at?: string
+          data_envio?: string | null
+          id?: string
+          nota_geral?: number | null
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "ciclos_avaliacao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes_competencias: {
+        Row: {
+          avaliacao_id: string
+          comentario: string | null
+          competencia_id: string
+          created_at: string
+          id: string
+          nota: number
+        }
+        Insert: {
+          avaliacao_id: string
+          comentario?: string | null
+          competencia_id: string
+          created_at?: string
+          id?: string
+          nota: number
+        }
+        Update: {
+          avaliacao_id?: string
+          comentario?: string | null
+          competencia_id?: string
+          created_at?: string
+          id?: string
+          nota?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_competencias_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_competencias_competencia_id_fkey"
+            columns: ["competencia_id"]
+            isOneToOne: false
+            referencedRelation: "competencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beneficios: {
         Row: {
           ativo: boolean
@@ -137,6 +235,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ciclos_avaliacao: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string | null
+          id: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comissoes: {
         Row: {
           ano: number
@@ -176,6 +310,36 @@ export type Database = {
           status?: string
           user_id?: string
           valor?: number
+        }
+        Relationships: []
+      }
+      competencias: {
+        Row: {
+          ativa: boolean
+          categoria: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          peso: number
+        }
+        Insert: {
+          ativa?: boolean
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          peso?: number
+        }
+        Update: {
+          ativa?: boolean
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          peso?: number
         }
         Relationships: []
       }
