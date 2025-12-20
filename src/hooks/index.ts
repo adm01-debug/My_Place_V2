@@ -2,25 +2,58 @@
 // HOOKS INDEX - my-place Portal do Colaborador
 // ==============================================
 // Este arquivo exporta todos os hooks do projeto
+// Atualizado: 2025-12-20
 
-// Hooks de dados principais
+// ====== HOOKS DE DADOS PRINCIPAIS ======
 export { useBeneficios } from './useBeneficios';
 export { useTreinamentos } from './useTreinamentos';
 export { useDocumentos } from './useDocumentos';
 export { useComunicados } from './useComunicados';
 export { useRemuneracaoVariavel } from './useRemuneracaoVariavel';
-export { useNotificacoes, useNotifications } from './useNotificacoes';
+export { useNotificacoes } from './useNotificacoes';
 export { useDashboard } from './useDashboard';
 
-// Hooks de funcionalidades específicas
+// ====== HOOKS DE FUNCIONALIDADES ESPECÍFICAS ======
 export { useFerias } from './useFerias';
 export { useHolerites } from './useHolerites';
 export { useRegistrosPonto } from './useRegistrosPonto';
 export { useEmprestimos } from './useEmprestimos';
 export { useLocaisPermitidos } from './useLocaisPermitidos';
+export { useJustificativasPonto } from './useJustificativasPonto';
 
-// Hooks existentes (não substituir)
-// export { useSolicitacoes } from './useSolicitacoes';
-// export { useBiometricAuth } from './useBiometricAuth';
-// export { usePWAInstall } from './usePWAInstall';
-// export { useLoadingState } from './useLoadingState';
+// ====== HOOKS ADMINISTRATIVOS ======
+export { useAdminData } from './useAdminData';
+export { useDashboardGestor } from './useDashboardGestor';
+export { useUserRoles } from './useUserRoles';
+
+// ====== HOOKS DE MÓDULOS EXTRAS ======
+export { useFAQ } from './useFAQ';
+export { useFeedback360 } from './useFeedback360';
+export { useMetas } from './useMetas';
+export { useOrganograma } from './useOrganograma';
+export { usePesquisasClima } from './usePesquisasClima';
+export { useCalendarioCorporativo } from './useCalendarioCorporativo';
+export { useAniversariantes } from './useAniversariantes';
+export { useSolicitacoes } from './useSolicitacoes';
+
+// ====== HOOKS DE UI E UTILIDADES ======
+export { useLoadingState } from './useLoadingState';
+export { useFilters } from './useFilters';
+export { useExportPDF } from './useExportPDF';
+
+// ====== HOOKS PWA E OFFLINE ======
+export { useOffline } from './useOffline';
+export { usePWAInstall } from './usePWAInstall';
+export { usePushNotifications } from './usePushNotifications';
+export { useBiometricAuth } from './useBiometricAuth';
+
+// ====== HOOKS ESPECIAIS ======
+export { useAssistenteRH } from './useAssistenteRH';
+
+// Re-exports úteis
+export type { Beneficio, DependenteBeneficio } from './useBeneficios';
+export type { Treinamento, TreinamentoColaborador } from './useTreinamentos';
+export type { Documento } from './useDocumentos';
+export type { Comunicado } from './useComunicados';
+export type { Holerite, HoleriteDetalhes } from './useHolerites';
+export type { FAQItem, FAQCategoria } from './useFAQ';
