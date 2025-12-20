@@ -190,10 +190,10 @@ export function useRegistrosPonto() {
     if (latitude && longitude) {
       // Validar localização remotamente
       const { data: validacao } = await supabase
-        .rpc('fn_esta_em_local_permitido', {
+        .rpc('fn_esta_em_local_permitido' as any, {
           p_latitude: latitude,
           p_longitude: longitude,
-        });
+        }) as { data: any };
 
       if (validacao === false) {
         status = 'fora_area';

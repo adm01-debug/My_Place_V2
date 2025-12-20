@@ -45,11 +45,11 @@ export function useDocumentos() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('documentos')
+      .from('documentos' as any)
       .select('*')
       .eq('user_id', user.id)
       .eq('disponivel', true)
-      .order('gerado_em', { ascending: false });
+      .order('gerado_em', { ascending: false }) as { data: any[] | null; error: any };
 
     if (error) {
       console.error('Error fetching documentos:', error);
@@ -88,11 +88,11 @@ export function useDocumentos() {
 
     try {
       // Registrar download para auditoria
-      await supabase.from('documentos_downloads').insert({
+      await supabase.from('documentos_downloads' as any).insert({
         documento_id: documento.id,
         user_id: user.id,
         user_agent: navigator.userAgent,
-      });
+      } as any);
 
       // Se é URL do Supabase Storage, gerar URL assinada
       if (documento.arquivo_url.includes('supabase')) {

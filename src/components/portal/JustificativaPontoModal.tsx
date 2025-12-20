@@ -129,7 +129,7 @@ export function JustificativaPontoModal({
       }
 
       const { error } = await supabase
-        .from('justificativas_ponto')
+        .from('justificativas_ponto' as any)
         .insert({
           registro_ponto_id: registroPontoId,
           user_id: user.id,
@@ -137,7 +137,7 @@ export function JustificativaPontoModal({
           descricao,
           anexo_url: anexoUrl,
           status: 'pendente',
-        });
+        } as any);
 
       if (error) throw error;
 

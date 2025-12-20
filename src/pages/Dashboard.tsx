@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { AniversariantesCard } from '@/components/portal/AniversariantesCard';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { format } from 'date-fns';
@@ -279,6 +280,9 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* Aniversariantes do Mês */}
+        <AniversariantesCard />
 
         {/* Ações Rápidas */}
         <div className="grid grid-cols-3 gap-3">

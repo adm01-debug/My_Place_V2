@@ -67,13 +67,13 @@ export function useTreinamentos() {
 
     // Fetch treinamentos do colaborador com dados do treinamento
     const { data: treinamentosData, error: treinamentosError } = await supabase
-      .from('treinamentos_colaborador')
+      .from('treinamentos_colaborador' as any)
       .select(`
         *,
         treinamento:treinamentos(*)
       `)
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
     if (treinamentosError) {
       console.error('Error fetching treinamentos:', treinamentosError);
@@ -88,10 +88,10 @@ export function useTreinamentos() {
 
     // Fetch trilha de desenvolvimento
     const { data: trilhaData } = await supabase
-      .from('trilha_desenvolvimento')
+      .from('trilha_desenvolvimento' as any)
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .single() as { data: any };
 
     // Organizar por status
     const pendentes = (treinamentosData || [])

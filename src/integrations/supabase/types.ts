@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      aniversario_parabens: {
+        Row: {
+          aniversariante_id: string
+          ano: number
+          created_at: string
+          id: string
+          mensagem: string
+          mes: number
+          user_id: string
+        }
+        Insert: {
+          aniversariante_id: string
+          ano: number
+          created_at?: string
+          id?: string
+          mensagem?: string
+          mes: number
+          user_id: string
+        }
+        Update: {
+          aniversariante_id?: string
+          ano?: number
+          created_at?: string
+          id?: string
+          mensagem?: string
+          mes?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       emprestimos: {
         Row: {
           created_at: string
@@ -199,6 +229,7 @@ export type Database = {
           cargo: string | null
           created_at: string
           data_admissao: string | null
+          data_nascimento: string | null
           departamento: string | null
           email: string
           id: string
@@ -211,6 +242,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           departamento?: string | null
           email: string
           id: string
@@ -223,6 +255,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_nascimento?: string | null
           departamento?: string | null
           email?: string
           id?: string

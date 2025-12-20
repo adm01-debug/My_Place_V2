@@ -72,11 +72,11 @@ export function useBeneficios() {
 
     // Fetch benefícios
     const { data: beneficiosData, error: beneficiosError } = await supabase
-      .from('beneficios')
+      .from('beneficios' as any)
       .select('*')
       .eq('user_id', user.id)
       .eq('ativo', true)
-      .order('tipo');
+      .order('tipo') as { data: any[] | null; error: any };
 
     if (beneficiosError) {
       console.error('Error fetching beneficios:', beneficiosError);
@@ -91,13 +91,13 @@ export function useBeneficios() {
 
     // Fetch dependentes para cada benefício de saúde/odonto
     const beneficiosWithDependentes = await Promise.all(
-      (beneficiosData || []).map(async (beneficio) => {
+      (beneficiosData || []).map(async (beneficio: any) => {
         if (['plano_saude', 'plano_odonto'].includes(beneficio.tipo)) {
           const { data: dependentesData } = await supabase
-            .from('beneficios_dependentes')
+            .from('beneficios_dependentes' as any)
             .select('*')
             .eq('beneficio_id', beneficio.id)
-            .eq('ativo', true);
+            .eq('ativo', true) as { data: any[] | null; error: any };
           
           return {
             ...beneficio,
@@ -150,11 +150,11 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { data, error } = await supabase
-      .from('beneficios_dependentes')
+      .from('beneficios_dependentes' as any)
       .insert({
         beneficio_id: beneficioId,
         ...dependente,
-      })
+      } as any)
       .select()
       .single();
 
@@ -170,8 +170,8 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('beneficios_dependentes')
-      .update({ ativo: false })
+      .from('beneficios_dependentes' as any)
+      .update({ ativo: false } as any)
       .eq('id', dependenteId);
 
     if (error) {
