@@ -19,7 +19,9 @@
     "test:e2e:report": "playwright show-report",
     "docker:build": "docker build -t my-place .",
     "docker:run": "docker run -p 3000:80 my-place",
-    "docker:dev": "docker-compose --profile dev up"
+    "docker:dev": "docker-compose --profile dev up",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -100,6 +102,15 @@
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
     "jsdom": "^24.0.0",
-    "@playwright/test": "^1.40.0"
+    "@playwright/test": "^1.40.0",
+    "@storybook/addon-a11y": "^7.6.0",
+    "@storybook/addon-essentials": "^7.6.0",
+    "@storybook/addon-interactions": "^7.6.0",
+    "@storybook/addon-links": "^7.6.0",
+    "@storybook/blocks": "^7.6.0",
+    "@storybook/react": "^7.6.0",
+    "@storybook/react-vite": "^7.6.0",
+    "@storybook/testing-library": "^0.2.2",
+    "storybook": "^7.6.0"
   }
 }
