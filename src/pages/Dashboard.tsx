@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { AniversariantesCard } from '@/components/portal/AniversariantesCard';
+import { KudosWidget } from '@/components/portal/KudosWidget';
+import { TrilhasWidget } from '@/components/portal/TrilhasWidget';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { format } from 'date-fns';
@@ -283,6 +285,12 @@ export default function Dashboard() {
 
         {/* Aniversariantes do Mês */}
         <AniversariantesCard />
+        
+        {/* Widgets de Gamificação */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <KudosWidget />
+          <TrilhasWidget />
+        </div>
 
         {/* Ações Rápidas */}
         <div className="grid grid-cols-3 gap-3">
