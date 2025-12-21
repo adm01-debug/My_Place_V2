@@ -61,3 +61,4 @@ export type { Kudo, KudoCategoria, KudoPontos, Badge, BadgeUsuario, KudoRanking 
 // Trilhas de Desenvolvimento
 export { default as useTrilhas } from './useTrilhas';
 export type { Trilha, TrilhaEtapa, TrilhaProgresso, TrilhaComProgresso } from './useTrilhas';
+export { default as useDocumentosDownload } from './useDocumentosDownload';
