@@ -11,7 +11,7 @@ interface PushSubscriptionData {
   };
 }
 
-const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+const VAPID_PUBLIC_KEY = 'BMZLIPBE6a_Wt-B5vhEnwWnjPXGgREHjM0djj0zn8LpZePk9dzhgxUOfJAIENUPDpb_VwkIP22MZVbTSyfb0bkM';
 
 export function usePushNotifications() {
   const [isSupported, setIsSupported] = useState(false);
