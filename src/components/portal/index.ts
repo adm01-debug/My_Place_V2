@@ -66,3 +66,7 @@ export { default as BadgeDisplay, BadgeGrid, type BadgeData, type BadgeConquista
 // ============ TRILHAS COMPONENTS ============
 export { default as TrilhaProgress, type TrilhaEtapaData } from './TrilhaProgress';
 export { default as CertificadoCard, type CertificadoData } from './CertificadoCard';
+
+// ============ DASHBOARD WIDGETS ============
+export { default as KudosWidget } from './KudosWidget';
+export { default as TrilhasWidget } from './TrilhasWidget';
