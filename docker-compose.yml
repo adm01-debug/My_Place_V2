@@ -1,0 +1,88 @@
+# =====================================================
+# MY-PLACE - Docker Compose Configuration
+# =====================================================
+
+version: '3.8'
+
+services:
+  # ===========================================
+  # Frontend Application
+  # ===========================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+    container_name: my-place-app
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - my-place-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.my-place.rule=Host(`my-place.promobrindes.com.br`)"
+      - "traefik.http.routers.my-place.entrypoints=websecure"
+      - "traefik.http.routers.my-place.tls.certresolver=letsencrypt"
+
+  # ===========================================
+  # Development Mode
+  # ===========================================
+  dev:
+    image: node:20-alpine
+    container_name: my-place-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    profiles:
+      - dev
+
+  # ===========================================
+  # Supabase Edge Functions (Local)
+  # ===========================================
+  supabase:
+    image: supabase/edge-runtime:latest
+    container_name: my-place-edge-functions
+    restart: unless-stopped
+    ports:
+      - "54321:54321"
+    volumes:
+      - ./supabase/functions:/home/deno/functions
+    environment:
+      - SUPABASE_URL=${VITE_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+    profiles:
+      - local
+    networks:
+      - my-place-network
+
+networks:
+  my-place-network:
+    driver: bridge
+    name: my-place-network
+
+# ===========================================
+# Volumes for persistence
+# ===========================================
+volumes:
+  node_modules:
