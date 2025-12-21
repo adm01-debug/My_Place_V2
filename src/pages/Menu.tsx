@@ -3,6 +3,7 @@ import {
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
   TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator,
   Network, CalendarDays, Target, Users, Heart
+  Heart, BookOpen,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
@@ -82,6 +83,8 @@ const menuSections = [
       { icon: BookOpen, label: 'Meus Treinamentos', to: '/treinamentos', color: 'text-finance', badge: '2' },
       { icon: Target, label: 'Metas & OKRs', to: '/metas', color: 'text-primary' },
       { icon: Users, label: 'Feedback 360°', to: '/feedback', color: 'text-hr' },
+      { icon: Heart, label: 'Kudos', to: '/kudos', color: 'text-marketing' },
+      { icon: BookOpen, label: 'Trilhas', to: '/trilhas', color: 'text-projects' },
     ],
   },
   {
