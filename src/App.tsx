@@ -68,6 +68,8 @@ function AnimatedRoutes() {
         <Route path="/metas" element={<ProtectedRoute><AnimatedPage><Metas /></AnimatedPage></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><AnimatedPage><Feedback360 /></AnimatedPage></ProtectedRoute>} />
         <Route path="/clima" element={<ProtectedRoute><AnimatedPage><PesquisasClima /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/kudos" element={<ProtectedRoute><AnimatedPage><Kudos /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/trilhas" element={<ProtectedRoute><AnimatedPage><Trilhas /></AnimatedPage></ProtectedRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
