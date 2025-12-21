@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+# 🏠 MY-PLACE - Portal do Colaborador
 
-## Project info
+Portal completo de autoatendimento para colaboradores, desenvolvido com React, TypeScript e Supabase.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+[![CI](https://github.com/adm01-debug/my-place/actions/workflows/ci.yml/badge.svg)](https://github.com/adm01-debug/my-place/actions/workflows/ci.yml)
 
-## How can I edit this code?
+## ✨ Funcionalidades
 
-There are several ways of editing your application.
+- 📊 **Dashboard** - Visão geral personalizada
+- 💰 **Holerites** - Visualização e download de contracheques
+- ⏰ **Ponto Eletrônico** - Registro com geolocalização
+- 🏖️ **Férias** - Solicitação e acompanhamento
+- 💳 **Empréstimos** - Simulação e controle
+- 🎁 **Benefícios** - Gestão de benefícios
+- 📚 **Treinamentos** - Inscrição e certificados
+- 🎯 **Metas & OKRs** - Acompanhamento de objetivos
+- 👥 **Feedback 360°** - Avaliações de desempenho
+- ❤️ **Kudos** - Reconhecimento entre colegas
+- 🛤️ **Trilhas** - Desenvolvimento de carreira
+- 📱 **PWA** - Funciona offline
 
-**Use Lovable**
+## 🚀 Quick Start
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```bash
+# Instalar dependências
+npm install
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Desenvolvimento
 npm run dev
+
+# Build
+npm run build
+
+# Testes
+npm run test
+npm run test:e2e
 ```
 
-**Edit a file directly in GitHub**
+## 🐳 Docker
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+docker-compose up -d
+```
 
-**Use GitHub Codespaces**
+## 📖 Documentação
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [API](docs/API.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Database](docs/DATABASE_SCHEMA.md)
+- [Testes](docs/TESTING.md)
+- [Contribuição](CONTRIBUTING.md)
+- [Segurança](SECURITY.md)
 
-## What technologies are used for this project?
+## 🛠️ Tech Stack
 
-This project is built with:
+- **Frontend**: React 18, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions)
+- **PWA**: Service Worker, Push Notifications
+- **CI/CD**: GitHub Actions, Vercel
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📄 Licença
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Proprietário - Promo Brindes © 2025
