@@ -53,3 +53,11 @@ export { useAssistenteRH } from './useAssistenteRH';
 // Re-exports úteis
 export type { Holerite, HoleriteDetalhes } from './useHolerites';
 export type { FAQItem, FAQCategoria } from './useFAQ';
+
+// Kudos & Reconhecimento
+export { default as useKudos } from './useKudos';
+export type { Kudo, KudoCategoria, KudoPontos, Badge, BadgeUsuario, KudoRanking } from './useKudos';
+
+// Trilhas de Desenvolvimento
+export { default as useTrilhas } from './useTrilhas';
+export type { Trilha, TrilhaEtapa, TrilhaProgresso, TrilhaComProgresso } from './useTrilhas';
