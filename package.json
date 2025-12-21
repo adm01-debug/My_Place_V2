@@ -12,7 +12,14 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "docker:build": "docker build -t my-place .",
+    "docker:run": "docker run -p 3000:80 my-place",
+    "docker:dev": "docker-compose --profile dev up"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -92,6 +99,7 @@
     "@testing-library/user-event": "^14.5.2",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
-    "jsdom": "^24.0.0"
+    "jsdom": "^24.0.0",
+    "@playwright/test": "^1.40.0"
   }
 }
