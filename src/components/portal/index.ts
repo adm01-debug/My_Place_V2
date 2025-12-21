@@ -58,3 +58,11 @@ export {
   DashboardSkeleton,
   ListaSkeleton,
 } from './Skeletons';
+
+// ============ KUDOS COMPONENTS ============
+export { default as KudosCard, type KudoData } from './KudosCard';
+export { default as BadgeDisplay, BadgeGrid, type BadgeData, type BadgeConquistado } from './BadgeDisplay';
+
+// ============ TRILHAS COMPONENTS ============
+export { default as TrilhaProgress, type TrilhaEtapaData } from './TrilhaProgress';
+export { default as CertificadoCard, type CertificadoData } from './CertificadoCard';
