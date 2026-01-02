@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password",
+    "register": "Register",
+    "welcome": "Welcome"
+  },
+  "menu": {
+    "home": "Home",
+    "profile": "My Profile",
+    "holerites": "Payslips",
+    "ponto": "Time Clock",
+    "ferias": "Vacation",
+    "beneficios": "Benefits",
+    "treinamentos": "Training",
+    "documentos": "Documents",
+    "kudos": "Kudos",
+    "trilhas": "Learning Paths"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "network": "Connection error. Check your internet.",
+    "notFound": "Page not found",
+    "unauthorized": "Unauthorized access",
+    "validation": "Invalid data"
+  },
+  "success": {
+    "saved": "Saved successfully!",
+    "deleted": "Deleted successfully!",
+    "updated": "Updated successfully!",
+    "sent": "Sent successfully!"
+  }
+}
