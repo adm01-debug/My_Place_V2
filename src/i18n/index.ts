@@ -1,58 +1,44 @@
-// Configuração básica de i18n
-// src/i18n/index.ts
-// TODO: Implementar i18next quando necessário suporte multi-idioma
+// Configuração i18n com suporte a locales
+import ptBR from '@/locales/pt-BR.json';
+import en from '@/locales/en.json';
 
 export const defaultLocale = 'pt-BR';
+export const supportedLocales = ['pt-BR', 'en'] as const;
+export type Locale = typeof supportedLocales[number];
 
-export const translations = {
-  'pt-BR': {
-    common: {
-      loading: 'Carregando...',
-      save: 'Salvar',
-      cancel: 'Cancelar',
-      confirm: 'Confirmar',
-      delete: 'Excluir',
-      edit: 'Editar',
-      search: 'Buscar',
-      filter: 'Filtrar',
-      export: 'Exportar',
-      back: 'Voltar',
-      next: 'Próximo',
-      previous: 'Anterior',
-    },
-    auth: {
-      login: 'Entrar',
-      logout: 'Sair',
-      email: 'E-mail',
-      password: 'Senha',
-    },
-    dashboard: {
-      title: 'Dashboard',
-      welcome: 'Olá',
-      notifications: 'Notificações',
-    },
-    menu: {
-      home: 'Início',
-      profile: 'Meu Perfil',
-      holerites: 'Holerites',
-      ponto: 'Registro de Ponto',
-      ferias: 'Férias',
-      beneficios: 'Benefícios',
-      treinamentos: 'Treinamentos',
-      documentos: 'Documentos',
-      kudos: 'Kudos',
-      trilhas: 'Trilhas',
-    },
-  },
+const translations: Record<Locale, typeof ptBR> = {
+  'pt-BR': ptBR,
+  'en': en,
 };
 
-export function t(key: string, locale = defaultLocale): string {
+let currentLocale: Locale = defaultLocale;
+
+export function setLocale(locale: Locale): void {
+  if (supportedLocales.includes(locale)) {
+    currentLocale = locale;
+    localStorage.setItem('locale', locale);
+  }
+}
+
+export function getLocale(): Locale {
+  const saved = localStorage.getItem('locale') as Locale;
+  if (saved && supportedLocales.includes(saved)) {
+    currentLocale = saved;
+  }
+  return currentLocale;
+}
+
+export function t(key: string, locale?: Locale): string {
+  const loc = locale || currentLocale;
   const keys = key.split('.');
-  let value: any = translations[locale as keyof typeof translations];
+  let value: any = translations[loc];
+  
   for (const k of keys) {
     value = value?.[k];
+    if (value === undefined) break;
   }
+  
   return value || key;
 }
 
-export default { defaultLocale, translations, t };
+export default { defaultLocale, supportedLocales, setLocale, getLocale, t };
