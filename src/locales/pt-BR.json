@@ -1,0 +1,69 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "yes": "Sim",
+    "no": "Não",
+    "close": "Fechar",
+    "actions": "Ações",
+    "status": "Status",
+    "date": "Data",
+    "all": "Todos",
+    "none": "Nenhum",
+    "select": "Selecionar",
+    "required": "Obrigatório",
+    "optional": "Opcional"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueci minha senha",
+    "register": "Cadastrar",
+    "welcome": "Bem-vindo"
+  },
+  "menu": {
+    "home": "Início",
+    "profile": "Meu Perfil",
+    "holerites": "Holerites",
+    "ponto": "Registro de Ponto",
+    "ferias": "Férias",
+    "beneficios": "Benefícios",
+    "treinamentos": "Treinamentos",
+    "documentos": "Documentos",
+    "kudos": "Kudos",
+    "trilhas": "Trilhas",
+    "comunicados": "Comunicados",
+    "solicitacoes": "Solicitações",
+    "emprestimos": "Empréstimos",
+    "metas": "Metas",
+    "feedback": "Feedback 360°",
+    "clima": "Pesquisas de Clima",
+    "faq": "FAQ",
+    "admin": "Administração"
+  },
+  "errors": {
+    "generic": "Ocorreu um erro. Tente novamente.",
+    "network": "Erro de conexão. Verifique sua internet.",
+    "notFound": "Página não encontrada",
+    "unauthorized": "Acesso não autorizado",
+    "validation": "Dados inválidos"
+  },
+  "success": {
+    "saved": "Salvo com sucesso!",
+    "deleted": "Excluído com sucesso!",
+    "updated": "Atualizado com sucesso!",
+    "sent": "Enviado com sucesso!"
+  }
+}
