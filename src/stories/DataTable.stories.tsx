@@ -12,9 +12,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     columns: [
-      { key: 'nome', label: 'Nome' },
-      { key: 'email', label: 'Email' },
-      { key: 'status', label: 'Status' },
+      { key: 'nome', header: 'Nome' },
+      { key: 'email', header: 'Email' },
+      { key: 'status', header: 'Status' },
     ],
     data: [
       { id: 1, nome: 'João Silva', email: 'joao@email.com', status: 'Ativo' },

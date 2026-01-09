@@ -286,7 +286,7 @@ const Trilhas: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout title="Trilhas de Desenvolvimento" subtitle="Carregando...">
+      <PageLayout title="Trilhas de Desenvolvimento">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-24" />
@@ -303,35 +303,30 @@ const Trilhas: React.FC = () => {
 
   return (
     <PageLayout 
-      title="Trilhas de Desenvolvimento" 
-      subtitle="Evolua sua carreira com trilhas personalizadas"
+      title="Trilhas de Desenvolvimento"
       showBack
     >
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard
-          title="Em Andamento"
-          value={trilhasEmAndamento.length}
+          label="Em Andamento"
+          value={String(trilhasEmAndamento.length)}
           icon={Zap}
-          description="Trilhas ativas"
         />
         <StatCard
-          title="Concluídas"
-          value={trilhasConcluidas.length}
+          label="Concluídas"
+          value={String(trilhasConcluidas.length)}
           icon={CheckCircle2}
-          description="Trilhas finalizadas"
         />
         <StatCard
-          title="Horas Totais"
-          value={totalHorasConcluidas}
+          label="Horas Totais"
+          value={String(totalHorasConcluidas)}
           icon={Clock}
-          description="De desenvolvimento"
         />
         <StatCard
-          title="Disponíveis"
-          value={trilhasDisponiveis.length}
+          label="Disponíveis"
+          value={String(trilhasDisponiveis.length)}
           icon={Target}
-          description="Para iniciar"
         />
       </div>
 
@@ -390,7 +385,7 @@ const Trilhas: React.FC = () => {
         <TabsContent value="andamento">
           {trilhasEmAndamento.length === 0 ? (
             <EmptyState
-              type="empty"
+              type="generic"
               title="Nenhuma trilha em andamento"
               description="Inicie uma trilha para começar seu desenvolvimento"
               action={{

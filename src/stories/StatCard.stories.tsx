@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { DollarSign, Clock, Umbrella, TrendingUp } from 'lucide-react';
+import { DollarSign, Clock, Umbrella } from 'lucide-react';
 import { StatCard } from '../components/portal/StatCard';
 
 const meta: Meta<typeof StatCard> = {
@@ -14,25 +14,25 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    title: 'Salário Líquido',
+    label: 'Salário Líquido',
     value: 'R$ 5.432,10',
     icon: DollarSign,
-    trend: '+2.5%',
+    subValue: '+2.5%',
   },
 };
 
-export const WithNegativeTrend: Story = {
+export const HorasExtras: Story = {
   args: {
-    title: 'Horas Extras',
+    label: 'Horas Extras',
     value: '12h',
     icon: Clock,
-    trend: '-5%',
+    subValue: '-5%',
   },
 };
 
-export const Vacation: Story = {
+export const Ferias: Story = {
   args: {
-    title: 'Dias de Férias',
+    label: 'Dias de Férias',
     value: '15 dias',
     icon: Umbrella,
   },
