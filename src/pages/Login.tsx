@@ -144,7 +144,7 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login?reset=true`,
+      redirectTo: `${window.location.origin}/reset-password?type=recovery`,
     });
     
     setIsSubmitting(false);
