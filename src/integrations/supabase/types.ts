@@ -909,6 +909,30 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempted_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       metas: {
         Row: {
           created_at: string
@@ -1500,6 +1524,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_account_locked: {
+        Args: { p_email: string }
+        Returns: {
+          failed_attempts: number
+          is_locked: boolean
+          locked_until: string
+        }[]
+      }
+      cleanup_old_login_attempts: { Args: never; Returns: number }
       criar_notificacao: {
         Args: {
           p_dados?: Json
@@ -1564,6 +1597,10 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      record_login_attempt: {
+        Args: { p_email: string; p_ip_address?: string; p_success: boolean }
+        Returns: undefined
+      }
       registrar_utilidade_faq: {
         Args: { p_faq_id: string; p_util: boolean }
         Returns: undefined

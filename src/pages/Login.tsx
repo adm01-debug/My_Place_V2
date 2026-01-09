@@ -6,10 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint, ArrowLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface LockoutState {
+  isLocked: boolean;
+  remainingAttempts: number;
+  lockedUntil: Date | null;
+}
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +27,8 @@ const Login: React.FC = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const { signIn, signUp, isAuthenticated, user } = useAuth();
+  const [lockoutState, setLockoutState] = useState<LockoutState | null>(null);
+  const { signIn, signUp, isAuthenticated, checkAccountLocked } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAvailable, isRegistered, registeredEmail, registerBiometric, authenticateWithBiometric } = useBiometricAuth();
@@ -32,6 +40,40 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Check lockout status when email changes
+  useEffect(() => {
+    if (email && email.includes('@')) {
+      const timer = setTimeout(async () => {
+        const lockInfo = await checkAccountLocked(email);
+        if (lockInfo.isLocked || lockInfo.remainingAttempts < 5) {
+          setLockoutState({
+            isLocked: lockInfo.isLocked,
+            remainingAttempts: lockInfo.remainingAttempts,
+            lockedUntil: lockInfo.lockedUntil,
+          });
+        } else {
+          setLockoutState(null);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setLockoutState(null);
+    }
+  }, [email, checkAccountLocked]);
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (lockoutState?.isLocked && lockoutState.lockedUntil) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        if (lockoutState.lockedUntil && lockoutState.lockedUntil <= now) {
+          setLockoutState(null);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [lockoutState]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -39,6 +81,16 @@ const Login: React.FC = () => {
       toast({
         title: 'Campos obrigatórios',
         description: 'Preencha email e senha para continuar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check if locked before attempting
+    if (lockoutState?.isLocked) {
+      toast({
+        title: 'Conta bloqueada',
+        description: 'Aguarde o tempo de bloqueio ou recupere sua senha',
         variant: 'destructive',
       });
       return;
@@ -53,6 +105,9 @@ const Login: React.FC = () => {
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso',
       });
+      
+      // Clear lockout state on success
+      setLockoutState(null);
       
       // Offer to register biometric if available and not registered
       if (isAvailable && !isRegistered) {
@@ -73,6 +128,15 @@ const Login: React.FC = () => {
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
       navigate(onboardingCompleted ? '/' : '/onboarding');
     } else {
+      // Update lockout state from result
+      if (result.lockoutInfo) {
+        setLockoutState({
+          isLocked: result.lockoutInfo.isLocked,
+          remainingAttempts: result.lockoutInfo.remainingAttempts,
+          lockedUntil: result.lockoutInfo.lockedUntil,
+        });
+      }
+      
       toast({
         title: 'Erro no login',
         description: result.error,
@@ -375,6 +439,30 @@ const Login: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Lockout Warning */}
+                  {lockoutState && (
+                    <Alert variant={lockoutState.isLocked ? "destructive" : "default"} className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
+                      <AlertTriangle className="h-4 w-4 text-orange-600" />
+                      <AlertDescription className="text-sm">
+                        {lockoutState.isLocked ? (
+                          <>
+                            <strong>Conta bloqueada temporariamente.</strong>
+                            <br />
+                            {lockoutState.lockedUntil && (
+                              <span>
+                                Tente novamente em {Math.max(1, Math.ceil((lockoutState.lockedUntil.getTime() - Date.now()) / 60000))} minuto(s) ou recupere sua senha.
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <strong>Atenção:</strong> {lockoutState.remainingAttempts} tentativa{lockoutState.remainingAttempts !== 1 ? 's' : ''} restante{lockoutState.remainingAttempts !== 1 ? 's' : ''} antes do bloqueio.
+                          </>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email corporativo</Label>
                     <div className="relative">
@@ -386,7 +474,7 @@ const Login: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || lockoutState?.isLocked}
                       />
                     </div>
                   </div>
@@ -402,7 +490,7 @@ const Login: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || lockoutState?.isLocked}
                       />
                       <button
                         type="button"
@@ -417,7 +505,7 @@ const Login: React.FC = () => {
                   <Button 
                     type="submit" 
                     className="w-full h-11 font-semibold"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || lockoutState?.isLocked}
                   >
                     {isSubmitting ? (
                       <div className="flex items-center gap-2">
