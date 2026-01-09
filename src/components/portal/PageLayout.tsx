@@ -11,9 +11,10 @@ interface PageLayoutProps {
   showBack?: boolean;
   alertCount?: number;
   onRefresh?: () => Promise<void>;
+  action?: ReactNode;
 }
 
-export function PageLayout({ children, title, showBack = false, alertCount = 0, onRefresh }: PageLayoutProps) {
+export function PageLayout({ children, title, showBack = false, alertCount = 0, onRefresh, action }: PageLayoutProps) {
   const { toast } = useToast();
   const [showAssistente, setShowAssistente] = useState(false);
 
@@ -38,7 +39,7 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-hr/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       </div>
       
-      <Header title={title} showBack={showBack} alertCount={alertCount} />
+      <Header title={title} showBack={showBack} alertCount={alertCount} action={action} />
       
       <main className="relative flex-1 max-w-lg mx-auto w-full">
         <PullToRefresh onRefresh={handleRefresh}>
