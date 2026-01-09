@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { TrendingUp, Calendar, CheckCircle, DollarSign, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { RemuneracaoVariavelModal } from '@/components/portal/RemuneracaoVariavelModal';
 import { useRemuneracaoVariavel, type TipoRemuneracao, type StatusRemuneracao } from '@/hooks/useRemuneracaoVariavel';
 import { format } from 'date-fns';
 
@@ -33,10 +35,13 @@ const statusConfig: Record<StatusRemuneracao, { label: string; color: string }> 
 };
 
 export default function RemuneracaoVariavel() {
+  const [modalOpen, setModalOpen] = useState(false);
+  
   const { 
     remuneracoes, 
     stats,
     isLoading,
+    create,
     refetch 
   } = useRemuneracaoVariavel();
 
@@ -60,7 +65,17 @@ export default function RemuneracaoVariavel() {
   }
 
   return (
-    <PageLayout title="Remuneração Variável" showBack onRefresh={refetch}>
+    <PageLayout 
+      title="Remuneração Variável" 
+      showBack 
+      onRefresh={refetch}
+      action={
+        <Button size="sm" onClick={() => setModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-1" />
+          Nova
+        </Button>
+      }
+    >
       <div className="space-y-6 animate-fade-in-up">
         {/* Resumo Anual */}
         <Card className="p-5 bg-gradient-to-br from-primary/5 via-card to-card border-primary/20">
@@ -190,9 +205,20 @@ export default function RemuneracaoVariavel() {
           <div className="text-center py-8">
             <DollarSign className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground mb-4">Nenhuma remuneração variável encontrada</p>
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Primeira
+            </Button>
           </div>
         )}
       </div>
+
+      {/* Modal de criação */}
+      <RemuneracaoVariavelModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSubmit={create}
+      />
     </PageLayout>
   );
 }

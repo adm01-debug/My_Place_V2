@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Bell, User, Sparkles, X, Check, CheckCheck, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,13 +14,14 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-interface HeaderProps {
+export interface HeaderProps {
   title?: string;
   showBack?: boolean;
   alertCount?: number;
+  action?: ReactNode;
 }
 
-export function Header({ title = 'Portal do Colaborador', showBack = false }: HeaderProps) {
+export function Header({ title = 'Portal do Colaborador', showBack = false, action }: HeaderProps) {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotificationContext();
   const navigate = useNavigate();
 
@@ -68,6 +70,7 @@ export function Header({ title = 'Portal do Colaborador', showBack = false }: He
           </div>
           
           <div className="flex items-center gap-1">
+            {action}
             <GlobalSearchButton />
             <Popover>
               <PopoverTrigger asChild>
