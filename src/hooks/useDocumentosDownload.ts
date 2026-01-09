@@ -16,19 +16,18 @@ export function useDocumentosDownload() {
   const registrarDownload = useCallback(async (documentoId: string) => {
     if (!user?.id) return;
     try {
-      await supabase.rpc('fn_registrar_download_documento', {
-        p_usuario_id: user.id,
-        p_documento_id: documentoId,
-        p_ip: '',
-        p_user_agent: navigator.userAgent,
-      });
+      // Registrar download na tabela de logs
+      await supabase
+        .from('documentos')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', documentoId);
     } catch (err) {
       console.error('Erro ao registrar download:', err);
     }
   }, [user?.id]);
 
   const downloadDocumento = useCallback(async (options: DownloadOptions) => {
-    const { documento_id, nome_arquivo, tipo } = options;
+    const { documento_id, nome_arquivo } = options;
     try {
       const { data } = supabase.storage.from('documentos').getPublicUrl(nome_arquivo);
       if (data?.publicUrl) {

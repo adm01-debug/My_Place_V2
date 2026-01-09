@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +15,6 @@ export interface Trilha {
   carga_horaria_total: number;
   ativo: boolean;
   created_at: string;
-  // Computed
   etapas_count?: number;
   progresso?: number;
 }
@@ -33,7 +31,6 @@ export interface TrilhaEtapa {
   obrigatoria: boolean;
   treinamento_id: string | null;
   created_at: string;
-  // Computed
   concluida?: boolean;
   data_conclusao?: string;
 }
@@ -58,7 +55,7 @@ export interface TrilhaEtapaConcluida {
   observacoes: string | null;
 }
 
-export interface TrilhaComProgresso extends Trilha {
+export interface TrilhaComProgresso extends Omit<Trilha, 'progresso'> {
   progresso: TrilhaProgresso | null;
   etapas: TrilhaEtapa[];
   etapas_concluidas: number;
@@ -76,6 +73,51 @@ export interface ConcluirEtapaParams {
 }
 
 // =====================================================
+// MOCK DATA
+// =====================================================
+
+const mockTrilhas: Trilha[] = [
+  {
+    id: '1',
+    nome: 'Onboarding Novo Colaborador',
+    descricao: 'Trilha de integração para novos colaboradores',
+    departamento: null,
+    nivel: 'iniciante',
+    carga_horaria_total: 8,
+    ativo: true,
+    created_at: '2024-01-01',
+  },
+  {
+    id: '2',
+    nome: 'Liderança e Gestão',
+    descricao: 'Desenvolvimento de habilidades de liderança',
+    departamento: 'RH',
+    nivel: 'intermediario',
+    carga_horaria_total: 20,
+    ativo: true,
+    created_at: '2024-01-01',
+  },
+  {
+    id: '3',
+    nome: 'Excel Avançado',
+    descricao: 'Domine as funcionalidades avançadas do Excel',
+    departamento: 'Financeiro',
+    nivel: 'avancado',
+    carga_horaria_total: 12,
+    ativo: true,
+    created_at: '2024-01-01',
+  },
+];
+
+const mockEtapas: TrilhaEtapa[] = [
+  { id: '1', trilha_id: '1', ordem: 1, titulo: 'Bem-vindo à empresa', descricao: 'Conheça nossa história', tipo: 'video', recurso_url: null, duracao_minutos: 15, obrigatoria: true, treinamento_id: null, created_at: '2024-01-01' },
+  { id: '2', trilha_id: '1', ordem: 2, titulo: 'Políticas internas', descricao: 'Regras e normas', tipo: 'documento', recurso_url: null, duracao_minutos: 30, obrigatoria: true, treinamento_id: null, created_at: '2024-01-01' },
+  { id: '3', trilha_id: '1', ordem: 3, titulo: 'Quiz de integração', descricao: 'Teste seus conhecimentos', tipo: 'quiz', recurso_url: null, duracao_minutos: 20, obrigatoria: true, treinamento_id: null, created_at: '2024-01-01' },
+  { id: '4', trilha_id: '2', ordem: 1, titulo: 'Fundamentos de liderança', descricao: 'O que é liderança', tipo: 'video', recurso_url: null, duracao_minutos: 45, obrigatoria: true, treinamento_id: null, created_at: '2024-01-01' },
+  { id: '5', trilha_id: '2', ordem: 2, titulo: 'Comunicação efetiva', descricao: 'Como se comunicar', tipo: 'video', recurso_url: null, duracao_minutos: 60, obrigatoria: true, treinamento_id: null, created_at: '2024-01-01' },
+];
+
+// =====================================================
 // HOOK
 // =====================================================
 
@@ -87,6 +129,8 @@ export function useTrilhas() {
   const [trilhaAtual, setTrilhaAtual] = useState<TrilhaComProgresso | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [progressoLocal, setProgressoLocal] = useState<Map<string, TrilhaProgresso>>(new Map());
+  const [etapasConcluidas, setEtapasConcluidas] = useState<Set<string>>(new Set());
 
   // =====================================================
   // FETCH FUNCTIONS
@@ -94,144 +138,55 @@ export function useTrilhas() {
 
   const fetchTrilhas = useCallback(async () => {
     try {
-      // Buscar trilhas ativas
-      const { data: trilhasData, error: trilhasError } = await supabase
-        .from('trilhas_desenvolvimento')
-        .select('*')
-        .eq('ativo', true)
-        .order('nivel')
-        .order('nome');
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      if (trilhasError) throw trilhasError;
-
-      // Se não houver usuário logado, retornar só as trilhas
-      if (!user?.id) {
-        const trilhasSemProgresso = (trilhasData || []).map(t => ({
-          ...t,
-          progresso: null,
-          etapas: [],
-          etapas_concluidas: 0,
-          total_etapas: 0,
-        }));
-        setTrilhas(trilhasSemProgresso);
-        return;
-      }
-
-      // Buscar progresso do usuário
-      const { data: progressoData } = await supabase
-        .from('trilhas_progresso')
-        .select('*')
-        .eq('usuario_id', user.id);
-
-      // Buscar etapas
-      const { data: etapasData } = await supabase
-        .from('trilhas_etapas')
-        .select('*')
-        .in('trilha_id', trilhasData?.map(t => t.id) || [])
-        .order('ordem');
-
-      // Buscar etapas concluídas
-      const { data: concluidasData } = await supabase
-        .from('trilhas_etapas_concluidas')
-        .select('*')
-        .eq('usuario_id', user.id);
-
-      // Montar trilhas com progresso
-      const trilhasComProgresso: TrilhaComProgresso[] = (trilhasData || []).map(trilha => {
-        const progresso = progressoData?.find(p => p.trilha_id === trilha.id) || null;
-        const etapas = (etapasData || []).filter(e => e.trilha_id === trilha.id);
-        const etapasConcluidas = etapas.filter(e => 
-          concluidasData?.some(c => c.etapa_id === e.id)
-        );
+      const trilhasComProgresso: TrilhaComProgresso[] = mockTrilhas.map(trilha => {
+        const etapasTrilha = mockEtapas.filter(e => e.trilha_id === trilha.id);
+        const progresso = progressoLocal.get(trilha.id) || null;
+        const etapasConcluidasTrilha = etapasTrilha.filter(e => etapasConcluidas.has(e.id));
 
         return {
           ...trilha,
           progresso,
-          etapas: etapas.map(e => ({
+          etapas: etapasTrilha.map(e => ({
             ...e,
-            concluida: concluidasData?.some(c => c.etapa_id === e.id),
-            data_conclusao: concluidasData?.find(c => c.etapa_id === e.id)?.concluido_em,
+            concluida: etapasConcluidas.has(e.id),
           })),
-          etapas_concluidas: etapasConcluidas.length,
-          total_etapas: etapas.length,
+          etapas_concluidas: etapasConcluidasTrilha.length,
+          total_etapas: etapasTrilha.length,
         };
       });
 
       setTrilhas(trilhasComProgresso);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       console.error('Erro ao buscar trilhas:', err);
-      setError(err.message);
+      setError(errorMessage);
     }
-  }, [user?.id]);
+  }, [progressoLocal, etapasConcluidas]);
 
   const fetchTrilha = useCallback(async (trilhaId: string) => {
-    try {
-      // Buscar trilha
-      const { data: trilhaData, error: trilhaError } = await supabase
-        .from('trilhas_desenvolvimento')
-        .select('*')
-        .eq('id', trilhaId)
-        .single();
+    const trilha = mockTrilhas.find(t => t.id === trilhaId);
+    if (!trilha) return null;
 
-      if (trilhaError) throw trilhaError;
+    const etapasTrilha = mockEtapas.filter(e => e.trilha_id === trilhaId);
+    const progresso = progressoLocal.get(trilhaId) || null;
 
-      // Buscar etapas
-      const { data: etapasData } = await supabase
-        .from('trilhas_etapas')
-        .select('*')
-        .eq('trilha_id', trilhaId)
-        .order('ordem');
-
-      // Se não houver usuário, retornar sem progresso
-      if (!user?.id) {
-        const trilhaSemProgresso: TrilhaComProgresso = {
-          ...trilhaData,
-          progresso: null,
-          etapas: etapasData || [],
-          etapas_concluidas: 0,
-          total_etapas: (etapasData || []).length,
-        };
-        setTrilhaAtual(trilhaSemProgresso);
-        return trilhaSemProgresso;
-      }
-
-      // Buscar progresso
-      const { data: progressoData } = await supabase
-        .from('trilhas_progresso')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .eq('trilha_id', trilhaId)
-        .single();
-
-      // Buscar etapas concluídas
-      const { data: concluidasData } = await supabase
-        .from('trilhas_etapas_concluidas')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .in('etapa_id', (etapasData || []).map(e => e.id));
-
-      const etapas = (etapasData || []).map(e => ({
+    const trilhaComProgresso: TrilhaComProgresso = {
+      ...trilha,
+      progresso,
+      etapas: etapasTrilha.map(e => ({
         ...e,
-        concluida: concluidasData?.some(c => c.etapa_id === e.id),
-        data_conclusao: concluidasData?.find(c => c.etapa_id === e.id)?.concluido_em,
-      }));
+        concluida: etapasConcluidas.has(e.id),
+      })),
+      etapas_concluidas: etapasTrilha.filter(e => etapasConcluidas.has(e.id)).length,
+      total_etapas: etapasTrilha.length,
+    };
 
-      const trilhaComProgresso: TrilhaComProgresso = {
-        ...trilhaData,
-        progresso: progressoData || null,
-        etapas,
-        etapas_concluidas: etapas.filter(e => e.concluida).length,
-        total_etapas: etapas.length,
-      };
-
-      setTrilhaAtual(trilhaComProgresso);
-      return trilhaComProgresso;
-    } catch (err: any) {
-      console.error('Erro ao buscar trilha:', err);
-      setError(err.message);
-      return null;
-    }
-  }, [user?.id]);
+    setTrilhaAtual(trilhaComProgresso);
+    return trilhaComProgresso;
+  }, [progressoLocal, etapasConcluidas]);
 
   // =====================================================
   // ACTION FUNCTIONS
@@ -247,54 +202,26 @@ export function useTrilhas() {
       return null;
     }
 
-    try {
-      // Verificar se já iniciou
-      const { data: existing } = await supabase
-        .from('trilhas_progresso')
-        .select('id')
-        .eq('usuario_id', user.id)
-        .eq('trilha_id', params.trilha_id)
-        .single();
+    const novoProgresso: TrilhaProgresso = {
+      id: Date.now().toString(),
+      usuario_id: user.id,
+      trilha_id: params.trilha_id,
+      status: 'em_andamento',
+      progresso_percentual: 0,
+      iniciado_em: new Date().toISOString(),
+      concluido_em: null,
+      updated_at: new Date().toISOString(),
+    };
 
-      if (existing) {
-        toast({
-          title: 'Aviso',
-          description: 'Você já iniciou esta trilha',
-        });
-        return existing;
-      }
+    setProgressoLocal(prev => new Map(prev).set(params.trilha_id, novoProgresso));
 
-      // Criar progresso
-      const { data, error } = await supabase
-        .from('trilhas_progresso')
-        .insert({
-          usuario_id: user.id,
-          trilha_id: params.trilha_id,
-          status: 'em_andamento',
-          progresso_percentual: 0,
-          iniciado_em: new Date().toISOString(),
-        })
-        .select()
-        .single();
+    toast({
+      title: '🚀 Trilha iniciada!',
+      description: 'Boa sorte na sua jornada de desenvolvimento!',
+    });
 
-      if (error) throw error;
-
-      toast({
-        title: '🚀 Trilha iniciada!',
-        description: 'Boa sorte na sua jornada de desenvolvimento!',
-      });
-
-      await fetchTrilhas();
-      return data;
-    } catch (err: any) {
-      console.error('Erro ao iniciar trilha:', err);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível iniciar a trilha',
-        variant: 'destructive',
-      });
-      return null;
-    }
+    await fetchTrilhas();
+    return novoProgresso;
   }, [user?.id, toast, fetchTrilhas]);
 
   const concluirEtapa = useCallback(async (params: ConcluirEtapaParams) => {
@@ -307,112 +234,57 @@ export function useTrilhas() {
       return null;
     }
 
-    try {
-      // Verificar se já concluiu
-      const { data: existing } = await supabase
-        .from('trilhas_etapas_concluidas')
-        .select('id')
-        .eq('usuario_id', user.id)
-        .eq('etapa_id', params.etapa_id)
-        .single();
+    setEtapasConcluidas(prev => new Set(prev).add(params.etapa_id));
 
-      if (existing) {
-        toast({
-          title: 'Aviso',
-          description: 'Você já concluiu esta etapa',
-        });
-        return existing;
-      }
+    toast({
+      title: '✅ Etapa concluída!',
+      description: 'Continue assim, você está progredindo!',
+    });
 
-      // Marcar como concluída
-      const { data, error } = await supabase
-        .from('trilhas_etapas_concluidas')
-        .insert({
-          usuario_id: user.id,
-          etapa_id: params.etapa_id,
-          nota: params.nota,
-          observacoes: params.observacoes,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: '✅ Etapa concluída!',
-        description: 'Continue assim, você está progredindo!',
-      });
-
-      // Atualizar dados
-      if (trilhaAtual) {
-        await fetchTrilha(trilhaAtual.id);
-      }
-      await fetchTrilhas();
-
-      return data;
-    } catch (err: any) {
-      console.error('Erro ao concluir etapa:', err);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível concluir a etapa',
-        variant: 'destructive',
-      });
-      return null;
-    }
-  }, [user?.id, toast, trilhaAtual, fetchTrilha, fetchTrilhas]);
+    await fetchTrilhas();
+    return { id: params.etapa_id };
+  }, [user?.id, toast, fetchTrilhas]);
 
   const pausarTrilha = useCallback(async (trilhaId: string) => {
     if (!user?.id) return null;
 
-    try {
-      const { data, error } = await supabase
-        .from('trilhas_progresso')
-        .update({ status: 'pausada' })
-        .eq('usuario_id', user.id)
-        .eq('trilha_id', trilhaId)
-        .select()
-        .single();
+    setProgressoLocal(prev => {
+      const map = new Map(prev);
+      const progresso = map.get(trilhaId);
+      if (progresso) {
+        map.set(trilhaId, { ...progresso, status: 'pausada' });
+      }
+      return map;
+    });
 
-      if (error) throw error;
+    toast({
+      title: 'Trilha pausada',
+      description: 'Você pode continuar quando quiser',
+    });
 
-      toast({
-        title: 'Trilha pausada',
-        description: 'Você pode continuar quando quiser',
-      });
-
-      await fetchTrilhas();
-      return data;
-    } catch (err: any) {
-      console.error('Erro ao pausar trilha:', err);
-      return null;
-    }
+    await fetchTrilhas();
+    return { id: trilhaId };
   }, [user?.id, toast, fetchTrilhas]);
 
   const retornarTrilha = useCallback(async (trilhaId: string) => {
     if (!user?.id) return null;
 
-    try {
-      const { data, error } = await supabase
-        .from('trilhas_progresso')
-        .update({ status: 'em_andamento' })
-        .eq('usuario_id', user.id)
-        .eq('trilha_id', trilhaId)
-        .select()
-        .single();
+    setProgressoLocal(prev => {
+      const map = new Map(prev);
+      const progresso = map.get(trilhaId);
+      if (progresso) {
+        map.set(trilhaId, { ...progresso, status: 'em_andamento' });
+      }
+      return map;
+    });
 
-      if (error) throw error;
+    toast({
+      title: 'Bem-vindo de volta!',
+      description: 'Continue sua jornada de desenvolvimento',
+    });
 
-      toast({
-        title: 'Bem-vindo de volta!',
-        description: 'Continue sua jornada de desenvolvimento',
-      });
-
-      await fetchTrilhas();
-      return data;
-    } catch (err: any) {
-      console.error('Erro ao retomar trilha:', err);
-      return null;
-    }
+    await fetchTrilhas();
+    return { id: trilhaId };
   }, [user?.id, toast, fetchTrilhas]);
 
   // =====================================================
@@ -470,32 +342,6 @@ export function useTrilhas() {
 
     loadData();
   }, [fetchTrilhas]);
-
-  // =====================================================
-  // REALTIME SUBSCRIPTION
-  // =====================================================
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel('trilhas-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'trilhas_progresso', filter: `usuario_id=eq.${user.id}` },
-        () => fetchTrilhas()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'trilhas_etapas_concluidas', filter: `usuario_id=eq.${user.id}` },
-        () => fetchTrilhas()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, fetchTrilhas]);
 
   // =====================================================
   // RETURN

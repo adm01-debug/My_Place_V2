@@ -12,8 +12,8 @@ export { default as ThemeSwitcher, useTheme } from './ThemeSwitcher';
 
 // ============ FEEDBACK COMPONENTS ============
 export { default as Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonList, SkeletonDashboard, SkeletonProfile } from './Skeleton';
-export { default as AlertCard, InfoAlert, SuccessAlert, WarningAlert, ErrorAlert } from './AlertCard';
-export { default as StatCard, StatCardsGrid } from './StatCard';
+export { AlertCard } from './AlertCard';
+export { StatCard } from './StatCard';
 export { default as EmptyState } from './EmptyState';
 
 // ============ FORM COMPONENTS ============
@@ -28,35 +28,38 @@ export { default as ConfirmDialog, useConfirmDialog, DeleteConfirmDialog, SaveCo
 export { default as PageErrorBoundary, ErrorFallback, withErrorBoundary, useErrorReporter } from './PageErrorBoundary';
 
 // ============ LAYOUT COMPONENTS ============
-export { default as PageLayout } from './PageLayout';
-export { default as Header } from './Header';
-export { default as BottomNav } from './BottomNav';
-export { default as FilterBar } from './FilterBar';
+export { PageLayout } from './PageLayout';
+export { Header } from './Header';
+export { BottomNav } from './BottomNav';
+export { FilterBar } from './FilterBar';
 
 // ============ FEATURE COMPONENTS ============
-export { default as GlobalSearch } from './GlobalSearch';
-export { default as NotificationsPanel } from './NotificationsPanel';
-export { default as OfflineIndicator } from './OfflineIndicator';
-export { default as PushNotificationSettings } from './PushNotificationSettings';
-export { default as AssistenteVirtual } from './AssistenteVirtual';
-export { default as AvatarUpload } from './AvatarUpload';
+export { GlobalSearch } from './GlobalSearch';
+export { NotificationsPanel } from './NotificationsPanel';
+export { OfflineIndicator } from './OfflineIndicator';
+export { PushNotificationSettings } from './PushNotificationSettings';
+export { AssistenteVirtual } from './AssistenteVirtual';
+export { AvatarUpload } from './AvatarUpload';
 
 // ============ PONTO COMPONENTS ============
-export { default as RegistroPonto } from './RegistroPonto';
-export { default as HistoricoPonto } from './HistoricoPonto';
-export { default as JustificativaPontoModal } from './JustificativaPontoModal';
+export { RegistroPonto } from './RegistroPonto';
+export { HistoricoPonto } from './HistoricoPonto';
+export { JustificativaPontoModal } from './JustificativaPontoModal';
 
 // ============ DASHBOARD COMPONENTS ============
-export { default as DashboardCharts } from './DashboardCharts';
-export { default as AniversariantesCard } from './AniversariantesCard';
-export { default as FeedbackDashboard } from './FeedbackDashboard';
+export { SalaryEvolutionChart, HoursDistributionChart, GoalProgressChart } from './DashboardCharts';
+export { AniversariantesCard } from './AniversariantesCard';
+export { FeedbackDashboard } from './FeedbackDashboard';
 
 // ============ SKELETONS PRESETS ============
 export { 
-  HoleriteSkeleton,
-  PontoSkeleton,
+  StatCardSkeleton,
+  AlertCardSkeleton,
+  MenuItemSkeleton,
+  ListItemSkeleton,
+  ProfileSkeleton,
+  TableSkeleton,
   DashboardSkeleton,
-  ListaSkeleton,
 } from './Skeletons';
 
 // ============ KUDOS COMPONENTS ============
