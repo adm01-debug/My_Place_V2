@@ -173,6 +173,13 @@ const ROUTE_ACCESS: Record<string, UserRole[]> = {
 // INTERFACE DO CONTEXTO
 // ============================================================================
 
+interface LockoutInfo {
+  isLocked: boolean;
+  failedAttempts: number;
+  lockedUntil: Date | null;
+  remainingAttempts: number;
+}
+
 interface AuthContextType {
   // Estado básico
   user: User | null;
@@ -199,10 +206,11 @@ interface AuthContextType {
   refreshSession: () => Promise<void>;
   
   // Autenticação
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; lockoutInfo?: LockoutInfo }>;
   signUp: (email: string, password: string, nome: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  checkAccountLocked: (email: string) => Promise<LockoutInfo>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -373,23 +381,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // AUTENTICAÇÃO
   // ============================================================================
 
-  const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const MAX_ATTEMPTS = 5;
+
+  const checkAccountLocked = useCallback(async (email: string): Promise<LockoutInfo> => {
+    try {
+      const { data, error } = await supabase.rpc('check_account_locked', { p_email: email });
+      
+      if (error || !data || data.length === 0) {
+        return { isLocked: false, failedAttempts: 0, lockedUntil: null, remainingAttempts: MAX_ATTEMPTS };
+      }
+
+      const result = data[0];
+      return {
+        isLocked: result.is_locked,
+        failedAttempts: result.failed_attempts,
+        lockedUntil: result.locked_until ? new Date(result.locked_until) : null,
+        remainingAttempts: Math.max(0, MAX_ATTEMPTS - result.failed_attempts),
+      };
+    } catch (error) {
+      console.error('Erro ao verificar bloqueio:', error);
+      return { isLocked: false, failedAttempts: 0, lockedUntil: null, remainingAttempts: MAX_ATTEMPTS };
+    }
+  }, []);
+
+  const recordLoginAttempt = useCallback(async (email: string, success: boolean) => {
+    try {
+      await supabase.rpc('record_login_attempt', { 
+        p_email: email, 
+        p_success: success,
+        p_ip_address: null 
+      });
+    } catch (error) {
+      console.error('Erro ao registrar tentativa:', error);
+    }
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string; lockoutInfo?: LockoutInfo }> => {
     try {
       setIsLoading(true);
       
+      // Check if account is locked
+      const lockoutInfo = await checkAccountLocked(email);
+      if (lockoutInfo.isLocked) {
+        const minutesLeft = lockoutInfo.lockedUntil 
+          ? Math.ceil((lockoutInfo.lockedUntil.getTime() - Date.now()) / 60000)
+          : 15;
+        return { 
+          success: false, 
+          error: `Conta bloqueada por ${minutesLeft} minuto${minutesLeft !== 1 ? 's' : ''} devido a múltiplas tentativas incorretas`,
+          lockoutInfo 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        // Record failed attempt
+        await recordLoginAttempt(email, false);
+        
+        // Get updated lockout info
+        const updatedLockout = await checkAccountLocked(email);
+        
+        let errorMessage = error.message === 'Invalid login credentials' 
+          ? 'Email ou senha incorretos' 
+          : error.message;
+        
+        if (updatedLockout.remainingAttempts > 0 && updatedLockout.remainingAttempts < MAX_ATTEMPTS) {
+          errorMessage += `. ${updatedLockout.remainingAttempts} tentativa${updatedLockout.remainingAttempts !== 1 ? 's' : ''} restante${updatedLockout.remainingAttempts !== 1 ? 's' : ''}`;
+        }
+        
         return { 
           success: false, 
-          error: error.message === 'Invalid login credentials' 
-            ? 'Email ou senha incorretos' 
-            : error.message 
+          error: errorMessage,
+          lockoutInfo: updatedLockout
         };
       }
+
+      // Record successful login
+      await recordLoginAttempt(email, true);
 
       if (data.user) {
         setUser(data.user);
@@ -405,7 +477,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProfile]);
+  }, [fetchProfile, checkAccountLocked, recordLoginAttempt]);
 
   const signUp = useCallback(async (email: string, password: string, nome: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -550,6 +622,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     refreshProfile,
+    checkAccountLocked,
   };
 
   return (
