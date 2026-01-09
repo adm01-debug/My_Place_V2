@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -487,7 +487,7 @@ const Login: React.FC = () => {
                       <Input
                         id="signup-password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Mínimo 6 caracteres"
+                        placeholder="Crie uma senha forte"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
@@ -501,6 +501,78 @@ const Login: React.FC = () => {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    
+                    {/* Password strength indicator */}
+                    {password.length > 0 && (
+                      <div className="space-y-2 pt-1">
+                        {/* Strength bar */}
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4].map((level) => {
+                            const strength = (() => {
+                              let score = 0;
+                              if (password.length >= 6) score++;
+                              if (password.length >= 8) score++;
+                              if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+                              if (/[0-9]/.test(password)) score++;
+                              if (/[^A-Za-z0-9]/.test(password)) score++;
+                              return Math.min(score, 4);
+                            })();
+                            
+                            const colors = [
+                              'bg-destructive',
+                              'bg-orange-500',
+                              'bg-yellow-500',
+                              'bg-green-500'
+                            ];
+                            
+                            return (
+                              <div
+                                key={level}
+                                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                  level <= strength ? colors[strength - 1] : 'bg-muted'
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Strength label */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">
+                            Força: {(() => {
+                              let score = 0;
+                              if (password.length >= 6) score++;
+                              if (password.length >= 8) score++;
+                              if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+                              if (/[0-9]/.test(password)) score++;
+                              if (/[^A-Za-z0-9]/.test(password)) score++;
+                              const strength = Math.min(score, 4);
+                              const labels = ['Fraca', 'Razoável', 'Boa', 'Forte'];
+                              return labels[strength - 1] || 'Muito fraca';
+                            })()}
+                          </span>
+                        </div>
+                        
+                        {/* Requirements checklist */}
+                        <div className="grid grid-cols-2 gap-1.5 pt-1">
+                          {[
+                            { text: '6+ caracteres', valid: password.length >= 6 },
+                            { text: 'Letra maiúscula', valid: /[A-Z]/.test(password) },
+                            { text: 'Letra minúscula', valid: /[a-z]/.test(password) },
+                            { text: 'Número', valid: /[0-9]/.test(password) },
+                          ].map((req, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5">
+                              <CheckCircle2 
+                                className={`w-3 h-3 ${req.valid ? 'text-green-500' : 'text-muted-foreground/40'}`} 
+                              />
+                              <span className={`text-xs ${req.valid ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                {req.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button 
