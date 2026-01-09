@@ -1313,6 +1313,60 @@ export type Database = {
         }
         Relationships: []
       }
+      remuneracao_variavel: {
+        Row: {
+          ano: number
+          aprovado_por: string | null
+          created_at: string
+          data_pagamento: string | null
+          descricao: string
+          id: string
+          mes: number
+          observacao: string | null
+          percentual: number | null
+          referencia: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          ano: number
+          aprovado_por?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          descricao: string
+          id?: string
+          mes: number
+          observacao?: string | null
+          percentual?: number | null
+          referencia?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          ano?: number
+          aprovado_por?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          descricao?: string
+          id?: string
+          mes?: number
+          observacao?: string | null
+          percentual?: number | null
+          referencia?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       respostas_clima: {
         Row: {
           created_at: string
