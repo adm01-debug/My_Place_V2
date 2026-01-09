@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -79,7 +79,7 @@ export function RemuneracaoVariavelModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentDate = new Date();
-  const defaultValues: Partial<FormData> = {
+  const getDefaultValues = (): Partial<FormData> => ({
     tipo: 'comissao',
     mes: currentDate.getMonth() + 1,
     ano: currentDate.getFullYear(),
@@ -88,8 +88,7 @@ export function RemuneracaoVariavelModal({
     referencia: '',
     percentual: null,
     observacao: '',
-    ...initialData,
-  };
+  });
 
   const {
     register,
@@ -100,8 +99,22 @@ export function RemuneracaoVariavelModal({
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: getDefaultValues(),
   });
+
+  // Reset form when initialData changes (edit mode) or when opening in create mode
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        reset({
+          ...getDefaultValues(),
+          ...initialData,
+        });
+      } else {
+        reset(getDefaultValues());
+      }
+    }
+  }, [open, initialData, reset]);
 
   const tipoValue = watch('tipo');
   const mesValue = watch('mes');
@@ -127,13 +140,11 @@ export function RemuneracaoVariavelModal({
     setIsSubmitting(false);
     
     if (result.success) {
-      reset(defaultValues);
       onOpenChange(false);
     }
   };
 
   const handleClose = () => {
-    reset(defaultValues);
     onOpenChange(false);
   };
 

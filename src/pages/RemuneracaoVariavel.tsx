@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { TrendingUp, Calendar, CheckCircle, DollarSign, Plus } from 'lucide-react';
+import { TrendingUp, Calendar, CheckCircle, DollarSign, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { RemuneracaoVariavelModal } from '@/components/portal/RemuneracaoVariavelModal';
-import { useRemuneracaoVariavel, type TipoRemuneracao, type StatusRemuneracao } from '@/hooks/useRemuneracaoVariavel';
+import { DeleteConfirmDialog } from '@/components/portal/ConfirmDialog';
+import { useRemuneracaoVariavel, type TipoRemuneracao, type StatusRemuneracao, type RemuneracaoVariavel as RemuneracaoType } from '@/hooks/useRemuneracaoVariavel';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const mesesNome = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -36,14 +38,64 @@ const statusConfig: Record<StatusRemuneracao, { label: string; color: string }> 
 
 export default function RemuneracaoVariavel() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<RemuneracaoType | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<RemuneracaoType | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const { 
     remuneracoes, 
     stats,
     isLoading,
     create,
+    update,
+    remove,
     refetch 
   } = useRemuneracaoVariavel();
+
+  const handleEdit = (item: RemuneracaoType) => {
+    setEditingItem(item);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) {
+      setEditingItem(null);
+    }
+  };
+
+  const handleSubmit = async (data: Parameters<typeof create>[0]) => {
+    if (editingItem) {
+      const result = await update(editingItem.id, data);
+      if (result.success) {
+        toast.success('Remuneração atualizada com sucesso!');
+      }
+      return result;
+    }
+    return create(data);
+  };
+
+  const handleDeleteClick = (item: RemuneracaoType) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeleting(true);
+    const result = await remove(itemToDelete.id);
+    setIsDeleting(false);
+    
+    if (result.success) {
+      toast.success('Remuneração excluída com sucesso!');
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+    } else {
+      toast.error(result.error || 'Erro ao excluir remuneração');
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -179,19 +231,42 @@ export default function RemuneracaoVariavel() {
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <Badge className={statusConfig[rem.status as StatusRemuneracao]?.color || statusConfig.pendente.color}>
-                      {statusConfig[rem.status as StatusRemuneracao]?.label || rem.status}
-                    </Badge>
-                    {rem.status === 'pago' && rem.data_pagamento && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-600" />
-                        Pago em {format(new Date(rem.data_pagamento), 'dd/MM/yyyy')}
-                      </span>
-                    )}
-                    {rem.percentual && (
-                      <span className="text-xs text-muted-foreground">
-                        {rem.percentual}%
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusConfig[rem.status as StatusRemuneracao]?.color || statusConfig.pendente.color}>
+                        {statusConfig[rem.status as StatusRemuneracao]?.label || rem.status}
+                      </Badge>
+                      {rem.status === 'pago' && rem.data_pagamento && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-green-600" />
+                          Pago em {format(new Date(rem.data_pagamento), 'dd/MM/yyyy')}
+                        </span>
+                      )}
+                      {rem.percentual && (
+                        <span className="text-xs text-muted-foreground">
+                          {rem.percentual}%
+                        </span>
+                      )}
+                    </div>
+                    
+                    {rem.status === 'pendente' && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(rem)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteClick(rem)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </Card>
@@ -213,11 +288,31 @@ export default function RemuneracaoVariavel() {
         )}
       </div>
 
-      {/* Modal de criação */}
+      {/* Modal de criação/edição */}
       <RemuneracaoVariavelModal
         open={modalOpen}
-        onOpenChange={setModalOpen}
-        onSubmit={create}
+        onOpenChange={handleCloseModal}
+        onSubmit={handleSubmit}
+        initialData={editingItem ? {
+          tipo: editingItem.tipo as any,
+          descricao: editingItem.descricao,
+          valor: Number(editingItem.valor),
+          mes: editingItem.mes,
+          ano: editingItem.ano,
+          referencia: editingItem.referencia || '',
+          percentual: editingItem.percentual,
+          observacao: editingItem.observacao || '',
+        } : undefined}
+        mode={editingItem ? 'edit' : 'create'}
+      />
+
+      {/* Dialog de confirmação de exclusão */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        itemName={itemToDelete?.descricao || 'esta remuneração'}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
     </PageLayout>
   );
