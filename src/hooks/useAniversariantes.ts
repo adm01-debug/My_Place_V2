@@ -70,11 +70,11 @@ export function useAniversariantes() {
       // Buscar quem já foi parabenizado
       if (aniversariantesMes.length > 0) {
         const { data: parabens } = await supabase
-          .from('aniversario_parabens' as any)
+          .from('aniversario_parabens')
           .select('aniversariante_id')
           .eq('user_id', user.id)
           .eq('mes', mesAtual)
-          .eq('ano', new Date().getFullYear()) as { data: ParabensRecord[] | null; error: any };
+          .eq('ano', new Date().getFullYear());
 
         const parabenizadosIds = new Set((parabens || []).map(p => p.aniversariante_id));
         
@@ -98,14 +98,14 @@ export function useAniversariantes() {
       const anoAtual = new Date().getFullYear();
 
       const { error } = await supabase
-        .from('aniversario_parabens' as any)
+        .from('aniversario_parabens')
         .insert({
           user_id: user.id,
           aniversariante_id: aniversarianteId,
           mensagem: mensagem || 'Feliz aniversário! 🎉',
           mes: mesAtual,
           ano: anoAtual,
-        } as any);
+        });
 
       if (error) throw error;
 

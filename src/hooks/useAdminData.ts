@@ -131,55 +131,43 @@ export function useAdminData() {
     try {
       // Fetch comunicados
       const { data: comunicadosData } = await supabase
-        .from('comunicados' as any)
+        .from('comunicados')
         .select('*')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
       // Fetch treinamentos
       const { data: treinamentosData } = await supabase
-        .from('treinamentos' as any)
+        .from('treinamentos')
         .select('*')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
-      // Fetch solicitações pendentes com profile
+      // Fetch solicitações pendentes
       const { data: solicitacoesData } = await supabase
-        .from('solicitacoes' as any)
-        .select(`
-          *,
-          profiles!solicitacoes_user_id_fkey(nome, email, departamento)
-        `)
+        .from('solicitacoes')
+        .select('*')
         .eq('status', 'pendente')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
-      // Fetch férias pendentes com profile
+      // Fetch férias pendentes
       const { data: feriasData } = await supabase
-        .from('ferias' as any)
-        .select(`
-          *,
-          profiles!ferias_user_id_fkey(nome, email, departamento)
-        `)
+        .from('ferias')
+        .select('*')
         .eq('status', 'pendente')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
-      // Fetch empréstimos pendentes com profile
+      // Fetch empréstimos pendentes
       const { data: emprestimosData } = await supabase
-        .from('emprestimos' as any)
-        .select(`
-          *,
-          profiles!emprestimos_user_id_fkey(nome, email, departamento)
-        `)
+        .from('emprestimos')
+        .select('*')
         .eq('status', 'pendente')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
       // Fetch justificativas pendentes
       const { data: justificativasData } = await supabase
-        .from('justificativas_ponto' as any)
-        .select(`
-          *,
-          profiles!justificativas_ponto_user_id_fkey(nome, email, departamento)
-        `)
+        .from('justificativas_ponto')
+        .select('*')
         .eq('status', 'pendente')
-        .order('created_at', { ascending: false }) as { data: any[] | null };
+        .order('created_at', { ascending: false });
 
       const comunicados = (comunicadosData || []) as Comunicado[];
       const treinamentos = (treinamentosData || []) as Treinamento[];
@@ -236,8 +224,8 @@ export function useAdminData() {
   // CRUD Comunicados
   const criarComunicado = async (comunicado: Partial<Comunicado>) => {
     const { error } = await supabase
-      .from('comunicados' as any)
-      .insert(comunicado as any);
+      .from('comunicados')
+      .insert([comunicado as any]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();
@@ -246,8 +234,8 @@ export function useAdminData() {
 
   const atualizarComunicado = async (id: string, updates: Partial<Comunicado>) => {
     const { error } = await supabase
-      .from('comunicados' as any)
-      .update(updates as any)
+      .from('comunicados')
+      .update(updates)
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -257,7 +245,7 @@ export function useAdminData() {
 
   const excluirComunicado = async (id: string) => {
     const { error } = await supabase
-      .from('comunicados' as any)
+      .from('comunicados')
       .delete()
       .eq('id', id);
 
@@ -269,8 +257,8 @@ export function useAdminData() {
   // CRUD Treinamentos
   const criarTreinamento = async (treinamento: Partial<Treinamento>) => {
     const { error } = await supabase
-      .from('treinamentos' as any)
-      .insert(treinamento as any);
+      .from('treinamentos')
+      .insert([treinamento as any]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();
@@ -279,8 +267,8 @@ export function useAdminData() {
 
   const atualizarTreinamento = async (id: string, updates: Partial<Treinamento>) => {
     const { error } = await supabase
-      .from('treinamentos' as any)
-      .update(updates as any)
+      .from('treinamentos')
+      .update(updates)
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -290,7 +278,7 @@ export function useAdminData() {
 
   const excluirTreinamento = async (id: string) => {
     const { error } = await supabase
-      .from('treinamentos' as any)
+      .from('treinamentos')
       .delete()
       .eq('id', id);
 
@@ -302,8 +290,8 @@ export function useAdminData() {
   // Aprovar/Rejeitar Solicitações
   const aprovarSolicitacao = async (id: string, resposta?: string) => {
     const { error } = await supabase
-      .from('solicitacoes' as any)
-      .update({ status: 'aprovado', resposta } as any)
+      .from('solicitacoes')
+      .update({ status: 'aprovado', resposta })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -313,8 +301,8 @@ export function useAdminData() {
 
   const rejeitarSolicitacao = async (id: string, resposta: string) => {
     const { error } = await supabase
-      .from('solicitacoes' as any)
-      .update({ status: 'rejeitado', resposta } as any)
+      .from('solicitacoes')
+      .update({ status: 'rejeitado', resposta })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -325,8 +313,8 @@ export function useAdminData() {
   // Aprovar/Rejeitar Férias
   const aprovarFerias = async (id: string, aprovadoPor: string) => {
     const { error } = await supabase
-      .from('ferias' as any)
-      .update({ status: 'aprovado', aprovado_por: aprovadoPor } as any)
+      .from('ferias')
+      .update({ status: 'aprovado', aprovado_por: aprovadoPor })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -336,8 +324,8 @@ export function useAdminData() {
 
   const rejeitarFerias = async (id: string, observacao: string) => {
     const { error } = await supabase
-      .from('ferias' as any)
-      .update({ status: 'rejeitado', observacao } as any)
+      .from('ferias')
+      .update({ status: 'rejeitado', observacao })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -348,8 +336,8 @@ export function useAdminData() {
   // Aprovar/Rejeitar Empréstimos
   const aprovarEmprestimo = async (id: string) => {
     const { error } = await supabase
-      .from('emprestimos' as any)
-      .update({ status: 'ativo' } as any)
+      .from('emprestimos')
+      .update({ status: 'ativo' })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -359,8 +347,8 @@ export function useAdminData() {
 
   const rejeitarEmprestimo = async (id: string, observacao: string) => {
     const { error } = await supabase
-      .from('emprestimos' as any)
-      .update({ status: 'rejeitado', observacao } as any)
+      .from('emprestimos')
+      .update({ status: 'rejeitado' })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -371,8 +359,8 @@ export function useAdminData() {
   // Aprovar/Rejeitar Justificativas
   const aprovarJustificativa = async (id: string) => {
     const { error } = await supabase
-      .from('justificativas_ponto' as any)
-      .update({ status: 'aprovado' } as any)
+      .from('justificativas_ponto')
+      .update({ status: 'aprovado' })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };
@@ -382,8 +370,8 @@ export function useAdminData() {
 
   const rejeitarJustificativa = async (id: string, resposta: string) => {
     const { error } = await supabase
-      .from('justificativas_ponto' as any)
-      .update({ status: 'rejeitado', resposta } as any)
+      .from('justificativas_ponto')
+      .update({ status: 'rejeitado', resposta })
       .eq('id', id);
 
     if (error) return { success: false, error: error.message };

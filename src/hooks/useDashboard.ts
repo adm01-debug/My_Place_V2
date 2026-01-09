@@ -129,14 +129,29 @@ export function useDashboard() {
         .eq('user_id', user.id)
         .in('status', ['aprovado', 'concluido']);
 
-      // 6. Remuneração variável do mês
-      const { data: remuneracao } = await supabase
-        .from('remuneracao_variavel' as any)
-        .select('total')
+      // 6. Remuneração variável do mês (pode não existir)
+      // A tabela remuneracao_variavel não existe no schema atual
+      // Usando comissões + bonificações como alternativa
+      let comissaoTotal = 0;
+      
+      const { data: comissoes } = await supabase
+        .from('comissoes')
+        .select('valor')
         .eq('user_id', user.id)
         .eq('mes', mesAtual)
         .eq('ano', anoAtual)
-        .single() as { data: any };
+        .eq('status', 'aprovado');
+      
+      const { data: bonificacoes } = await supabase
+        .from('bonificacoes')
+        .select('valor')
+        .eq('user_id', user.id)
+        .eq('mes', mesAtual)
+        .eq('ano', anoAtual)
+        .eq('status', 'aprovado');
+      
+      comissaoTotal = (comissoes || []).reduce((acc, c) => acc + c.valor, 0) 
+                    + (bonificacoes || []).reduce((acc, b) => acc + b.valor, 0);
 
       // 7. Empréstimo ativo
       const { data: emprestimo } = await supabase
@@ -149,21 +164,21 @@ export function useDashboard() {
 
       // 8. Comunicados recentes
       const { data: comunicados } = await supabase
-        .from('comunicados' as any)
+        .from('comunicados')
         .select(`
           id, titulo, resumo, categoria, data_publicacao, importante,
           comunicados_lidos!left(id)
         `)
         .eq('ativo', true)
         .order('data_publicacao', { ascending: false })
-        .limit(3) as { data: any[] | null };
+        .limit(3);
 
       // 9. Notificações não lidas
       const { count: notificacoesCount } = await supabase
-        .from('notificacoes' as any)
+        .from('notificacoes')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('lida', false) as { count: number | null };
+        .eq('lida', false);
 
       // 10. Solicitações pendentes
       const { count: solicitacoesCount } = await supabase
@@ -174,10 +189,10 @@ export function useDashboard() {
 
       // 11. Treinamentos pendentes
       const { count: treinamentosCount } = await supabase
-        .from('treinamentos_colaborador' as any)
+        .from('treinamentos_colaborador')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('status', 'pendente') as { count: number | null };
+        .eq('status', 'pendente');
 
       // Calcular horas trabalhadas
       const calcularHoras = (registros: any[] | null): string => {
@@ -261,7 +276,7 @@ export function useDashboard() {
           data_inicio: feriasAprovadas[0].data_inicio,
           dias: feriasAprovadas[0].dias_solicitados,
         } : null,
-        comissaoMes: remuneracao?.total || 0,
+        comissaoMes: comissaoTotal,
         emprestimoAtivo: emprestimo ? {
           saldo_devedor: emprestimo.saldo_devedor,
           parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas,
