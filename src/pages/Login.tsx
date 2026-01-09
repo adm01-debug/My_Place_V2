@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, User, Fingerprint, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +18,8 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const { signIn, signUp, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -123,6 +126,43 @@ const Login: React.FC = () => {
     setEmail('');
     setPassword('');
     setNome('');
+    setResetEmailSent(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast({
+        title: 'Email obrigatório',
+        description: 'Digite seu email para recuperar a senha',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login?reset=true`,
+    });
+    
+    setIsSubmitting(false);
+
+    if (error) {
+      toast({
+        title: 'Erro ao enviar email',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setResetEmailSent(true);
+    toast({
+      title: 'Email enviado!',
+      description: 'Verifique sua caixa de entrada para redefinir sua senha',
+    });
   };
 
   const handleBiometricLogin = async () => {
@@ -205,6 +245,82 @@ const Login: React.FC = () => {
 
         {/* Auth Card */}
         <Card className="glass-subtle border-border/50 shadow-xl">
+          {showForgotPassword ? (
+            // Forgot Password View
+            <>
+              <CardHeader className="space-y-1 pb-4">
+                <button
+                  type="button"
+                  onClick={() => { setShowForgotPassword(false); setResetEmailSent(false); }}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar ao login
+                </button>
+                <CardTitle className="text-xl">Recuperar senha</CardTitle>
+                <CardDescription>
+                  {resetEmailSent 
+                    ? 'Verifique seu email para redefinir sua senha'
+                    : 'Digite seu email para receber o link de recuperação'
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {resetEmailSent ? (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                      <Mail className="w-8 h-8 text-primary" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Enviamos um link para <strong>{email}</strong>. 
+                      Clique no link do email para criar uma nova senha.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => { setShowForgotPassword(false); setResetEmailSent(false); }}
+                    >
+                      Voltar ao login
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-email">Email corporativo</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="seu.email@empresa.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-10"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-11 font-semibold"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                          Enviando...
+                        </div>
+                      ) : (
+                        'Enviar link de recuperação'
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </>
+          ) : (
+            <>
           <CardHeader className="space-y-1 pb-4">
             <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); resetForm(); }}>
               <TabsList className="grid w-full grid-cols-2">
@@ -313,6 +429,14 @@ const Login: React.FC = () => {
                     )}
                   </Button>
 
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="w-full text-sm text-primary hover:underline"
+                  >
+                    Esqueceu sua senha?
+                  </button>
+
                   {isAvailable && !isRegistered && (
                     <p className="text-xs text-center text-muted-foreground">
                       <Fingerprint className="inline w-3 h-3 mr-1" />
@@ -397,6 +521,8 @@ const Login: React.FC = () => {
               </TabsContent>
             </Tabs>
           </CardContent>
+          </>
+          )}
         </Card>
 
         {/* Info */}
