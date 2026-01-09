@@ -1,42 +1,41 @@
-import { TrendingUp, Target, Calendar, CheckCircle, DollarSign } from 'lucide-react';
+import { TrendingUp, Calendar, CheckCircle, DollarSign, Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
-import { useRemuneracaoVariavel } from '@/hooks/useRemuneracaoVariavel';
+import { useRemuneracaoVariavel, type TipoRemuneracao, type StatusRemuneracao } from '@/hooks/useRemuneracaoVariavel';
 import { format } from 'date-fns';
 
 const mesesNome = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-const tipoLabels: Record<string, string> = {
-  comissao_vendas: 'Comissão vendas',
-  bonus_meta: 'Bônus meta atingida',
-  bonus_produtividade: 'Bônus produtividade',
+const tipoLabels: Record<TipoRemuneracao, string> = {
+  comissao: 'Comissão',
+  bonificacao: 'Bonificação',
+  premio: 'Prêmio',
   plr: 'PLR',
-  premio_assiduidade: 'Prêmio assiduidade',
-  gratificacao: 'Gratificação',
-  hora_extra: 'Horas extras',
-  adicional_noturno: 'Adicional noturno',
-  periculosidade: 'Periculosidade',
-  insalubridade: 'Insalubridade',
-  outros: 'Outros',
+  outro: 'Outro',
 };
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  previsto: { label: 'A receber', color: 'bg-projects-light text-projects' },
-  confirmado: { label: 'Confirmado', color: 'bg-primary/10 text-primary' },
-  pago: { label: 'Pago', color: 'bg-finance-light text-finance' },
+const tipoColors: Record<TipoRemuneracao, string> = {
+  comissao: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  bonificacao: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  premio: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  plr: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  outro: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+};
+
+const statusConfig: Record<StatusRemuneracao, { label: string; color: string }> = {
+  pendente: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  aprovado: { label: 'Aprovado', color: 'bg-primary/10 text-primary' },
+  pago: { label: 'Pago', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
 };
 
 export default function RemuneracaoVariavel() {
   const { 
     remuneracoes, 
-    metas, 
-    totalAno, 
-    mediaMensal, 
-    dadosGrafico,
+    stats,
     isLoading,
     refetch 
   } = useRemuneracaoVariavel();
@@ -45,7 +44,7 @@ export default function RemuneracaoVariavel() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const maxValor = Math.max(...dadosGrafico.map(d => d.valor), 1);
+  const maxValor = Math.max(...stats.dadosGrafico.map(d => d.valor), 1);
 
   if (isLoading) {
     return (
@@ -64,24 +63,30 @@ export default function RemuneracaoVariavel() {
     <PageLayout title="Remuneração Variável" showBack onRefresh={refetch}>
       <div className="space-y-6 animate-fade-in-up">
         {/* Resumo Anual */}
-        <Card className="p-5 bg-gradient-to-br from-finance-light via-card to-card border-finance/20">
+        <Card className="p-5 bg-gradient-to-br from-primary/5 via-card to-card border-primary/20">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-finance" />
+            <TrendingUp className="w-5 h-5 text-primary" />
             <h3 className="text-sm font-semibold text-muted-foreground uppercase">
               Resumo {new Date().getFullYear()}
             </h3>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {formatCurrency(totalAno)}
+              <p className="text-xl font-display font-bold text-foreground">
+                {formatCurrency(stats.totalAno)}
               </p>
-              <p className="text-xs text-muted-foreground">Total Acumulado</p>
+              <p className="text-xs text-muted-foreground">Total Ano</p>
             </div>
             <div>
-              <p className="text-2xl font-display font-bold text-foreground">
-                {formatCurrency(mediaMensal)}
+              <p className="text-xl font-display font-bold text-foreground">
+                {formatCurrency(stats.totalMes)}
+              </p>
+              <p className="text-xs text-muted-foreground">Este Mês</p>
+            </div>
+            <div>
+              <p className="text-xl font-display font-bold text-foreground">
+                {formatCurrency(stats.mediaMensal)}
               </p>
               <p className="text-xs text-muted-foreground">Média Mensal</p>
             </div>
@@ -94,62 +99,83 @@ export default function RemuneracaoVariavel() {
             📈 Evolução Mensal
           </h3>
           <div className="flex items-end justify-between h-24 gap-1">
-            {dadosGrafico.map((item, i) => (
+            {stats.dadosGrafico.map((item, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div 
-                  className={`w-full rounded-t transition-all ${item.valor > 0 ? 'bg-finance' : 'bg-muted'}`}
+                  className={`w-full rounded-t transition-all ${item.valor > 0 ? 'bg-primary' : 'bg-muted'}`}
                   style={{ height: `${(item.valor / maxValor) * 100}%`, minHeight: item.valor > 0 ? '4px' : '2px' }}
                 />
-                <span className="text-[10px] text-muted-foreground">{mesesNome[item.mes]}</span>
+                <span className="text-[10px] text-muted-foreground">{item.nome}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Detalhamento por Mês */}
+        {/* Por Tipo */}
+        {Object.values(stats.porTipo).some(v => v > 0) && (
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-3">
+              💰 Por Tipo
+            </h3>
+            <div className="space-y-2">
+              {(Object.entries(stats.porTipo) as [TipoRemuneracao, number][])
+                .filter(([_, valor]) => valor > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([tipo, valor]) => (
+                  <div key={tipo} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge className={tipoColors[tipo]}>{tipoLabels[tipo]}</Badge>
+                    </div>
+                    <span className="font-medium text-foreground">{formatCurrency(valor)}</span>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Lista de Remunerações */}
         {remuneracoes.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-              💰 Detalhamento por Mês
+              📋 Histórico
             </h3>
             <div className="space-y-3">
               {remuneracoes.map((rem) => (
                 <Card key={rem.id} className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-semibold text-foreground">
-                        {mesesNome[rem.mes].toUpperCase()}/{rem.ano}
-                      </span>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className={tipoColors[rem.tipo as TipoRemuneracao]}>
+                          {tipoLabels[rem.tipo as TipoRemuneracao] || rem.tipo}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {mesesNome[rem.mes]}/{rem.ano}
+                        </span>
+                      </div>
+                      <p className="font-medium text-foreground">{rem.descricao}</p>
+                      {rem.referencia && (
+                        <p className="text-xs text-muted-foreground mt-1">Ref: {rem.referencia}</p>
+                      )}
                     </div>
                     <span className="font-bold text-lg text-foreground">
-                      {formatCurrency(rem.total)}
+                      {formatCurrency(Number(rem.valor))}
                     </span>
                   </div>
 
-                  {rem.itens.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {rem.itens.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-finance" />
-                            {tipoLabels[item.tipo] || item.descricao}
-                            {item.referencia && <span className="text-xs">({item.referencia})</span>}
-                          </span>
-                          <span className="text-foreground">{formatCurrency(item.valor)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <Badge className={statusConfig[rem.status]?.color || statusConfig.previsto.color}>
-                      {statusConfig[rem.status]?.label || rem.status}
+                    <Badge className={statusConfig[rem.status as StatusRemuneracao]?.color || statusConfig.pendente.color}>
+                      {statusConfig[rem.status as StatusRemuneracao]?.label || rem.status}
                     </Badge>
                     {rem.status === 'pago' && rem.data_pagamento && (
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-finance" />
-                        Pago em {format(new Date(rem.data_pagamento), 'dd/MM')}
+                        <CheckCircle className="w-3 h-3 text-green-600" />
+                        Pago em {format(new Date(rem.data_pagamento), 'dd/MM/yyyy')}
+                      </span>
+                    )}
+                    {rem.percentual && (
+                      <span className="text-xs text-muted-foreground">
+                        {rem.percentual}%
                       </span>
                     )}
                   </div>
@@ -159,40 +185,11 @@ export default function RemuneracaoVariavel() {
           </div>
         )}
 
-        {/* Metas */}
-        {metas.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-              🎯 Minhas Metas
-            </h3>
-            {metas.map((meta) => (
-              <Card key={meta.id} className="p-4 mb-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-foreground">{meta.titulo}</span>
-                  {meta.status === 'atingida' && (
-                    <Badge className="bg-finance-light text-finance">✓ Atingida</Badge>
-                  )}
-                </div>
-                <Progress value={meta.percentual} className="h-2 mb-2" />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {formatCurrency(meta.valor_atual)} / {formatCurrency(meta.valor_meta)}
-                  </span>
-                  <span className="font-medium text-primary">{meta.percentual}%</span>
-                </div>
-                <p className="text-xs text-finance mt-2">
-                  Bônus se atingir: {formatCurrency(meta.bonus)}
-                </p>
-              </Card>
-            ))}
-          </div>
-        )}
-
         {/* Mensagem quando vazio */}
-        {remuneracoes.length === 0 && metas.length === 0 && (
+        {remuneracoes.length === 0 && (
           <div className="text-center py-8">
             <DollarSign className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Nenhuma remuneração variável encontrada</p>
+            <p className="text-muted-foreground mb-4">Nenhuma remuneração variável encontrada</p>
           </div>
         )}
       </div>
