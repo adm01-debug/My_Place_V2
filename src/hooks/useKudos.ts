@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 // =====================================================
-// TYPES
+// TYPES - Mock types for kudos system
 // =====================================================
 
 export interface KudoCategoria {
@@ -25,7 +24,6 @@ export interface Kudo {
   mensagem: string;
   publico: boolean;
   created_at: string;
-  // Joined fields
   de_usuario?: {
     id: string;
     nome: string;
@@ -103,15 +101,32 @@ export interface EnviarKudoParams {
 }
 
 // =====================================================
+// MOCK DATA - Dados estáticos enquanto tabelas não existem
+// =====================================================
+
+const mockCategorias: KudoCategoria[] = [
+  { id: '1', nome: 'Colaboração', descricao: 'Reconheça trabalho em equipe', icone: '🤝', pontos: 10, cor: '#6366f1', ativo: true },
+  { id: '2', nome: 'Inovação', descricao: 'Ideias criativas e soluções', icone: '💡', pontos: 15, cor: '#22c55e', ativo: true },
+  { id: '3', nome: 'Liderança', descricao: 'Inspiração e mentoria', icone: '⭐', pontos: 20, cor: '#f59e0b', ativo: true },
+  { id: '4', nome: 'Excelência', descricao: 'Trabalho excepcional', icone: '🏆', pontos: 25, cor: '#ef4444', ativo: true },
+];
+
+const mockBadges: Badge[] = [
+  { id: '1', nome: 'Primeira Estrela', descricao: 'Enviou seu primeiro kudo', icone: '⭐', cor: '#6366f1', criterio: 'enviar_primeiro', pontos_necessarios: null, ativo: true },
+  { id: '2', nome: 'Colaborador', descricao: 'Recebeu 10 kudos', icone: '🤝', cor: '#22c55e', criterio: 'receber_10', pontos_necessarios: 10, ativo: true },
+  { id: '3', nome: 'Mentor', descricao: 'Enviou 50 kudos', icone: '🎓', cor: '#f59e0b', criterio: 'enviar_50', pontos_necessarios: 50, ativo: true },
+];
+
+// =====================================================
 // HOOK
 // =====================================================
 
 export function useKudos() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const [kudos, setKudos] = useState<Kudo[]>([]);
-  const [categorias, setCategorias] = useState<KudoCategoria[]>([]);
+  const [categorias] = useState<KudoCategoria[]>(mockCategorias);
   const [meusPontos, setMeusPontos] = useState<KudoPontos | null>(null);
   const [meusBadges, setMeusBadges] = useState<BadgeUsuario[]>([]);
   const [ranking, setRanking] = useState<KudoRanking[]>([]);
@@ -119,136 +134,47 @@ export function useKudos() {
   const [error, setError] = useState<string | null>(null);
 
   // =====================================================
-  // FETCH FUNCTIONS
+  // INITIAL LOAD - Mock data
   // =====================================================
 
-  const fetchCategorias = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('kudos_categorias')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome');
+  useEffect(() => {
+    const loadMockData = async () => {
+      setLoading(true);
+      
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Dados mock do usuário
+      if (user?.id) {
+        setMeusPontos({
+          id: '1',
+          usuario_id: user.id,
+          pontos_recebidos: 150,
+          pontos_enviados: 80,
+          total_kudos_recebidos: 12,
+          total_kudos_enviados: 8,
+          nivel: 2,
+          updated_at: new Date().toISOString(),
+        });
 
-      if (error) throw error;
-      setCategorias(data || []);
-    } catch (err: any) {
-      console.error('Erro ao buscar categorias:', err);
-    }
-  }, []);
+        setMeusBadges([
+          { id: '1', usuario_id: user.id, badge_id: '1', conquistado_em: '2024-01-15', badge: mockBadges[0] },
+          { id: '2', usuario_id: user.id, badge_id: '2', conquistado_em: '2024-06-20', badge: mockBadges[1] },
+        ]);
+      }
 
-  const fetchKudosFeed = useCallback(async (limit = 50) => {
-    try {
-      const { data, error } = await supabase
-        .from('kudos')
-        .select(`
-          *,
-          de_usuario:profiles!kudos_de_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          para_usuario:profiles!kudos_para_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          categoria:kudos_categorias(*)
-        `)
-        .eq('publico', true)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+      // Ranking mock
+      setRanking([
+        { usuario_id: '1', nome: 'Maria Silva', avatar_url: null, cargo: 'Desenvolvedora', departamento: 'TI', pontos_recebidos: 350, total_kudos_recebidos: 28, nivel: 4, posicao: 1 },
+        { usuario_id: '2', nome: 'João Santos', avatar_url: null, cargo: 'Designer', departamento: 'Marketing', pontos_recebidos: 280, total_kudos_recebidos: 22, nivel: 3, posicao: 2 },
+        { usuario_id: '3', nome: 'Ana Costa', avatar_url: null, cargo: 'Gerente', departamento: 'Vendas', pontos_recebidos: 220, total_kudos_recebidos: 18, nivel: 3, posicao: 3 },
+      ]);
 
-      if (error) throw error;
-      setKudos(data || []);
-    } catch (err: any) {
-      console.error('Erro ao buscar kudos:', err);
-      setError(err.message);
-    }
-  }, []);
+      setLoading(false);
+    };
 
-  const fetchMeusKudos = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('kudos')
-        .select(`
-          *,
-          de_usuario:profiles!kudos_de_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          para_usuario:profiles!kudos_para_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          categoria:kudos_categorias(*)
-        `)
-        .or(`de_usuario_id.eq.${user.id},para_usuario_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    } catch (err: any) {
-      console.error('Erro ao buscar meus kudos:', err);
-      return [];
-    }
+    loadMockData();
   }, [user?.id]);
-
-  const fetchMeusPontos = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('kudos_pontos')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setMeusPontos(data);
-    } catch (err: any) {
-      console.error('Erro ao buscar pontos:', err);
-    }
-  }, [user?.id]);
-
-  const fetchMeusBadges = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('badges_usuarios')
-        .select(`
-          *,
-          badge:badges(*)
-        `)
-        .eq('usuario_id', user.id)
-        .order('conquistado_em', { ascending: false });
-
-      if (error) throw error;
-      setMeusBadges(data || []);
-    } catch (err: any) {
-      console.error('Erro ao buscar badges:', err);
-    }
-  }, [user?.id]);
-
-  const fetchRanking = useCallback(async (limit = 10) => {
-    try {
-      const { data, error } = await supabase
-        .from('kudos_pontos')
-        .select(`
-          *,
-          usuario:profiles(id, nome, avatar_url, cargo, departamento)
-        `)
-        .order('pontos_recebidos', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-
-      const rankingData: KudoRanking[] = (data || []).map((item, index) => ({
-        usuario_id: item.usuario_id,
-        nome: item.usuario?.nome || 'Usuário',
-        avatar_url: item.usuario?.avatar_url,
-        cargo: item.usuario?.cargo,
-        departamento: item.usuario?.departamento,
-        pontos_recebidos: item.pontos_recebidos,
-        total_kudos_recebidos: item.total_kudos_recebidos,
-        nivel: item.nivel,
-        posicao: index + 1,
-      }));
-
-      setRanking(rankingData);
-    } catch (err: any) {
-      console.error('Erro ao buscar ranking:', err);
-    }
-  }, []);
 
   // =====================================================
   // ACTION FUNCTIONS
@@ -273,98 +199,45 @@ export function useKudos() {
       return null;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('kudos')
-        .insert({
-          de_usuario_id: user.id,
-          para_usuario_id: params.para_usuario_id,
-          categoria_id: params.categoria_id,
-          mensagem: params.mensagem,
-          publico: params.publico ?? true,
-        })
-        .select(`
-          *,
-          de_usuario:profiles!kudos_de_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          para_usuario:profiles!kudos_para_usuario_id_fkey(id, nome, avatar_url, cargo, departamento),
-          categoria:kudos_categorias(*)
-        `)
-        .single();
+    // Mock de envio - quando as tabelas existirem, integrar com Supabase
+    const novoKudo: Kudo = {
+      id: Date.now().toString(),
+      de_usuario_id: user.id,
+      para_usuario_id: params.para_usuario_id,
+      categoria_id: params.categoria_id,
+      mensagem: params.mensagem,
+      publico: params.publico ?? true,
+      created_at: new Date().toISOString(),
+      categoria: categorias.find(c => c.id === params.categoria_id),
+    };
 
-      if (error) throw error;
+    setKudos(prev => [novoKudo, ...prev]);
 
-      toast({
-        title: '🎉 Kudo enviado!',
-        description: 'Seu reconhecimento foi enviado com sucesso!',
-      });
+    toast({
+      title: '🎉 Kudo enviado!',
+      description: 'Seu reconhecimento foi enviado com sucesso!',
+    });
 
-      // Atualizar feed
-      await fetchKudosFeed();
-      await fetchMeusPontos();
-
-      return data;
-    } catch (err: any) {
-      console.error('Erro ao enviar kudo:', err);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível enviar o kudo',
-        variant: 'destructive',
-      });
-      return null;
-    }
-  }, [user?.id, toast, fetchKudosFeed, fetchMeusPontos]);
+    return novoKudo;
+  }, [user?.id, toast, categorias]);
 
   const reagirKudo = useCallback(async (kudoId: string, emoji: string) => {
     if (!user?.id) return null;
+    
+    toast({
+      title: `${emoji} Reação registrada!`,
+    });
+    
+    return true;
+  }, [user?.id, toast]);
 
-    try {
-      // Verificar se já reagiu
-      const { data: existing } = await supabase
-        .from('kudos_reacoes')
-        .select('id')
-        .eq('kudo_id', kudoId)
-        .eq('usuario_id', user.id)
-        .single();
-
-      if (existing) {
-        // Remover reação
-        await supabase
-          .from('kudos_reacoes')
-          .delete()
-          .eq('id', existing.id);
-      } else {
-        // Adicionar reação
-        await supabase
-          .from('kudos_reacoes')
-          .insert({
-            kudo_id: kudoId,
-            usuario_id: user.id,
-            emoji,
-          });
-      }
-
-      await fetchKudosFeed();
-      return true;
-    } catch (err: any) {
-      console.error('Erro ao reagir:', err);
-      return null;
-    }
-  }, [user?.id, fetchKudosFeed]);
-
-  const getReacoesKudo = useCallback(async (kudoId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('kudos_reacoes')
-        .select('*')
-        .eq('kudo_id', kudoId);
-
-      if (error) throw error;
-      return data || [];
-    } catch (err: any) {
-      console.error('Erro ao buscar reações:', err);
-      return [];
-    }
+  const getReacoesKudo = useCallback(async (kudoId: string): Promise<KudoReacao[]> => {
+    return [];
   }, []);
+
+  const fetchMeusKudos = useCallback(async (): Promise<Kudo[]> => {
+    return kudos.filter(k => k.de_usuario_id === user?.id || k.para_usuario_id === user?.id);
+  }, [kudos, user?.id]);
 
   // =====================================================
   // COMPUTED VALUES
@@ -387,55 +260,6 @@ export function useKudos() {
     if (!meusPontos) return 0;
     return (meusPontos.pontos_recebidos % 100);
   }, [meusPontos]);
-
-  // =====================================================
-  // INITIAL LOAD
-  // =====================================================
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchCategorias(),
-        fetchKudosFeed(),
-        fetchMeusPontos(),
-        fetchMeusBadges(),
-        fetchRanking(),
-      ]);
-      setLoading(false);
-    };
-
-    loadData();
-  }, [fetchCategorias, fetchKudosFeed, fetchMeusPontos, fetchMeusBadges, fetchRanking]);
-
-  // =====================================================
-  // REALTIME SUBSCRIPTION
-  // =====================================================
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('kudos-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kudos' },
-        () => {
-          fetchKudosFeed();
-          fetchMeusPontos();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'badges_usuarios' },
-        () => {
-          fetchMeusBadges();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchKudosFeed, fetchMeusPontos, fetchMeusBadges]);
 
   // =====================================================
   // RETURN
@@ -467,13 +291,11 @@ export function useKudos() {
     
     // Refresh
     refresh: useCallback(async () => {
-      await Promise.all([
-        fetchKudosFeed(),
-        fetchMeusPontos(),
-        fetchMeusBadges(),
-        fetchRanking(),
-      ]);
-    }, [fetchKudosFeed, fetchMeusPontos, fetchMeusBadges, fetchRanking]),
+      // Mock refresh
+      setLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setLoading(false);
+    }, []),
   };
 }
 

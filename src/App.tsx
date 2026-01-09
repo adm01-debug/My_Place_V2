@@ -34,6 +34,8 @@ import Calendario from "./pages/Calendario";
 import Metas from "./pages/Metas";
 import Feedback360 from "./pages/Feedback360";
 import PesquisasClima from "./pages/PesquisasClima";
+import Kudos from "./pages/Kudos";
+import Trilhas from "./pages/Trilhas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

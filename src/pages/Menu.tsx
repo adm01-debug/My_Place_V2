@@ -3,7 +3,6 @@ import {
   FileText, MessageSquare, Bell, HelpCircle, LogOut, ChevronRight,
   TrendingUp, Moon, Sun, Download, Smartphone, Shield, BarChart3, Calculator,
   Network, CalendarDays, Target, Users, Heart
-  Heart, BookOpen,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';

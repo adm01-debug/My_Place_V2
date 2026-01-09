@@ -335,20 +335,18 @@ export const srOnlyStyles = {
 // COMPONENT: VisuallyHidden
 // =====================================================
 
+import React from 'react';
+
 interface VisuallyHiddenProps {
   children: React.ReactNode;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
 export const VisuallyHidden: React.FC<VisuallyHiddenProps> = ({ 
   children, 
-  as: Component = 'span' 
+  as = 'span' 
 }) => {
-  return (
-    <Component style={srOnlyStyles}>
-      {children}
-    </Component>
-  );
+  return React.createElement(as, { style: srOnlyStyles }, children);
 };
 
 // =====================================================
@@ -366,19 +364,17 @@ export const SkipLink: React.FC<SkipLinkProps> = ({
 }) => {
   const { onClick, onKeyDown } = useSkipLink(targetId);
 
-  return (
-    <a
-      href={`#${targetId}`}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-      onKeyDown={onKeyDown}
-      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg"
-    >
-      {children}
-    </a>
-  );
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClick();
+  };
+
+  return React.createElement('a', {
+    href: `#${targetId}`,
+    onClick: handleClick,
+    onKeyDown: onKeyDown,
+    className: 'sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg'
+  }, children);
 };
 
 export default {
