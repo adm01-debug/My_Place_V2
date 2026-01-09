@@ -23,17 +23,12 @@ const tipoColors: Record<string, string> = {
   system: 'bg-muted text-muted-foreground',
 };
 
-const categoriaIcons: Record<string, string> = {
-  ferias: '🏖️',
-  ponto: '⏰',
-  holerite: '💰',
-  emprestimo: '💳',
-  solicitacao: '📝',
-  treinamento: '📚',
-  comunicado: '📢',
-  beneficio: '🎁',
-  documento: '📄',
-  sistema: '⚙️',
+const tipoIcons: Record<string, string> = {
+  info: '🔔',
+  success: '✅',
+  warning: '⚠️',
+  alert: '🚨',
+  system: '⚙️',
 };
 
 interface NotificationItemProps {
@@ -58,8 +53,8 @@ function NotificationItem({
     if (!notificacao.lida) {
       await onMarkRead(notificacao.id);
     }
-    if (notificacao.acao_rota) {
-      onNavigate(notificacao.acao_rota);
+    if (notificacao.link) {
+      onNavigate(notificacao.link);
     }
   };
 
@@ -72,7 +67,7 @@ function NotificationItem({
     >
       <div className="flex items-start gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${tipoColors[notificacao.tipo]}`}>
-          {categoriaIcons[notificacao.categoria] || '🔔'}
+          {tipoIcons[notificacao.tipo] || '🔔'}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -96,9 +91,9 @@ function NotificationItem({
           </p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
-            {notificacao.acao_label && (
+            {notificacao.link && (
               <Badge variant="outline" className="text-[10px] h-4">
-                {notificacao.acao_label}
+                Ver detalhes
               </Badge>
             )}
           </div>

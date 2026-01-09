@@ -959,10 +959,12 @@ export type Database = {
       }
       notificacoes: {
         Row: {
+          arquivada: boolean
           created_at: string
           dados: Json | null
           id: string
           lida: boolean
+          lida_em: string | null
           link: string | null
           mensagem: string
           tipo: string
@@ -970,10 +972,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          arquivada?: boolean
           created_at?: string
           dados?: Json | null
           id?: string
           lida?: boolean
+          lida_em?: string | null
           link?: string | null
           mensagem: string
           tipo?: string
@@ -981,10 +985,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          arquivada?: boolean
           created_at?: string
           dados?: Json | null
           id?: string
           lida?: boolean
+          lida_em?: string | null
           link?: string | null
           mensagem?: string
           tipo?: string
