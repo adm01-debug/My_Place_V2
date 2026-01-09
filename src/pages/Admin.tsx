@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   LayoutDashboard, Megaphone, GraduationCap, ClipboardList, 
   Umbrella, CreditCard, Clock, Users, ChevronRight, Check, X,
-  Plus, Pencil, Trash2, AlertCircle, DollarSign
+  Plus, Pencil, Trash2, AlertCircle, DollarSign, Filter
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAdminData } from '@/hooks/useAdminData';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -65,6 +66,32 @@ export default function Admin() {
     tipo?: 'solicitacao' | 'ferias' | 'emprestimo' | 'justificativa' | 'remuneracao';
     data?: any;
   }>({ open: false });
+
+  // Filtros para remunerações variáveis
+  const [filtroTipoRemuneracao, setFiltroTipoRemuneracao] = useState<string>('todos');
+  const [filtroPeriodoRemuneracao, setFiltroPeriodoRemuneracao] = useState<string>('todos');
+
+  // Gera opções de período baseado nos dados
+  const periodoOptions = useMemo(() => {
+    const periodos = new Set<string>();
+    remuneracoes.forEach(r => {
+      periodos.add(`${r.mes}/${r.ano}`);
+    });
+    return Array.from(periodos).sort((a, b) => {
+      const [mesA, anoA] = a.split('/').map(Number);
+      const [mesB, anoB] = b.split('/').map(Number);
+      return anoB - anoA || mesB - mesA;
+    });
+  }, [remuneracoes]);
+
+  // Filtra remunerações baseado nos filtros selecionados
+  const remuneracoesFiltradas = useMemo(() => {
+    return remuneracoes.filter(r => {
+      const matchTipo = filtroTipoRemuneracao === 'todos' || r.tipo === filtroTipoRemuneracao;
+      const matchPeriodo = filtroPeriodoRemuneracao === 'todos' || `${r.mes}/${r.ano}` === filtroPeriodoRemuneracao;
+      return matchTipo && matchPeriodo;
+    });
+  }, [remuneracoes, filtroTipoRemuneracao, filtroPeriodoRemuneracao]);
 
   const handleSaveComunicado = async (data: any) => {
     const result = comunicadoModal.data
@@ -330,25 +357,64 @@ export default function Admin() {
 
                 {/* Remunerações Variáveis */}
                 {remuneracoes.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
-                      Remunerações Variáveis ({remuneracoes.length})
-                    </h3>
-                    {remuneracoes.map(r => (
-                      <Card key={r.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => setAprovacaoModal({ open: true, tipo: 'remuneracao', data: r })}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{r.profile?.nome}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo} • R$ {Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        </div>
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        Remunerações Variáveis ({remuneracoesFiltradas.length} de {remuneracoes.length})
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-muted-foreground" />
+                        <Select value={filtroTipoRemuneracao} onValueChange={setFiltroTipoRemuneracao}>
+                          <SelectTrigger className="w-[130px] h-8 text-xs">
+                            <SelectValue placeholder="Tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos os tipos</SelectItem>
+                            <SelectItem value="comissao">Comissão</SelectItem>
+                            <SelectItem value="bonificacao">Bonificação</SelectItem>
+                            <SelectItem value="plr">PLR</SelectItem>
+                            <SelectItem value="premio">Prêmio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={filtroPeriodoRemuneracao} onValueChange={setFiltroPeriodoRemuneracao}>
+                          <SelectTrigger className="w-[130px] h-8 text-xs">
+                            <SelectValue placeholder="Período" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="todos">Todos os períodos</SelectItem>
+                            {periodoOptions.map(periodo => (
+                              <SelectItem key={periodo} value={periodo}>
+                                {periodo.split('/')[0].padStart(2, '0')}/{periodo.split('/')[1]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {remuneracoesFiltradas.length === 0 ? (
+                      <Card className="p-4 text-center border-0 shadow-card">
+                        <p className="text-sm text-muted-foreground">Nenhuma remuneração encontrada com os filtros selecionados</p>
                       </Card>
-                    ))}
+                    ) : (
+                      <div className="space-y-2">
+                        {remuneracoesFiltradas.map(r => (
+                          <Card key={r.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
+                            onClick={() => setAprovacaoModal({ open: true, tipo: 'remuneracao', data: r })}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{r.profile?.nome}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo} • R$ {Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {String(r.mes).padStart(2, '0')}/{r.ano}
+                                </p>
+                              </div>
+                              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
