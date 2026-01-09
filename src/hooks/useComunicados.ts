@@ -47,7 +47,7 @@ export function useComunicados() {
 
     // Fetch comunicados com status de leitura
     const { data: comunicadosData, error } = await supabase
-      .from('comunicados' as any)
+      .from('comunicados')
       .select(`
         *,
         comunicados_lidos!left(id, lido_em)
@@ -56,7 +56,7 @@ export function useComunicados() {
       .or('data_expiracao.is.null,data_expiracao.gt.now()')
       .order('fixado', { ascending: false })
       .order('importante', { ascending: false })
-      .order('data_publicacao', { ascending: false }) as { data: any[] | null; error: any };
+      .order('data_publicacao', { ascending: false });
 
     if (error) {
       console.error('Error fetching comunicados:', error);
@@ -108,12 +108,12 @@ export function useComunicados() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('comunicados_lidos' as any)
+      .from('comunicados_lidos')
       .upsert({
         comunicado_id: comunicadoId,
         user_id: user.id,
         lido_em: new Date().toISOString(),
-      } as any, {
+      }, {
         onConflict: 'comunicado_id,user_id',
       });
 
@@ -150,8 +150,8 @@ export function useComunicados() {
     }));
 
     const { error } = await supabase
-      .from('comunicados_lidos' as any)
-      .upsert(inserts as any, {
+      .from('comunicados_lidos')
+      .upsert(inserts, {
         onConflict: 'comunicado_id,user_id',
       });
 
