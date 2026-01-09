@@ -1498,6 +1498,39 @@ export type Database = {
           },
         ]
       }
+      user_2fa: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string
+          enabled: boolean
+          id: string
+          secret: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1524,6 +1557,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_2fa_enabled: { Args: { p_user_id: string }; Returns: boolean }
       check_account_locked: {
         Args: { p_email: string }
         Returns: {

@@ -9,6 +9,7 @@ import { ProfileSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons
 import { PushNotificationSettings } from '@/components/portal/PushNotificationSettings';
 import { BadgeDisplay } from '@/components/portal/BadgeDisplay';
 import { TrilhaProgress } from '@/components/portal/TrilhaProgress';
+import { TwoFactorSetup } from '@/components/portal/TwoFactorSetup';
 import { useKudos } from '@/hooks/useKudos';
 import { useTrilhas } from '@/hooks/useTrilhas';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -291,6 +292,9 @@ export default function Perfil() {
 
         {/* Notificações Push */}
         <PushNotificationSettings />
+
+        {/* Autenticação de Dois Fatores */}
+        <TwoFactorSetup />
 
         {/* Segurança - Autenticação Biométrica */}
         {isAvailable && (
