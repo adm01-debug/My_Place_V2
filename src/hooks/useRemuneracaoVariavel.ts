@@ -1,205 +1,358 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-type TipoItem = 
-  | 'comissao_vendas' | 'bonus_meta' | 'bonus_produtividade' 
-  | 'plr' | 'premio_assiduidade' | 'gratificacao' | 'hora_extra'
-  | 'adicional_noturno' | 'periculosidade' | 'insalubridade' | 'outros';
+export type RemuneracaoVariavel = Tables<'remuneracao_variavel'>;
+export type RemuneracaoVariavelInsert = TablesInsert<'remuneracao_variavel'>;
+export type RemuneracaoVariavelUpdate = TablesUpdate<'remuneracao_variavel'>;
 
-type StatusRemuneracao = 'previsto' | 'confirmado' | 'pago' | 'cancelado';
-type StatusMeta = 'em_andamento' | 'atingida' | 'nao_atingida' | 'cancelada';
+export type TipoRemuneracao = 'comissao' | 'bonificacao' | 'premio' | 'plr' | 'outro';
+export type StatusRemuneracao = 'pendente' | 'aprovado' | 'pago' | 'cancelado';
 
-interface ItemRemuneracao {
-  id: string;
-  tipo: TipoItem;
-  descricao: string;
-  base: number | null;
-  percentual: number | null;
-  valor: number;
-  referencia: string | null;
+interface RemuneracaoFilters {
+  mes?: number;
+  ano?: number;
+  tipo?: TipoRemuneracao;
+  status?: StatusRemuneracao;
 }
 
-interface RemuneracaoVariavel {
-  id: string;
-  mes: number;
-  ano: number;
-  total: number;
-  status: StatusRemuneracao;
-  data_pagamento: string | null;
-  observacao: string | null;
-  itens: ItemRemuneracao[];
-}
-
-interface Meta {
-  id: string;
-  titulo: string;
-  descricao: string | null;
-  tipo: string;
-  valor_meta: number;
-  valor_atual: number;
-  unidade: string;
-  bonus: number;
-  bonus_percentual: number | null;
-  periodo: string;
-  data_inicio: string;
-  data_fim: string;
-  status: StatusMeta;
-  percentual: number; // Calculado
-}
-
-interface RemuneracaoData {
-  remuneracoes: RemuneracaoVariavel[];
-  metas: Meta[];
+interface RemuneracaoStats {
   totalAno: number;
+  totalMes: number;
   mediaMensal: number;
-  dadosGrafico: { mes: number; valor: number }[];
+  porTipo: Record<TipoRemuneracao, number>;
+  dadosGrafico: { mes: number; nome: string; valor: number }[];
 }
 
-export function useRemuneracaoVariavel(ano?: number) {
-  const anoAtual = ano || new Date().getFullYear();
-  const [data, setData] = useState<RemuneracaoData>({
-    remuneracoes: [],
-    metas: [],
+const MESES_NOMES = [
+  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+];
+
+export function useRemuneracaoVariavel(filters?: RemuneracaoFilters) {
+  const anoAtual = filters?.ano || new Date().getFullYear();
+  const mesAtual = filters?.mes || new Date().getMonth() + 1;
+
+  const [remuneracoes, setRemuneracoes] = useState<RemuneracaoVariavel[]>([]);
+  const [stats, setStats] = useState<RemuneracaoStats>({
     totalAno: 0,
+    totalMes: 0,
     mediaMensal: 0,
+    porTipo: { comissao: 0, bonificacao: 0, premio: 0, plr: 0, outro: 0 },
     dadosGrafico: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchRemuneracao = async () => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    // Fetch remunerações do ano
-    const { data: remuneracoesData, error: remError } = await supabase
-      .from('remuneracao_variavel' as any)
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('ano', anoAtual)
-      .order('mes', { ascending: false }) as { data: any[] | null; error: any };
-
-    if (remError) {
-      console.error('Error fetching remuneracao:', remError);
-      toast({
-        title: 'Erro ao carregar remuneração variável',
-        description: remError.message,
-        variant: 'destructive',
-      });
+  // Fetch all remuneracoes with filters
+  const fetchRemuneracoes = useCallback(async () => {
+    if (!user) {
       setIsLoading(false);
       return;
     }
 
-    // Fetch itens de cada remuneração
-    const remuneracoesWithItens = await Promise.all(
-      (remuneracoesData || []).map(async (rem) => {
-        const { data: itensData } = await supabase
-          .from('itens_remuneracao' as any)
-          .select('*')
-          .eq('remuneracao_id', rem.id) as { data: any[] | null };
+    setIsLoading(true);
+    setError(null);
 
-        return {
-          ...rem,
-          itens: (itensData || []) as ItemRemuneracao[],
-        } as RemuneracaoVariavel;
-      })
-    );
+    try {
+      let query = supabase
+        .from('remuneracao_variavel')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('ano', { ascending: false })
+        .order('mes', { ascending: false })
+        .order('created_at', { ascending: false });
 
-    // Fetch metas ativas
-    const { data: metasData } = await supabase
-      .from('metas' as any)
-      .select('*')
-      .eq('user_id', user.id)
-      .in('status', ['em_andamento', 'atingida'])
-      .order('data_fim', { ascending: true }) as { data: any[] | null };
+      // Apply filters
+      if (filters?.ano) {
+        query = query.eq('ano', filters.ano);
+      }
+      if (filters?.mes) {
+        query = query.eq('mes', filters.mes);
+      }
+      if (filters?.tipo) {
+        query = query.eq('tipo', filters.tipo);
+      }
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
 
-    // Processar metas com percentual calculado
-    const metas = (metasData || []).map((meta: any) => ({
-      ...meta,
-      percentual: meta.valor_meta > 0 
-        ? Math.min(100, Math.round((meta.valor_atual / meta.valor_meta) * 100))
-        : 0,
-    })) as Meta[];
+      const { data, error: fetchError } = await query;
 
-    // Calcular totais
-    const totalAno = remuneracoesWithItens.reduce((acc, r) => acc + Number(r.total), 0);
-    const mesesComValor = remuneracoesWithItens.filter(r => Number(r.total) > 0).length;
-    const mediaMensal = mesesComValor > 0 ? totalAno / mesesComValor : 0;
+      if (fetchError) throw fetchError;
 
-    // Dados para gráfico (12 meses)
-    const dadosGrafico = Array.from({ length: 12 }, (_, i) => {
-      const mes = i + 1;
-      const rem = remuneracoesWithItens.find(r => r.mes === mes);
-      return {
-        mes,
-        valor: rem ? Number(rem.total) : 0,
+      setRemuneracoes(data || []);
+
+      // Calculate stats for the year
+      const { data: anoData } = await supabase
+        .from('remuneracao_variavel')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('ano', anoAtual)
+        .in('status', ['aprovado', 'pago']);
+
+      const remuneracoesAno = anoData || [];
+      
+      // Total do ano
+      const totalAno = remuneracoesAno.reduce((acc, r) => acc + Number(r.valor), 0);
+      
+      // Total do mês atual
+      const remuneracoesMes = remuneracoesAno.filter(r => r.mes === mesAtual);
+      const totalMes = remuneracoesMes.reduce((acc, r) => acc + Number(r.valor), 0);
+      
+      // Média mensal (considerando apenas meses com valores)
+      const mesesComValor = new Set(remuneracoesAno.map(r => r.mes)).size;
+      const mediaMensal = mesesComValor > 0 ? totalAno / mesesComValor : 0;
+
+      // Por tipo
+      const porTipo: Record<TipoRemuneracao, number> = {
+        comissao: 0,
+        bonificacao: 0,
+        premio: 0,
+        plr: 0,
+        outro: 0,
       };
-    });
+      remuneracoesAno.forEach(r => {
+        const tipo = r.tipo as TipoRemuneracao;
+        if (tipo in porTipo) {
+          porTipo[tipo] += Number(r.valor);
+        }
+      });
 
-    setData({
-      remuneracoes: remuneracoesWithItens,
-      metas,
-      totalAno,
-      mediaMensal,
-      dadosGrafico,
-    });
+      // Dados para gráfico (12 meses)
+      const dadosGrafico = Array.from({ length: 12 }, (_, i) => {
+        const mes = i + 1;
+        const valorMes = remuneracoesAno
+          .filter(r => r.mes === mes)
+          .reduce((acc, r) => acc + Number(r.valor), 0);
+        return {
+          mes,
+          nome: MESES_NOMES[i],
+          valor: valorMes,
+        };
+      });
 
-    setIsLoading(false);
-  };
+      setStats({
+        totalAno,
+        totalMes,
+        mediaMensal,
+        porTipo,
+        dadosGrafico,
+      });
 
-  const atualizarMeta = async (metaId: string, valorAtual: number) => {
-    if (!user) return { success: false, error: 'Usuário não autenticado' };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao carregar remuneração variável';
+      setError(message);
+      console.error('Error fetching remuneracao:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, filters?.ano, filters?.mes, filters?.tipo, filters?.status, anoAtual, mesAtual]);
 
-    // Buscar meta atual para verificar se atingiu
-    const meta = data.metas.find(m => m.id === metaId);
-    if (!meta) return { success: false, error: 'Meta não encontrada' };
-
-    const novoStatus = valorAtual >= meta.valor_meta ? 'atingida' : 'em_andamento';
-
-    const { error } = await supabase
-      .from('metas' as any)
-      .update({
-        valor_atual: valorAtual,
-        status: novoStatus,
-      } as any)
-      .eq('id', metaId)
-      .eq('user_id', user.id);
-
-    if (error) {
-      return { success: false, error: error.message };
+  // Create new remuneracao
+  const create = async (data: Omit<RemuneracaoVariavelInsert, 'user_id'>): Promise<{ success: boolean; data?: RemuneracaoVariavel; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' };
     }
 
-    await fetchRemuneracao();
-    return { success: true };
+    try {
+      const { data: newData, error: insertError } = await supabase
+        .from('remuneracao_variavel')
+        .insert({
+          ...data,
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: 'Remuneração registrada',
+        description: 'O registro foi criado com sucesso.',
+      });
+
+      await fetchRemuneracoes();
+      return { success: true, data: newData };
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao criar registro';
+      toast({
+        title: 'Erro ao criar registro',
+        description: message,
+        variant: 'destructive',
+      });
+      return { success: false, error: message };
+    }
   };
 
-  const getRemuneracaoPorMes = (mes: number): RemuneracaoVariavel | undefined => {
-    return data.remuneracoes.find(r => r.mes === mes);
+  // Update existing remuneracao
+  const update = async (id: string, data: RemuneracaoVariavelUpdate): Promise<{ success: boolean; data?: RemuneracaoVariavel; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const { data: updatedData, error: updateError } = await supabase
+        .from('remuneracao_variavel')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Registro atualizado',
+        description: 'As alterações foram salvas.',
+      });
+
+      await fetchRemuneracoes();
+      return { success: true, data: updatedData };
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao atualizar registro';
+      toast({
+        title: 'Erro ao atualizar',
+        description: message,
+        variant: 'destructive',
+      });
+      return { success: false, error: message };
+    }
   };
 
-  const getMetasAtivas = (): Meta[] => {
-    return data.metas.filter(m => m.status === 'em_andamento');
+  // Delete remuneracao
+  const remove = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('remuneracao_variavel')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: 'Registro removido',
+        description: 'O registro foi excluído com sucesso.',
+      });
+
+      await fetchRemuneracoes();
+      return { success: true };
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao remover registro';
+      toast({
+        title: 'Erro ao remover',
+        description: message,
+        variant: 'destructive',
+      });
+      return { success: false, error: message };
+    }
   };
 
-  const getMetasAtingidas = (): Meta[] => {
-    return data.metas.filter(m => m.status === 'atingida');
+  // Get single remuneracao by ID
+  const getById = async (id: string): Promise<RemuneracaoVariavel | null> => {
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('remuneracao_variavel')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching remuneracao by id:', error);
+      return null;
+    }
+
+    return data;
+  };
+
+  // Approve remuneracao (for admins)
+  const aprovar = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    return update(id, { status: 'aprovado', aprovado_por: user?.id });
+  };
+
+  // Mark as paid
+  const marcarComoPago = async (id: string, dataPagamento?: string): Promise<{ success: boolean; error?: string }> => {
+    return update(id, { 
+      status: 'pago', 
+      data_pagamento: dataPagamento || new Date().toISOString().split('T')[0] 
+    });
+  };
+
+  // Cancel remuneracao
+  const cancelar = async (id: string, observacao?: string): Promise<{ success: boolean; error?: string }> => {
+    return update(id, { 
+      status: 'cancelado',
+      observacao: observacao || 'Cancelado pelo usuário',
+    });
+  };
+
+  // Get remuneracoes by month
+  const getByMes = (mes: number, ano?: number): RemuneracaoVariavel[] => {
+    return remuneracoes.filter(r => r.mes === mes && r.ano === (ano || anoAtual));
+  };
+
+  // Get remuneracoes by type
+  const getByTipo = (tipo: TipoRemuneracao): RemuneracaoVariavel[] => {
+    return remuneracoes.filter(r => r.tipo === tipo);
+  };
+
+  // Get pending remuneracoes
+  const getPendentes = (): RemuneracaoVariavel[] => {
+    return remuneracoes.filter(r => r.status === 'pendente');
+  };
+
+  // Get approved remuneracoes
+  const getAprovados = (): RemuneracaoVariavel[] => {
+    return remuneracoes.filter(r => r.status === 'aprovado' || r.status === 'pago');
   };
 
   useEffect(() => {
-    fetchRemuneracao();
-  }, [user, anoAtual]);
+    fetchRemuneracoes();
+  }, [fetchRemuneracoes]);
 
   return {
-    ...data,
+    // Data
+    remuneracoes,
+    stats,
     isLoading,
-    atualizarMeta,
-    getRemuneracaoPorMes,
-    getMetasAtivas,
-    getMetasAtingidas,
-    refetch: fetchRemuneracao,
+    error,
+    
+    // CRUD operations
+    create,
+    update,
+    remove,
+    getById,
+    
+    // Status operations
+    aprovar,
+    marcarComoPago,
+    cancelar,
+    
+    // Filter helpers
+    getByMes,
+    getByTipo,
+    getPendentes,
+    getAprovados,
+    
+    // Refetch
+    refetch: fetchRemuneracoes,
   };
 }
