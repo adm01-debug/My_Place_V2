@@ -23,7 +23,9 @@ export const NoResults: Story = {
     icon: Search,
     title: 'Nenhum resultado',
     description: 'Tente ajustar os filtros.',
-    actionLabel: 'Limpar filtros',
-    onAction: () => console.log('clear'),
+    action: {
+      label: 'Limpar filtros',
+      onClick: () => console.log('clear'),
+    },
   },
 };

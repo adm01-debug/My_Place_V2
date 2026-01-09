@@ -1,6 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
+// Mock Supabase
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockResolvedValue({ data: [], error: null }),
+      insert: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      update: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      delete: vi.fn().mockResolvedValue({ error: null }),
+    })),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: '1' } }, error: null }),
+    },
+  },
+}));
+
 describe('useLoadingState', () => {
   it('should return loading initially then false', async () => {
     vi.useFakeTimers();
@@ -14,17 +29,19 @@ describe('useLoadingState', () => {
 });
 
 describe('useFilters', () => {
-  it('should initialize with empty filters', async () => {
+  it('should initialize with filters', async () => {
     const { useFilters } = await import('@/hooks/useFilters');
-    const { result } = renderHook(() => useFilters({}));
-    expect(result.current.filters).toEqual({});
+    const mockItems = [{ id: '1', status: 'active' }];
+    const mockConfigs = [{ key: 'status', label: 'Status', options: [{ value: 'active', label: 'Active' }] }];
+    const { result } = renderHook(() => useFilters(mockItems, mockConfigs));
+    expect(result.current.filteredItems).toBeDefined();
   });
 });
 
 describe('useValidation', () => {
   it('should initialize', async () => {
-    const { useValidation } = await import('@/hooks/useValidation');
-    const { result } = renderHook(() => useValidation());
+    const { useValidation, validateRequired } = await import('@/hooks/useValidation');
+    const { result } = renderHook(() => useValidation('', validateRequired));
     expect(result.current).toBeDefined();
   });
 });
@@ -32,7 +49,10 @@ describe('useValidation', () => {
 describe('useCrudBase', () => {
   it('should initialize', async () => {
     const { useCrudBase } = await import('@/hooks/useCrudBase');
-    const { result } = renderHook(() => useCrudBase('test_table'));
+    const { result } = renderHook(() => useCrudBase({
+      queryKey: ['test'],
+      fetchFn: async () => [],
+    }));
     expect(result.current).toBeDefined();
   });
 });

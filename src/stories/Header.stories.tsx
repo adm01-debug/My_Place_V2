@@ -15,9 +15,9 @@ export const Default: Story = {
   },
 };
 
-export const WithSubtitle: Story = {
+export const WithBackButton: Story = {
   args: {
     title: 'Holerites',
-    subtitle: 'Dezembro 2025',
+    showBack: true,
   },
 };

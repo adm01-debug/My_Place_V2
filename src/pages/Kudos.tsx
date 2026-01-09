@@ -242,7 +242,7 @@ const Kudos: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout title="Kudos" subtitle="Carregando...">
+      <PageLayout title="Kudos">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-24" />
@@ -259,36 +259,30 @@ const Kudos: React.FC = () => {
 
   return (
     <PageLayout 
-      title="Kudos" 
-      subtitle="Reconheça e celebre seus colegas"
+      title="Kudos"
       showBack
     >
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard
-          title="Nível Atual"
-          value={nivelAtual}
+          label="Nível Atual"
+          value={String(nivelAtual)}
           icon={Trophy}
-          description={`${progressoNivel}/100 para próximo nível`}
-          trend={{ value: progressoNivel, isPositive: true }}
         />
         <StatCard
-          title="Kudos Recebidos"
-          value={meusPontos?.total_kudos_recebidos || 0}
+          label="Kudos Recebidos"
+          value={String(meusPontos?.total_kudos_recebidos || 0)}
           icon={Heart}
-          description={`${meusPontos?.pontos_recebidos || 0} pontos`}
         />
         <StatCard
-          title="Kudos Enviados"
-          value={meusPontos?.total_kudos_enviados || 0}
+          label="Kudos Enviados"
+          value={String(meusPontos?.total_kudos_enviados || 0)}
           icon={Send}
-          description="Reconhecimentos feitos"
         />
         <StatCard
-          title="Badges"
-          value={meusBadges.length}
+          label="Badges"
+          value={String(meusBadges.length)}
           icon={Medal}
-          description="Conquistas desbloqueadas"
         />
       </div>
 
