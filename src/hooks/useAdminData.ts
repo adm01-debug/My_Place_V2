@@ -90,6 +90,26 @@ interface JustificativaPonto {
   };
 }
 
+interface RemuneracaoVariavel {
+  id: string;
+  user_id: string;
+  tipo: string;
+  descricao: string;
+  valor: number;
+  mes: number;
+  ano: number;
+  status: string;
+  referencia: string | null;
+  percentual: number | null;
+  observacao: string | null;
+  created_at: string;
+  profile?: {
+    nome: string;
+    email: string;
+    departamento: string | null;
+  };
+}
+
 interface AdminData {
   comunicados: Comunicado[];
   treinamentos: Treinamento[];
@@ -97,12 +117,14 @@ interface AdminData {
   ferias: Ferias[];
   emprestimos: Emprestimo[];
   justificativas: JustificativaPonto[];
+  remuneracoes: RemuneracaoVariavel[];
   stats: {
     pendentesTotal: number;
     solicitacoesPendentes: number;
     feriasPendentes: number;
     emprestimosPendentes: number;
     justificativasPendentes: number;
+    remuneracoesPendentes: number;
   };
 }
 
@@ -114,12 +136,14 @@ export function useAdminData() {
     ferias: [],
     emprestimos: [],
     justificativas: [],
+    remuneracoes: [],
     stats: {
       pendentesTotal: 0,
       solicitacoesPendentes: 0,
       feriasPendentes: 0,
       emprestimosPendentes: 0,
       justificativasPendentes: 0,
+      remuneracoesPendentes: 0,
     },
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -169,6 +193,13 @@ export function useAdminData() {
         .eq('status', 'pendente')
         .order('created_at', { ascending: false });
 
+      // Fetch remunerações variáveis pendentes
+      const { data: remuneracoesData } = await supabase
+        .from('remuneracao_variavel')
+        .select('*')
+        .eq('status', 'pendente')
+        .order('created_at', { ascending: false });
+
       const comunicados = (comunicadosData || []) as Comunicado[];
       const treinamentos = (treinamentosData || []) as Treinamento[];
       
@@ -192,12 +223,18 @@ export function useAdminData() {
         profile: j.profiles,
       })) as JustificativaPonto[];
 
+      const remuneracoes = (remuneracoesData || []).map((r: any) => ({
+        ...r,
+        profile: r.profiles,
+      })) as RemuneracaoVariavel[];
+
       const stats = {
         solicitacoesPendentes: solicitacoes.length,
         feriasPendentes: ferias.length,
         emprestimosPendentes: emprestimos.length,
         justificativasPendentes: justificativas.length,
-        pendentesTotal: solicitacoes.length + ferias.length + emprestimos.length + justificativas.length,
+        remuneracoesPendentes: remuneracoes.length,
+        pendentesTotal: solicitacoes.length + ferias.length + emprestimos.length + justificativas.length + remuneracoes.length,
       };
 
       setData({
@@ -207,6 +244,7 @@ export function useAdminData() {
         ferias,
         emprestimos,
         justificativas,
+        remuneracoes,
         stats,
       });
     } catch (error: any) {
@@ -379,6 +417,29 @@ export function useAdminData() {
     return { success: true };
   };
 
+  // Aprovar/Rejeitar Remuneração Variável
+  const aprovarRemuneracao = async (id: string, aprovadoPor: string) => {
+    const { error } = await supabase
+      .from('remuneracao_variavel')
+      .update({ status: 'aprovado', aprovado_por: aprovadoPor })
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    await fetchData();
+    return { success: true };
+  };
+
+  const rejeitarRemuneracao = async (id: string, observacao: string) => {
+    const { error } = await supabase
+      .from('remuneracao_variavel')
+      .update({ status: 'rejeitado', observacao })
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    await fetchData();
+    return { success: true };
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -404,5 +465,7 @@ export function useAdminData() {
     rejeitarEmprestimo,
     aprovarJustificativa,
     rejeitarJustificativa,
+    aprovarRemuneracao,
+    rejeitarRemuneracao,
   };
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   LayoutDashboard, Megaphone, GraduationCap, ClipboardList, 
   Umbrella, CreditCard, Clock, Users, ChevronRight, Check, X,
-  Plus, Pencil, Trash2, AlertCircle
+  Plus, Pencil, Trash2, AlertCircle, DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,6 +19,13 @@ import { AdminTreinamentoModal } from '@/components/admin/AdminTreinamentoModal'
 import { AdminAprovacaoModal } from '@/components/admin/AdminAprovacaoModal';
 import { cn } from '@/lib/utils';
 
+const TIPO_REMUNERACAO_LABELS: Record<string, string> = {
+  comissao: 'Comissão',
+  bonificacao: 'Bonificação',
+  plr: 'PLR',
+  premio: 'Prêmio',
+};
+
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -29,6 +36,7 @@ export default function Admin() {
     ferias,
     emprestimos,
     justificativas,
+    remuneracoes,
     stats,
     isLoading,
     refetch,
@@ -46,13 +54,15 @@ export default function Admin() {
     rejeitarEmprestimo,
     aprovarJustificativa,
     rejeitarJustificativa,
+    aprovarRemuneracao,
+    rejeitarRemuneracao,
   } = useAdminData();
 
   const [comunicadoModal, setComunicadoModal] = useState<{ open: boolean; data?: any }>({ open: false });
   const [treinamentoModal, setTreinamentoModal] = useState<{ open: boolean; data?: any }>({ open: false });
   const [aprovacaoModal, setAprovacaoModal] = useState<{ 
     open: boolean; 
-    tipo?: 'solicitacao' | 'ferias' | 'emprestimo' | 'justificativa';
+    tipo?: 'solicitacao' | 'ferias' | 'emprestimo' | 'justificativa' | 'remuneracao';
     data?: any;
   }>({ open: false });
 
@@ -115,6 +125,9 @@ export default function Admin() {
       case 'justificativa':
         result = await aprovarJustificativa(id);
         break;
+      case 'remuneracao':
+        result = await aprovarRemuneracao(id, user?.id || '');
+        break;
     }
 
     if (result?.success) {
@@ -139,6 +152,9 @@ export default function Admin() {
         break;
       case 'justificativa':
         result = await rejeitarJustificativa(id, motivo);
+        break;
+      case 'remuneracao':
+        result = await rejeitarRemuneracao(id, motivo);
         break;
     }
 
@@ -181,11 +197,12 @@ export default function Admin() {
     <PageLayout title="Painel Admin" onRefresh={refetch}>
       <div className="space-y-6">
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <StatCard icon={ClipboardList} label="Solicitações" value={stats.solicitacoesPendentes} color="bg-primary" />
           <StatCard icon={Umbrella} label="Férias" value={stats.feriasPendentes} color="bg-projects" />
           <StatCard icon={CreditCard} label="Empréstimos" value={stats.emprestimosPendentes} color="bg-finance" />
           <StatCard icon={Clock} label="Justificativas" value={stats.justificativasPendentes} color="bg-hr" />
+          <StatCard icon={DollarSign} label="Remunerações" value={stats.remuneracoesPendentes} color="bg-amber-500" />
         </div>
 
         {/* Tabs */}
@@ -302,6 +319,30 @@ export default function Admin() {
                             <p className="font-medium truncate">{j.profile?.nome}</p>
                             <p className="text-sm text-muted-foreground">
                               {format(new Date(j.data), 'dd/MM/yyyy', { locale: ptBR })} • {j.tipo}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Remunerações Variáveis */}
+                {remuneracoes.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Remunerações Variáveis ({remuneracoes.length})
+                    </h3>
+                    {remuneracoes.map(r => (
+                      <Card key={r.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => setAprovacaoModal({ open: true, tipo: 'remuneracao', data: r })}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{r.profile?.nome}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo} • R$ {Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                           </div>
                           <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
