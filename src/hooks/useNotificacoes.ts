@@ -4,20 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 type TipoNotificacao = 'info' | 'success' | 'warning' | 'alert' | 'system';
-type CategoriaNotificacao = 
-  | 'ferias' | 'ponto' | 'holerite' | 'emprestimo' | 'solicitacao'
-  | 'treinamento' | 'comunicado' | 'beneficio' | 'documento' | 'sistema';
 
 export interface Notificacao {
   id: string;
+  user_id: string;
   tipo: TipoNotificacao;
-  categoria: CategoriaNotificacao;
   titulo: string;
   mensagem: string;
-  acao_label: string | null;
-  acao_rota: string | null;
-  entidade_tipo: string | null;
-  entidade_id: string | null;
+  link: string | null;
+  dados: Record<string, unknown> | null;
   lida: boolean;
   lida_em: string | null;
   arquivada: boolean;
@@ -46,12 +41,12 @@ export function useNotificacoes() {
     setIsLoading(true);
 
     const { data: notificacoesData, error } = await supabase
-      .from('notificacoes' as any)
+      .from('notificacoes')
       .select('*')
       .eq('user_id', user.id)
       .eq('arquivada', false)
       .order('created_at', { ascending: false })
-      .limit(50) as { data: any[] | null; error: any };
+      .limit(50);
 
     if (error) {
       console.error('Error fetching notificacoes:', error);
@@ -75,11 +70,11 @@ export function useNotificacoes() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('notificacoes' as any)
+      .from('notificacoes')
       .update({
         lida: true,
         lida_em: new Date().toISOString(),
-      } as any)
+      })
       .eq('id', notificacaoId)
       .eq('user_id', user.id);
 
@@ -107,11 +102,11 @@ export function useNotificacoes() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('notificacoes' as any)
+      .from('notificacoes')
       .update({
         lida: true,
         lida_em: new Date().toISOString(),
-      } as any)
+      })
       .eq('user_id', user.id)
       .eq('lida', false);
 
@@ -132,8 +127,8 @@ export function useNotificacoes() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('notificacoes' as any)
-      .update({ arquivada: true } as any)
+      .from('notificacoes')
+      .update({ arquivada: true })
       .eq('id', notificacaoId)
       .eq('user_id', user.id);
 
