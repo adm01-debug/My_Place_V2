@@ -129,29 +129,16 @@ export function useDashboard() {
         .eq('user_id', user.id)
         .in('status', ['aprovado', 'concluido']);
 
-      // 6. Remuneração variável do mês (pode não existir)
-      // A tabela remuneracao_variavel não existe no schema atual
-      // Usando comissões + bonificações como alternativa
-      let comissaoTotal = 0;
-      
-      const { data: comissoes } = await supabase
-        .from('comissoes')
+      // 6. Remuneração variável do mês (usando tabela consolidada)
+      const { data: remuneracaoVariavel } = await supabase
+        .from('remuneracao_variavel')
         .select('valor')
         .eq('user_id', user.id)
         .eq('mes', mesAtual)
         .eq('ano', anoAtual)
-        .eq('status', 'aprovado');
-      
-      const { data: bonificacoes } = await supabase
-        .from('bonificacoes')
-        .select('valor')
-        .eq('user_id', user.id)
-        .eq('mes', mesAtual)
-        .eq('ano', anoAtual)
-        .eq('status', 'aprovado');
-      
-      comissaoTotal = (comissoes || []).reduce((acc, c) => acc + c.valor, 0) 
-                    + (bonificacoes || []).reduce((acc, b) => acc + b.valor, 0);
+        .in('status', ['aprovado', 'pago']);
+
+      const comissaoTotal = (remuneracaoVariavel || []).reduce((acc, r) => acc + Number(r.valor), 0);
 
       // 7. Empréstimo ativo
       const { data: emprestimo } = await supabase
