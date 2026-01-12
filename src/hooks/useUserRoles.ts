@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
 
-type AppRole = 'admin' | 'gestor' | 'user';
+type AppRole = Database['public']['Enums']['app_role'];
+type UserRoleRow = Database['public']['Tables']['user_roles']['Row'];
 
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: AppRole;
-  created_at: string;
-}
+interface UserRole extends UserRoleRow {}
 
 export function useUserRoles() {
   const [roles, setRoles] = useState<UserRole[]>([]);
@@ -30,9 +27,9 @@ export function useUserRoles() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .select('*')
-      .eq('user_id', user.id) as { data: any[] | null; error: any };
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error fetching user roles:', error);
@@ -40,7 +37,7 @@ export function useUserRoles() {
       return;
     }
 
-    const userRoles = (data || []) as UserRole[];
+    const userRoles = data ?? [];
     setRoles(userRoles);
     setIsAdmin(userRoles.some(r => r.role === 'admin'));
     setIsGestor(userRoles.some(r => r.role === 'gestor'));

@@ -2,34 +2,45 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
-export type TipoDocumento = 
-  | 'holerite' | 'informe_rendimentos' | 'declaracao_vinculo' 
-  | 'carta_referencia' | 'recibo_ferias' | 'contrato_trabalho'
-  | 'certificado' | 'atestado' | 'advertencia' | 'ferias'
-  | 'rescisao' | 'termo_aditivo' | 'politica' | 'outros';
+type DocumentoRow = Database['public']['Tables']['documentos']['Row'];
+
+export type TipoDocumento = DocumentoRow['tipo'];
 
 export interface Documento {
   id: string;
-  tipo: TipoDocumento;
-  titulo: string;
+  tipo: string;
+  titulo: string; // mapped from DB's `nome`
   descricao: string | null;
-  arquivo_url: string | null;
-  arquivo_nome: string | null;
-  arquivo_tamanho: number | null;
-  arquivo_tipo: string | null;
-  disponivel: boolean;
-  confidencial: boolean;
-  gerado_em: string | null;
-  validade: string | null;
+  arquivo_url: string;
+  validade: string | null; // mapped from DB's `data_validade`
   referencia_mes: number | null;
   referencia_ano: number | null;
-  metadata: Record<string, unknown>;
+  confidencial: boolean;
   created_at: string;
 }
 
 interface DocumentosAgrupados {
   [key: string]: Documento[];
+}
+
+/**
+ * Map DB row to our Documento interface
+ */
+function mapRowToDocumento(row: DocumentoRow): Documento {
+  return {
+    id: row.id,
+    tipo: row.tipo,
+    titulo: row.nome,
+    descricao: row.descricao,
+    arquivo_url: row.arquivo_url,
+    validade: row.data_validade,
+    referencia_mes: null, // not in DB schema
+    referencia_ano: null, // not in DB schema
+    confidencial: false, // not in DB schema
+    created_at: row.created_at,
+  };
 }
 
 export function useDocumentos() {
@@ -45,11 +56,10 @@ export function useDocumentos() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('documentos' as any)
+      .from('documentos')
       .select('*')
       .eq('user_id', user.id)
-      .eq('disponivel', true)
-      .order('gerado_em', { ascending: false }) as { data: any[] | null; error: any };
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching documentos:', error);
@@ -62,7 +72,7 @@ export function useDocumentos() {
       return;
     }
 
-    const docs = (data || []) as Documento[];
+    const docs = (data ?? []).map(mapRowToDocumento);
     setDocumentos(docs);
 
     // Agrupar por tipo
@@ -87,12 +97,8 @@ export function useDocumentos() {
     }
 
     try {
-      // Registrar download para auditoria
-      await supabase.from('documentos_downloads' as any).insert({
-        documento_id: documento.id,
-        user_id: user.id,
-        user_agent: navigator.userAgent,
-      } as any);
+      // Note: documentos_downloads table doesn't exist in schema
+      // Audit logging should be implemented server-side or via RLS trigger
 
       // Se é URL do Supabase Storage, gerar URL assinada
       if (documento.arquivo_url.includes('supabase')) {
@@ -120,7 +126,7 @@ export function useDocumentos() {
     }
   };
 
-  const getDocumentosPorTipo = (tipo: TipoDocumento): Documento[] => {
+  const getDocumentosPorTipo = (tipo: string): Documento[] => {
     return documentosAgrupados[tipo] || [];
   };
 
