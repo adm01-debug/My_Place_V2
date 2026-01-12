@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
-interface LocalPermitido {
-  id: string;
-  nome: string;
-  descricao: string | null;
-  endereco: string | null;
-  latitude: number;
-  longitude: number;
-  raio_metros: number;
-  horario_inicio: string | null;
-  horario_fim: string | null;
-  dias_semana: number[] | null;
+type LocalPermitidoDB = Database['public']['Tables']['locais_permitidos']['Row'];
+
+interface LocalPermitido extends LocalPermitidoDB {
+  descricao?: string | null;
+  horario_inicio?: string | null;
+  horario_fim?: string | null;
+  dias_semana?: number[] | null;
 }
 
 interface ValidacaoLocal {
@@ -31,10 +28,10 @@ export function useLocaisPermitidos() {
     setIsLoading(true);
 
     const { data, error } = await supabase
-      .from('locais_permitidos' as any)
+      .from('locais_permitidos')
       .select('*')
       .eq('ativo', true)
-      .order('nome') as { data: any[] | null; error: any };
+      .order('nome');
 
     if (error) {
       console.error('Error fetching locais:', error);
