@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useJustificativasPonto, type TipoJustificativa } from '@/hooks/useJustificativasPonto';
 import { format } from 'date-fns';
 
 type MotivoJustificativa = 
@@ -61,6 +61,19 @@ export function JustificativaPontoModal({
   const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { criarJustificativa, uploadAnexo } = useJustificativasPonto();
+
+  const motivoToTipo: Record<MotivoJustificativa, TipoJustificativa> = {
+    esquecimento: 'esquecimento',
+    problema_sistema: 'outros',
+    trabalho_externo: 'outros',
+    reuniao_externa: 'outros',
+    atestado_medico: 'atestado',
+    outros: 'outros',
+  };
+
+  const getErrorMessage = (err: unknown) =>
+    err instanceof Error ? err.message : 'Erro inesperado';
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -78,38 +91,6 @@ export function JustificativaPontoModal({
     setAnexo(file);
   };
 
-  const uploadAnexo = async (): Promise<string | null> => {
-    if (!anexo || !user) return null;
-
-    setIsUploading(true);
-
-    try {
-      const fileExt = anexo.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error } = await supabase.storage
-        .from('atestados')
-        .upload(fileName, anexo);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('atestados')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao enviar anexo',
-        description: error.message,
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleSubmit = async () => {
     if (!user || !motivo || !descricao.trim()) {
       toast({
@@ -123,23 +104,33 @@ export function JustificativaPontoModal({
     setIsSubmitting(true);
 
     try {
+      const motivoKey = motivo as MotivoJustificativa;
+
       let anexoUrl: string | null = null;
       if (anexo) {
-        anexoUrl = await uploadAnexo();
+        setIsUploading(true);
+        try {
+          anexoUrl = await uploadAnexo(anexo);
+        } finally {
+          setIsUploading(false);
+        }
       }
 
-      const { error } = await supabase
-        .from('justificativas_ponto' as any)
-        .insert({
-          registro_ponto_id: registroPontoId,
-          user_id: user.id,
-          motivo,
-          descricao,
-          anexo_url: anexoUrl,
-          status: 'pendente',
-        } as any);
+      const dataFormatted = format(dataRegistro, 'yyyy-MM-dd');
+      const tipo = motivoToTipo[motivoKey];
+      const motivoFinal = `${motivoLabels[motivoKey]} - ${descricao.trim()}`;
 
-      if (error) throw error;
+      const result = await criarJustificativa(
+        dataFormatted,
+        tipo,
+        motivoFinal,
+        registroPontoId,
+        anexoUrl || undefined
+      );
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       toast({
         title: 'Justificativa enviada',
@@ -149,18 +140,18 @@ export function JustificativaPontoModal({
       setMotivo('');
       setDescricao('');
       setAnexo(null);
-      
+
       onSuccess?.();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (err: unknown) {
       toast({
         title: 'Erro ao enviar justificativa',
-        description: error.message,
+        description: getErrorMessage(err),
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   const handleClose = () => {
@@ -172,8 +163,16 @@ export function JustificativaPontoModal({
     }
   };
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+    handleClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

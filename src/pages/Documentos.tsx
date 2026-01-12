@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { MenuItemSkeleton } from '@/components/portal/Skeletons';
-import { useDocumentos } from '@/hooks/useDocumentos';
+import { useDocumentos, type Documento } from '@/hooks/useDocumentos';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -43,7 +43,7 @@ export default function Documentos() {
   const { documentos, isLoading, downloadDocumento, refetch } = useDocumentos();
   const { toast } = useToast();
 
-  const handleDownload = async (documento: any) => {
+  const handleDownload = async (documento: Documento) => {
     if (!documento.arquivo_url) {
       toast({
         title: 'Documento indisponível',

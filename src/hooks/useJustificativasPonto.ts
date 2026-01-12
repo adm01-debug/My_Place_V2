@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-type TipoJustificativa = 
+export type TipoJustificativa = 
   | 'atestado' 
   | 'falta_justificada' 
   | 'atraso' 
@@ -11,7 +11,7 @@ type TipoJustificativa =
   | 'esquecimento'
   | 'outros';
 
-type StatusJustificativa = 'pendente' | 'aprovado' | 'rejeitado';
+export type StatusJustificativa = 'pendente' | 'aprovado' | 'rejeitado';
 
 export interface Justificativa {
   id: string;

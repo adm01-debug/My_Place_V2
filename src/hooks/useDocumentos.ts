@@ -3,13 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-type TipoDocumento = 
+export type TipoDocumento = 
   | 'holerite' | 'informe_rendimentos' | 'declaracao_vinculo' 
   | 'carta_referencia' | 'recibo_ferias' | 'contrato_trabalho'
   | 'certificado' | 'atestado' | 'advertencia' | 'ferias'
   | 'rescisao' | 'termo_aditivo' | 'politica' | 'outros';
 
-interface Documento {
+export interface Documento {
   id: string;
   tipo: TipoDocumento;
   titulo: string;
@@ -113,9 +113,10 @@ export function useDocumentos() {
       window.open(documento.arquivo_url, '_blank');
       return { success: true };
 
-    } catch (error: any) {
-      console.error('Error downloading documento:', error);
-      return { success: false, error: error.message || 'Erro ao baixar documento' };
+    } catch (err: unknown) {
+      console.error('Error downloading documento:', err);
+      const message = err instanceof Error ? err.message : 'Erro ao baixar documento';
+      return { success: false, error: message };
     }
   };
 
