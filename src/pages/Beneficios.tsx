@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useBeneficios } from '@/hooks/useBeneficios';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const tipoIcons: Record<string, any> = {
@@ -47,9 +48,6 @@ export default function Beneficios() {
     isLoading, 
     refetch 
   } = useBeneficios();
-
-  const formatCurrency = (v: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   if (isLoading) {
     return (

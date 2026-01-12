@@ -8,6 +8,7 @@ import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeleton
 import { RemuneracaoVariavelModal } from '@/components/portal/RemuneracaoVariavelModal';
 import { DeleteConfirmDialog } from '@/components/portal/ConfirmDialog';
 import { useRemuneracaoVariavel, type TipoRemuneracao, type StatusRemuneracao, type RemuneracaoVariavel as RemuneracaoType } from '@/hooks/useRemuneracaoVariavel';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import {
@@ -142,10 +143,6 @@ export default function RemuneracaoVariavel() {
     } else {
       toast.error(result.error || 'Erro ao excluir remuneração');
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
   const maxValor = Math.max(...stats.dadosGrafico.map(d => d.valor), 1);

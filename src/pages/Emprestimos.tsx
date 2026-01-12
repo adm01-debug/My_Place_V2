@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, TableSkeleton } from '@/components/portal/Skeletons';
 import { useEmprestimos } from '@/hooks/useEmprestimos';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -45,9 +46,6 @@ export default function Emprestimos() {
   const { emprestimos, isLoading, solicitarEmprestimo, anteciparParcela, refetch } = useEmprestimos();
   const [isAntecipando, setIsAntecipando] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const formatCurrency = (v: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   const empAtivo = emprestimos.find(e => e.status === 'ativo');
   const empHistorico = emprestimos.filter(e => e.status !== 'ativo');

@@ -2,7 +2,7 @@
 // HOOKS INDEX - my-place Portal do Colaborador
 // ==============================================
 // Este arquivo exporta todos os hooks do projeto
-// Atualizado: 2025-12-20
+// Atualizado: 2026-01-12
 
 // ====== HOOKS DE DADOS PRINCIPAIS ======
 export { useBeneficios } from './useBeneficios';
@@ -40,12 +40,19 @@ export { useSolicitacoes } from './useSolicitacoes';
 export { useLoadingState } from './useLoadingState';
 export { useFilters } from './useFilters';
 export { useExportPDF } from './useExportPDF';
+export { useCrudBase } from './useCrudBase';
+export type { CrudHookOptions, CrudHookResult, PaginationOptions } from './useCrudBase';
 
 // ====== HOOKS PWA E OFFLINE ======
 export { useOffline } from './useOffline';
 export { usePWAInstall } from './usePWAInstall';
 export { usePushNotifications } from './usePushNotifications';
 export { useBiometricAuth } from './useBiometricAuth';
+
+// ====== HOOKS DE AUTENTICAÇÃO E SEGURANÇA ======
+export { use2FA } from './use2FA';
+export { useNotifications } from './useNotifications';
+export type { Notification } from './useNotifications';
 
 // ====== HOOKS ESPECIAIS ======
 export { useAssistenteRH } from './useAssistenteRH';
@@ -55,10 +62,12 @@ export type { Holerite, HoleriteDetalhes } from './useHolerites';
 export type { FAQItem, FAQCategoria } from './useFAQ';
 
 // Kudos & Reconhecimento
-export { default as useKudos } from './useKudos';
+export { useKudos } from './useKudos';
 export type { Kudo, KudoCategoria, KudoPontos, Badge, BadgeUsuario, KudoRanking } from './useKudos';
 
 // Trilhas de Desenvolvimento
-export { default as useTrilhas } from './useTrilhas';
+export { useTrilhas } from './useTrilhas';
 export type { Trilha, TrilhaEtapa, TrilhaProgresso, TrilhaComProgresso } from './useTrilhas';
-export { default as useDocumentosDownload } from './useDocumentosDownload';
+
+// Download de Documentos
+export { useDocumentosDownload } from './useDocumentosDownload';
