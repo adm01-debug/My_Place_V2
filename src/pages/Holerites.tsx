@@ -7,6 +7,7 @@ import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
 import { useHolerites } from '@/hooks/useHolerites';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -43,10 +44,6 @@ export default function Holerites() {
   const mediaAnual = estatisticasAno.media;
   
   const { toast } = useToast();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   const handleDownload = async (holerite: any) => {
     setDownloadingId(holerite.id);

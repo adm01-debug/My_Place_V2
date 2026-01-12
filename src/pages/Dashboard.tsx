@@ -16,6 +16,7 @@ import { KudosWidget } from '@/components/portal/KudosWidget';
 import { TrilhasWidget } from '@/components/portal/TrilhasWidget';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const alertaIcons: Record<string, any> = {
@@ -51,10 +52,6 @@ export default function Dashboard() {
   } = useDashboard();
 
   const { unreadCount } = useNotificacoes();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   if (isLoading) {
     return (
