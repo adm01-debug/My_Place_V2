@@ -1,4 +1,5 @@
-import { Users, GraduationCap, Calendar, Clock, AlertTriangle, FileText, TrendingUp } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { Users, GraduationCap, Calendar, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -221,10 +222,9 @@ export default function DashboardGestor() {
                   <Progress 
                     value={(depto.valor / resumo.totalColaboradores) * 100} 
                     className="h-2"
-                    style={{ 
-                      // @ts-ignore
-                      '--progress-foreground': CORES[index % CORES.length] 
-                    }}
+                    style={{
+                      ['--progress-foreground' as string]: CORES[index % CORES.length],
+                    } as CSSProperties}
                   />
                 </div>
               ))}

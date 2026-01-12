@@ -13,8 +13,13 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      className="h-full w-full flex-1 transition-all"
+      style={{
+        transform: `translateX(-${100 - (value || 0)}%)`,
+        // Allows consumers to pass `style={{ ['--progress-foreground']: '...' }}` to the Root
+        // and have the indicator color follow it.
+        backgroundColor: "var(--progress-foreground, hsl(var(--primary)))",
+      }}
     />
   </ProgressPrimitive.Root>
 ));
