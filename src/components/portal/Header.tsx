@@ -42,14 +42,15 @@ export function Header({ title = 'Portal do Colaborador', showBack = false, acti
   };
 
   return (
-    <header className="sticky top-0 z-40 safe-area-pt">
+    <header className="sticky top-0 z-40 safe-area-pt" role="banner">
       <div className="glass-subtle border-b border-border/50">
-        <div className="flex items-center justify-between max-w-lg mx-auto px-4 py-3">
+        <div className="flex items-center justify-between max-w-lg lg:max-w-3xl xl:max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             {showBack ? (
               <Link 
                 to="/" 
-                className="w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Voltar para a página inicial"
+                className="w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 ←
               </Link>

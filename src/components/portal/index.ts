@@ -73,3 +73,8 @@ export { default as CertificadoCard, type CertificadoData } from './CertificadoC
 // ============ DASHBOARD WIDGETS ============
 export { default as KudosWidget } from './KudosWidget';
 export { default as TrilhasWidget } from './TrilhasWidget';
+
+// ============ UX ENHANCEMENT COMPONENTS ============
+export { SmartGreeting } from './SmartGreeting';
+export { StatCardWithTrend } from './StatCardWithTrend';
+export { SectionHeader } from './SectionHeader';

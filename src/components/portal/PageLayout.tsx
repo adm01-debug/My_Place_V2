@@ -22,7 +22,6 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
     if (onRefresh) {
       await onRefresh();
     } else {
-      // Simulated refresh delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
         title: "✅ Atualizado",
@@ -33,15 +32,20 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Skip to content link */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md">
+        Pular para o conteúdo principal
+      </a>
+
       {/* Decorative background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none motion-reduce:hidden" aria-hidden="true">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-hr/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       </div>
       
       <Header title={title} showBack={showBack} alertCount={alertCount} action={action} />
       
-      <main className="relative flex-1 max-w-lg mx-auto w-full">
+      <main id="main-content" className="relative flex-1 max-w-lg lg:max-w-3xl xl:max-w-5xl mx-auto w-full">
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="px-4 py-6 pb-24">
             {children}

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Clock, Umbrella, TrendingUp, Bell, 
   FileText, CreditCard, AlertTriangle, Info, CheckCircle,
-  ChevronRight
+  ChevronRight, Megaphone
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,15 @@ import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeleton
 import { AniversariantesCard } from '@/components/portal/AniversariantesCard';
 import { KudosWidget } from '@/components/portal/KudosWidget';
 import { TrilhasWidget } from '@/components/portal/TrilhasWidget';
+import { SmartGreeting } from '@/components/portal/SmartGreeting';
+import { StatCardWithTrend } from '@/components/portal/StatCardWithTrend';
+import { SectionHeader } from '@/components/portal/SectionHeader';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
-const alertaIcons: Record<string, any> = {
+const alertaIcons: Record<string, React.ElementType> = {
   warning: AlertTriangle,
   info: Info,
   success: CheckCircle,
@@ -79,19 +82,17 @@ export default function Dashboard() {
 
   return (
     <PageLayout title="Dashboard" onRefresh={refetch}>
-      <div className="space-y-6 animate-fade-in-up">
+      <div className="space-y-6 animate-fade-in-up motion-reduce:animate-none">
         {/* Header com Avatar */}
         <div className="flex items-center gap-4">
           <Avatar className="w-14 h-14 border-2 border-card shadow">
-            <AvatarImage src={colaborador?.avatar_url || undefined} />
+            <AvatarImage src={colaborador?.avatar_url || undefined} alt={`Avatar de ${colaborador?.nome || 'usuário'}`} />
             <AvatarFallback className="bg-primary text-primary-foreground text-lg">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-foreground">
-              Olá, {colaborador?.nome?.split(' ')[0] || 'Colaborador'}!
-            </h2>
+            <SmartGreeting name={colaborador?.nome?.split(' ')[0]} />
             <p className="text-sm text-muted-foreground">
               {colaborador?.cargo || 'Bem-vindo ao portal'}
             </p>
@@ -102,6 +103,7 @@ export default function Dashboard() {
               size="icon"
               className="relative"
               onClick={() => navigate('/menu')}
+              aria-label={`${unreadCount} notificações não lidas`}
             >
               <Bell className="w-5 h-5" />
               <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs">
@@ -111,71 +113,51 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Cards de Estatísticas */}
+        {/* Cards de Estatísticas com Tendências */}
         <div className="grid grid-cols-2 gap-4">
-          <Card 
-            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+          <StatCardWithTrend
+            icon={DollarSign}
+            iconColor="text-finance"
+            iconBg="bg-finance/10"
+            label="Salário Est."
+            value={formatCurrency(salarioEstimado)}
             onClick={() => navigate('/holerites')}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-finance/10 flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-finance" />
-              </div>
-              <span className="text-xs text-muted-foreground">Salário Est.</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">
-              {formatCurrency(salarioEstimado)}
-            </p>
-          </Card>
-
-          <Card 
-            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+          />
+          <StatCardWithTrend
+            icon={Clock}
+            iconColor="text-primary"
+            iconBg="bg-primary/10"
+            label="Horas Mês"
+            value={horasTrabalhadas}
+            subtitle={`Hoje: ${horasHoje}`}
             onClick={() => navigate('/ponto')}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-xs text-muted-foreground">Horas Mês</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">{horasTrabalhadas}</p>
-            <p className="text-xs text-muted-foreground">Hoje: {horasHoje}</p>
-          </Card>
-
-          <Card 
-            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+          />
+          <StatCardWithTrend
+            icon={Umbrella}
+            iconColor="text-projects"
+            iconBg="bg-projects/10"
+            label="Férias"
+            value={`${saldoFerias} dias`}
             onClick={() => navigate('/ferias')}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-projects/10 flex items-center justify-center">
-                <Umbrella className="w-4 h-4 text-projects" />
-              </div>
-              <span className="text-xs text-muted-foreground">Férias</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">{saldoFerias} dias</p>
-          </Card>
-
-          <Card 
-            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+          />
+          <StatCardWithTrend
+            icon={TrendingUp}
+            iconColor="text-finance"
+            iconBg="bg-finance/10"
+            label="Comissão"
+            value={formatCurrency(comissaoMes)}
             onClick={() => navigate('/variavel')}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-finance/10 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-finance" />
-              </div>
-              <span className="text-xs text-muted-foreground">Comissão</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">
-              {formatCurrency(comissaoMes)}
-            </p>
-          </Card>
+          />
         </div>
 
         {/* Empréstimo Ativo */}
         {emprestimoAtivo && (
           <Card 
-            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+            className="p-4 cursor-pointer hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
             onClick={() => navigate('/emprestimos')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/emprestimos'); }}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -206,10 +188,13 @@ export default function Dashboard() {
 
         {/* Alertas */}
         {alertas.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase">
-              ⚠️ Alertas
-            </h3>
+          <div className="space-y-3">
+            <SectionHeader
+              icon={AlertTriangle}
+              title="Alertas"
+              count={alertas.length}
+              accentColor="bg-destructive"
+            />
             {alertas.map((alerta) => {
               const Icon = alertaIcons[alerta.tipo] || Info;
               const colorClass = alertaColors[alerta.tipo] || alertaColors.info;
@@ -219,6 +204,8 @@ export default function Dashboard() {
                   key={alerta.id} 
                   className="p-3 cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => alerta.acao && navigate(alerta.acao.link)}
+                  role={alerta.acao ? 'button' : undefined}
+                  tabIndex={alerta.acao ? 0 : undefined}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${colorClass}`}>
@@ -242,20 +229,15 @@ export default function Dashboard() {
 
         {/* Comunicados Recentes */}
         {comunicados.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase">
-                📢 Comunicados
-              </h3>
-              <Button 
-                variant="link" 
-                size="sm" 
-                className="p-0 h-auto"
-                onClick={() => navigate('/comunicados')}
-              >
-                Ver todos
-              </Button>
-            </div>
+          <div className="space-y-3">
+            <SectionHeader
+              icon={Megaphone}
+              title="Comunicados"
+              action={{
+                label: 'Ver todos',
+                onClick: () => navigate('/comunicados'),
+              }}
+            />
             {comunicados.map((com) => (
               <Card 
                 key={com.id} 
@@ -263,6 +245,8 @@ export default function Dashboard() {
                   !com.lido ? 'border-l-4 border-l-primary' : ''
                 }`}
                 onClick={() => navigate('/comunicados')}
+                role="button"
+                tabIndex={0}
               >
                 <div className="flex items-start gap-2">
                   {com.importante && !com.lido && (
@@ -290,36 +274,42 @@ export default function Dashboard() {
         </div>
 
         {/* Ações Rápidas */}
-        <div className="grid grid-cols-3 gap-3">
-          <Button 
-            variant="outline" 
-            className="h-auto py-4 flex flex-col gap-1"
-            onClick={() => navigate('/holerites')}
-          >
-            <FileText className="w-5 h-5" />
-            <span className="text-xs">Holerite</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-auto py-4 flex flex-col gap-1"
-            onClick={() => navigate('/ferias')}
-          >
-            <Umbrella className="w-5 h-5" />
-            <span className="text-xs">Férias</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-auto py-4 flex flex-col gap-1 relative"
-            onClick={() => navigate('/solicitacoes')}
-          >
-            <Bell className="w-5 h-5" />
-            <span className="text-xs">Ajuda</span>
-            {solicitacoesPendentes > 0 && (
-              <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs">
-                {solicitacoesPendentes}
-              </Badge>
-            )}
-          </Button>
+        <div className="space-y-3">
+          <SectionHeader title="Ações Rápidas" />
+          <div className="grid grid-cols-3 gap-3">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-1"
+              onClick={() => navigate('/holerites')}
+              aria-label="Ver holerites"
+            >
+              <FileText className="w-5 h-5" />
+              <span className="text-xs">Holerite</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-1"
+              onClick={() => navigate('/ferias')}
+              aria-label="Ver férias"
+            >
+              <Umbrella className="w-5 h-5" />
+              <span className="text-xs">Férias</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-1 relative"
+              onClick={() => navigate('/solicitacoes')}
+              aria-label={`Solicitações${solicitacoesPendentes > 0 ? `, ${solicitacoesPendentes} pendentes` : ''}`}
+            >
+              <Bell className="w-5 h-5" />
+              <span className="text-xs">Ajuda</span>
+              {solicitacoesPendentes > 0 && (
+                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs">
+                  {solicitacoesPendentes}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </PageLayout>
