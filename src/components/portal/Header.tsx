@@ -49,13 +49,14 @@ export function Header({ title = 'Portal do Colaborador', showBack = false, acti
         <div className="flex items-center justify-between max-w-lg lg:max-w-3xl xl:max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             {showBack ? (
-              <Link 
-                to="/" 
-                aria-label="Voltar para a página inicial"
-                className="w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label="Voltar para a página anterior"
+                className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95 motion-reduce:active:scale-100"
               >
-                ←
-              </Link>
+                <ChevronLeft className="w-5 h-5" />
+              </button>
             ) : (
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
