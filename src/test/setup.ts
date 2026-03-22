@@ -96,6 +96,8 @@ Object.defineProperty(global.navigator, 'serviceWorker', {
     }),
     register: vi.fn().mockResolvedValue({}),
     controller: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   },
   writable: true,
 });
