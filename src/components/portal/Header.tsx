@@ -49,7 +49,8 @@ export function Header({ title = 'Portal do Colaborador', showBack = false, acti
             {showBack ? (
               <Link 
                 to="/" 
-                className="w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Voltar para a página inicial"
+                className="w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 ←
               </Link>
