@@ -1,14 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-    })),
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: '1' } } }) },
-  },
-}));
+// Uses global mock from setup.ts which supports deep chaining
 
 describe('useFeedback360', () => {
   it('should initialize', async () => {

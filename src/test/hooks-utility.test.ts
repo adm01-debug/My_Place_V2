@@ -1,20 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Mock Supabase
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-      insert: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      update: vi.fn().mockResolvedValue({ data: {}, error: null }),
-      delete: vi.fn().mockResolvedValue({ error: null }),
-    })),
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: '1' } }, error: null }),
-    },
-  },
-}));
+// Uses global mock from setup.ts
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+};
 
 describe('useLoadingState', () => {
   it('should return loading initially then false', async () => {
@@ -52,7 +47,7 @@ describe('useCrudBase', () => {
     const { result } = renderHook(() => useCrudBase({
       queryKey: ['test'],
       fetchFn: async () => [],
-    }));
+    }), { wrapper: createWrapper() });
     expect(result.current).toBeDefined();
   });
 });
