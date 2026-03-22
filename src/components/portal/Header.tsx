@@ -44,7 +44,7 @@ export function Header({ title = 'Portal do Colaborador', showBack = false, acti
   return (
     <header className="sticky top-0 z-40 safe-area-pt" role="banner">
       <div className="glass-subtle border-b border-border/50">
-        <div className="flex items-center justify-between max-w-lg mx-auto px-4 py-3">
+        <div className="flex items-center justify-between max-w-lg lg:max-w-3xl xl:max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             {showBack ? (
               <Link 
