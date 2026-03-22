@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Bell, User, Sparkles, X, Check, CheckCheck, Search } from 'lucide-react';
+import { Bell, User, Sparkles, X, Check, CheckCheck, Search, ChevronLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/popover';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { GlobalSearchButton } from '@/components/portal/GlobalSearch';
+import { useNavigateBack } from '@/hooks/useNavigateBack';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
