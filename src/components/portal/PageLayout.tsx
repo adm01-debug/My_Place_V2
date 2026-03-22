@@ -1,8 +1,10 @@
 import { ReactNode, useCallback, useState } from 'react';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
+import { Breadcrumbs } from './Breadcrumbs';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { AssistenteVirtual, AssistenteButton } from './AssistenteVirtual';
+import { useSwipeBack } from '@/hooks/useSwipeBack';
 import { useToast } from '@/hooks/use-toast';
 
 interface PageLayoutProps {
@@ -12,11 +14,15 @@ interface PageLayoutProps {
   alertCount?: number;
   onRefresh?: () => Promise<void>;
   action?: ReactNode;
+  showBreadcrumbs?: boolean;
 }
 
-export function PageLayout({ children, title, showBack = false, alertCount = 0, onRefresh, action }: PageLayoutProps) {
+export function PageLayout({ children, title, showBack = false, alertCount = 0, onRefresh, action, showBreadcrumbs }: PageLayoutProps) {
   const { toast } = useToast();
   const [showAssistente, setShowAssistente] = useState(false);
+
+  // Enable swipe-back gesture on sub-pages
+  useSwipeBack({ enabled: showBack });
 
   const handleRefresh = useCallback(async () => {
     if (onRefresh) {
@@ -29,6 +35,8 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
       });
     }
   }, [onRefresh, toast]);
+
+  const shouldShowBreadcrumbs = showBreadcrumbs ?? showBack;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -48,6 +56,11 @@ export function PageLayout({ children, title, showBack = false, alertCount = 0, 
       <main id="main-content" className="relative flex-1 max-w-lg lg:max-w-3xl xl:max-w-5xl mx-auto w-full">
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="px-4 py-6 pb-24">
+            {shouldShowBreadcrumbs && (
+              <nav className="mb-4" aria-label="Breadcrumb">
+                <Breadcrumbs maxItems={3} />
+              </nav>
+            )}
             {children}
           </div>
         </PullToRefresh>
