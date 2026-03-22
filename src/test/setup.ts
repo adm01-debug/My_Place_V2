@@ -2,15 +2,19 @@ import '@testing-library/jest-dom';
 import { vi, afterEach } from 'vitest';
 
 // Helper to create a deeply chainable mock that resolves with { data: [], error: null }
+const defaultResult = { data: [], error: null };
 const createChainableMock = () => {
-  const mock: Record<string, any> = {};
   const handler: ProxyHandler<any> = {
     get: (_target, prop) => {
-      if (prop === 'then') return undefined; // Not a thenable
-      if (!mock[prop as string]) {
-        mock[prop as string] = vi.fn(() => new Proxy({}, handler));
+      if (prop === 'then') {
+        // Make it thenable - resolves with default result
+        return (resolve: any) => resolve(defaultResult);
       }
-      return mock[prop as string];
+      if (prop === 'catch' || prop === 'finally') {
+        return () => Promise.resolve(defaultResult);
+      }
+      // Any method call returns another chainable mock
+      return vi.fn(() => new Proxy({}, handler));
     },
   };
   return new Proxy({}, handler);
