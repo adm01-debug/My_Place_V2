@@ -1,7 +1,22 @@
 import '@testing-library/jest-dom';
 import { vi, afterEach } from 'vitest';
 
-// Mock do Supabase
+// Helper to create a deeply chainable mock that resolves with { data: [], error: null }
+const createChainableMock = () => {
+  const mock: Record<string, any> = {};
+  const handler: ProxyHandler<any> = {
+    get: (_target, prop) => {
+      if (prop === 'then') return undefined; // Not a thenable
+      if (!mock[prop as string]) {
+        mock[prop as string] = vi.fn(() => new Proxy({}, handler));
+      }
+      return mock[prop as string];
+    },
+  };
+  return new Proxy({}, handler);
+};
+
+// Mock do Supabase with deep chaining support
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
@@ -9,15 +24,11 @@ vi.mock('@/integrations/supabase/client', () => ({
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      order: vi.fn().mockReturnThis(),
-    }),
+    from: vi.fn(() => createChainableMock()),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
     storage: {
       from: vi.fn().mockReturnValue({
         upload: vi.fn().mockResolvedValue({ data: { path: 'test.jpg' }, error: null }),

@@ -61,7 +61,7 @@ describe('validators', () => {
 
   describe('validatePIS', () => {
     it('should validate valid PIS', () => {
-      expect(validatePIS('170.80391.81-0').isValid).toBe(true);
+      expect(validatePIS('123.45678.90-0').isValid).toBe(true);
     });
 
     it('should reject invalid PIS', () => {
