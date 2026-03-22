@@ -1,40 +1,43 @@
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
+import { useNavigationDirection } from '@/hooks/useNavigationDirection';
 
 interface AnimatedPageProps {
   children: ReactNode;
 }
 
-const pageVariants = {
-  initial: {
+const variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 60 : -60,
     opacity: 0,
-    y: 8,
-    scale: 0.99,
-  },
-  animate: {
+  }),
+  center: {
+    x: 0,
     opacity: 1,
-    y: 0,
-    scale: 1,
   },
-  exit: {
+  exit: (direction: number) => ({
+    x: direction > 0 ? -60 : 60,
     opacity: 0,
-    y: -8,
-    scale: 0.99,
-  },
+  }),
 };
 
 export const AnimatedPage = ({ children }: AnimatedPageProps) => {
+  const direction = useNavigationDirection();
+
   return (
     <motion.div
-      initial="initial"
-      animate="animate"
+      custom={direction}
+      initial="enter"
+      animate="center"
       exit="exit"
-      variants={pageVariants}
+      variants={variants}
       transition={{
         type: 'tween',
         ease: [0.25, 0.1, 0.25, 1],
-        duration: 0.2,
+        duration: 0.22,
       }}
+      style={{ willChange: 'transform, opacity' }}
+      className="motion-reduce:!transform-none motion-reduce:!transition-none"
     >
       {children}
     </motion.div>
