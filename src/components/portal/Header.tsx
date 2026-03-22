@@ -25,6 +25,7 @@ export interface HeaderProps {
 export function Header({ title = 'Portal do Colaborador', showBack = false, action }: HeaderProps) {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotificationContext();
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
 
   const getTypeColor = (type: string) => {
     switch (type) {
