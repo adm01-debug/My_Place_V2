@@ -189,7 +189,7 @@ export function useRegistrosPonto() {
     
     if (latitude && longitude) {
       // Validar localização remotamente
-      const { data: validacao } = await (supabase as any)
+      const { data: validacao } = await supabase
         .rpc('fn_esta_em_local_permitido', {
           p_latitude: latitude,
           p_longitude: longitude,
