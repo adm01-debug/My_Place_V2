@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Clock, CheckCircle, Loader2, Navigation, Wifi } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { MapPin, Clock, CheckCircle, Loader2, Navigation, Wifi, Coffee, LogOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRegistrosPonto } from '@/hooks/useRegistrosPonto';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -24,87 +25,112 @@ interface LocationData {
   localNome: string | null;
 }
 
-// Simulated company locations
-const locaisPermitidos = [
-  { nome: 'Sede Principal', lat: -23.5505, lng: -46.6333, raio: 100 },
-  { nome: 'Filial Centro', lat: -23.5489, lng: -46.6388, raio: 50 },
-];
+interface LocalPermitido {
+  nome: string;
+  latitude: number;
+  longitude: number;
+  raio_metros: number;
+}
 
-// Get real geolocation or simulate
-const getGeolocation = (): Promise<LocationData> => {
-  return new Promise((resolve) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Check if within allowed locations
-          const nearestLocation = locaisPermitidos.find(loc => {
-            const distance = Math.sqrt(
-              Math.pow(loc.lat - latitude, 2) + Math.pow(loc.lng - longitude, 2)
-            ) * 111000; // Approximate meters
-            return distance < loc.raio;
-          });
+// Calculate distance in meters using Haversine formula
+function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(deltaPhi / 2) ** 2 +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
-          resolve({
-            latitude,
-            longitude,
-            endereco: nearestLocation ? `${nearestLocation.nome} - São Paulo, SP` : 'Localização atual',
-            isValid: !!nearestLocation,
-            localNome: nearestLocation?.nome || null,
-          });
-        },
-        () => {
-          // Fallback to simulation on error
-          resolve(simulateGeolocation());
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    } else {
-      resolve(simulateGeolocation());
-    }
-  });
-};
+// Circular progress component for workday timer
+function JornadaProgress({ workedMinutes, targetMinutes = 480 }: { workedMinutes: number; targetMinutes?: number }) {
+  const percentage = Math.min((workedMinutes / targetMinutes) * 100, 100);
+  const overTime = workedMinutes > targetMinutes;
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-// Simulate geolocation as fallback
-const simulateGeolocation = (): LocationData => {
-  const isAtValidLocation = Math.random() > 0.2;
-  
-  if (isAtValidLocation) {
-    const location = locaisPermitidos[Math.floor(Math.random() * locaisPermitidos.length)];
-    return {
-      latitude: location.lat + (Math.random() - 0.5) * 0.001,
-      longitude: location.lng + (Math.random() - 0.5) * 0.001,
-      endereco: `${location.nome} - São Paulo, SP`,
-      isValid: true,
-      localNome: location.nome,
-    };
-  }
-  
-  return {
-    latitude: -23.5505 + (Math.random() - 0.5) * 0.1,
-    longitude: -46.6333 + (Math.random() - 0.5) * 0.1,
-    endereco: 'Localização externa',
-    isValid: false,
-    localNome: null,
+  const formatTime = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = Math.floor(mins % 60);
+    return `${h}:${String(m).padStart(2, '0')}`;
   };
-};
+
+  const remaining = Math.max(0, targetMinutes - workedMinutes);
+
+  return (
+    <div className="relative w-36 h-36 mx-auto">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+        {/* Background circle */}
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke="hsl(var(--muted))"
+          strokeWidth="8"
+        />
+        {/* Progress circle */}
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke={overTime ? 'hsl(var(--primary))' : 'hsl(var(--chart-2))'}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-foreground tabular-nums">
+          {formatTime(workedMinutes)}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {overTime ? `+${formatTime(workedMinutes - targetMinutes)} extra` : `faltam ${formatTime(remaining)}`}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export function RegistroPonto() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { registros, registrarPonto, isLoading: isLoadingRegistros } = useRegistrosPonto();
+  const { registros, registrarPonto } = useRegistrosPonto();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<'entrada' | 'saida' | 'intervalo_inicio' | 'intervalo_fim' | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
+  const [locaisPermitidos, setLocaisPermitidos] = useState<LocalPermitido[]>([]);
+
+  // Fetch locais_permitidos from DB
+  useEffect(() => {
+    const fetchLocais = async () => {
+      const { data } = await supabase
+        .from('locais_permitidos')
+        .select('nome, latitude, longitude, raio_metros')
+        .eq('ativo', true);
+      if (data) setLocaisPermitidos(data);
+    };
+    fetchLocais();
+  }, []);
 
   // Filter today's registros
   const today = format(new Date(), 'yyyy-MM-dd');
-  const batidasHoje = registros.filter(r => 
-    format(new Date(r.data_hora), 'yyyy-MM-dd') === today
-  ).sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+  const batidasHoje = useMemo(() =>
+    registros
+      .filter(r => format(new Date(r.data_hora), 'yyyy-MM-dd') === today)
+      .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()),
+    [registros, today]
+  );
 
   // Update clock every second
   useEffect(() => {
@@ -112,31 +138,76 @@ export function RegistroPonto() {
     return () => clearInterval(timer);
   }, []);
 
+  // Calculate worked minutes for progress
+  const workedMinutes = useMemo(() => {
+    if (batidasHoje.length < 1) return 0;
+    let total = 0;
+    const entradas = batidasHoje.filter(b => b.tipo === 'entrada' || b.tipo === 'intervalo_fim');
+    const saidas = batidasHoje.filter(b => b.tipo === 'saida' || b.tipo === 'intervalo_inicio');
+
+    for (let i = 0; i < entradas.length; i++) {
+      const entrada = new Date(entradas[i].data_hora);
+      const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
+      if (saida) {
+        total += (saida.getTime() - entrada.getTime()) / 60000;
+      } else {
+        total += (currentTime.getTime() - entrada.getTime()) / 60000;
+      }
+    }
+    return Math.max(0, total);
+  }, [batidasHoje, currentTime]);
+
   // Determine next action based on today's punches
-  const getNextAction = () => {
-    const entradasHoje = batidasHoje.filter(b => b.tipo === 'entrada').length;
-    const saidasHoje = batidasHoje.filter(b => b.tipo === 'saida').length;
-    
-    if (entradasHoje === saidasHoje) return 'entrada';
-    return 'saida';
+  const getNextAction = (): 'entrada' | 'saida' | 'intervalo_inicio' | 'intervalo_fim' => {
+    if (batidasHoje.length === 0) return 'entrada';
+    const last = batidasHoje[batidasHoje.length - 1];
+    switch (last.tipo) {
+      case 'entrada': return 'intervalo_inicio';
+      case 'intervalo_inicio': return 'intervalo_fim';
+      case 'intervalo_fim': return 'saida';
+      case 'saida': return 'entrada';
+      default: return 'entrada';
+    }
   };
 
   const nextAction = getNextAction();
 
-  const handleRegistro = async (tipo: 'entrada' | 'saida') => {
+  const getGeolocation = (): Promise<LocationData> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve({ latitude: 0, longitude: 0, endereco: 'Geolocalização indisponível', isValid: false, localNome: null });
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const nearest = locaisPermitidos.find(loc => {
+            const distance = calcularDistancia(latitude, longitude, loc.latitude, loc.longitude);
+            return distance <= loc.raio_metros;
+          });
+          resolve({
+            latitude,
+            longitude,
+            endereco: nearest ? `${nearest.nome}` : 'Localização atual',
+            isValid: !!nearest,
+            localNome: nearest?.nome || null,
+          });
+        },
+        () => {
+          resolve({ latitude: 0, longitude: 0, endereco: 'Localização não obtida', isValid: false, localNome: null });
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  };
+
+  const handleRegistro = async (tipo: 'entrada' | 'saida' | 'intervalo_inicio' | 'intervalo_fim') => {
     if (!user) {
-      toast({
-        title: 'Erro',
-        description: 'Você precisa estar logado para registrar o ponto',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Faça login para registrar o ponto', variant: 'destructive' });
       return;
     }
-
     setIsLoading(true);
     setPendingAction(tipo);
-    
-    // Get location
     const loc = await getGeolocation();
     setLocation(loc);
     setIsLoading(false);
@@ -145,57 +216,35 @@ export function RegistroPonto() {
 
   const confirmRegistro = async () => {
     if (!location || !pendingAction) return;
-
     setIsLoading(true);
-    const result = await registrarPonto(
-      pendingAction,
-      location.latitude,
-      location.longitude,
-      location.endereco
-    );
+    const result = await registrarPonto(pendingAction, location.latitude, location.longitude, location.endereco);
     setIsLoading(false);
 
-    if (result.success) {
-      toast({
-        title: pendingAction === 'entrada' ? '✅ Entrada registrada!' : '✅ Saída registrada!',
-        description: `Horário: ${format(currentTime, 'HH:mm')} • ${location.endereco}`,
-      });
-    } else {
-      toast({
-        title: 'Erro ao registrar ponto',
-        description: result.error,
-        variant: 'destructive',
-      });
-    }
+    const labels: Record<string, string> = {
+      entrada: '✅ Entrada registrada!',
+      saida: '✅ Saída registrada!',
+      intervalo_inicio: '☕ Intervalo iniciado!',
+      intervalo_fim: '✅ Intervalo encerrado!',
+    };
 
+    if (result.success) {
+      toast({ title: labels[pendingAction] || 'Registrado!', description: `Horário: ${format(currentTime, 'HH:mm')} • ${location.endereco}` });
+    } else {
+      toast({ title: 'Erro ao registrar ponto', description: result.error, variant: 'destructive' });
+    }
     setShowConfirmDialog(false);
     setPendingAction(null);
     setLocation(null);
   };
 
-  const calculateWorkedHours = () => {
-    if (batidasHoje.length < 1) return '0:00';
-    
-    let totalMinutes = 0;
-    const entradas = batidasHoje.filter(b => b.tipo === 'entrada');
-    const saidas = batidasHoje.filter(b => b.tipo === 'saida');
-    
-    for (let i = 0; i < entradas.length; i++) {
-      const entrada = new Date(entradas[i].data_hora);
-      const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
-      
-      if (saida) {
-        totalMinutes += (saida.getTime() - entrada.getTime()) / 60000;
-      } else {
-        // If no exit yet, count until now
-        totalMinutes += (currentTime.getTime() - entrada.getTime()) / 60000;
-      }
-    }
-
-    const hours = Math.floor(totalMinutes / 60);
-    const mins = Math.floor(totalMinutes % 60);
-    return `${hours}:${String(mins).padStart(2, '0')}`;
+  const actionLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+    entrada: { label: 'Entrada', icon: <Navigation className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90' },
+    intervalo_inicio: { label: 'Iniciar Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-amber-500 hover:bg-amber-600 text-white' },
+    intervalo_fim: { label: 'Fim Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90' },
+    saida: { label: 'Saída', icon: <LogOut className="w-5 h-5" />, color: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' },
   };
+
+  const actionConfig = actionLabels[nextAction];
 
   if (!user) {
     return (
@@ -208,10 +257,9 @@ export function RegistroPonto() {
   return (
     <>
       <Card className="relative overflow-hidden border-0 shadow-elevated">
-        {/* Animated background */}
         <div className="absolute inset-0 gradient-primary opacity-5" />
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-        
+
         <div className="relative p-4 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -224,69 +272,60 @@ export function RegistroPonto() {
                 {format(currentTime, "EEEE, dd 'de' MMMM", { locale: ptBR })}
               </p>
             </div>
-            <Badge variant={nextAction === 'entrada' ? 'default' : 'secondary'} className="animate-pulse">
-              {nextAction === 'entrada' ? '📍 Aguardando entrada' : '🚪 Aguardando saída'}
+            <Badge variant={nextAction === 'entrada' ? 'default' : 'secondary'} className="animate-pulse text-xs">
+              {nextAction === 'entrada' && '📍 Aguardando entrada'}
+              {nextAction === 'intervalo_inicio' && '☕ Intervalo pendente'}
+              {nextAction === 'intervalo_fim' && '⏰ Em intervalo'}
+              {nextAction === 'saida' && '🚪 Aguardando saída'}
             </Badge>
           </div>
 
-          {/* Current time */}
-          <div className="text-center py-4">
-            <p className="text-5xl font-display font-bold text-foreground tabular-nums">
+          {/* Circular Timer + Clock */}
+          <div className="flex flex-col items-center gap-2">
+            <JornadaProgress workedMinutes={workedMinutes} />
+            <p className="text-4xl font-display font-bold text-foreground tabular-nums">
               {format(currentTime, 'HH:mm:ss')}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Trabalhado hoje: <span className="font-semibold text-primary">{calculateWorkedHours()}</span>
-            </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              size="lg"
-              onClick={() => handleRegistro('entrada')}
-              disabled={isLoading || nextAction !== 'entrada'}
-              className="h-14 text-base font-semibold bg-finance hover:bg-finance/90"
-            >
-              {isLoading && pendingAction === 'entrada' ? (
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              ) : (
-                <Navigation className="w-5 h-5 mr-2" />
-              )}
-              Entrada
-            </Button>
-            <Button
-              size="lg"
-              variant="destructive"
-              onClick={() => handleRegistro('saida')}
-              disabled={isLoading || nextAction !== 'saida'}
-              className="h-14 text-base font-semibold"
-            >
-              {isLoading && pendingAction === 'saida' ? (
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              ) : (
-                <MapPin className="w-5 h-5 mr-2" />
-              )}
-              Saída
-            </Button>
-          </div>
+          {/* Main action button */}
+          <Button
+            size="lg"
+            onClick={() => handleRegistro(nextAction)}
+            disabled={isLoading}
+            className={`w-full h-14 text-base font-semibold gap-2 ${actionConfig.color}`}
+          >
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : actionConfig.icon}
+            {actionConfig.label}
+          </Button>
 
-          {/* Today's punches */}
+          {/* Today's punches timeline */}
           {batidasHoje.length > 0 && (
             <div className="pt-3 border-t border-border/50">
               <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide">Batidas de hoje</p>
               <div className="flex flex-wrap gap-2">
-                {batidasHoje.map((batida) => (
-                  <div
-                    key={batida.id}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
-                      batida.tipo === 'entrada' 
-                        ? 'bg-finance/10 text-finance' 
-                        : 'bg-destructive/10 text-destructive'
-                    }`}
-                  >
-                    {batida.tipo === 'entrada' ? '→' : '←'} {format(new Date(batida.data_hora), 'HH:mm')}
-                  </div>
-                ))}
+                {batidasHoje.map((batida) => {
+                  const isEntrada = batida.tipo === 'entrada' || batida.tipo === 'intervalo_fim';
+                  const isInterval = batida.tipo === 'intervalo_inicio' || batida.tipo === 'intervalo_fim';
+                  return (
+                    <div
+                      key={batida.id}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                        isInterval
+                          ? 'bg-amber-500/10 text-amber-600'
+                          : isEntrada
+                          ? 'bg-finance/10 text-finance'
+                          : 'bg-destructive/10 text-destructive'
+                      }`}
+                    >
+                      {batida.tipo === 'entrada' && '→'}
+                      {batida.tipo === 'saida' && '←'}
+                      {batida.tipo === 'intervalo_inicio' && '☕'}
+                      {batida.tipo === 'intervalo_fim' && '▶'}
+                      {' '}{format(new Date(batida.data_hora), 'HH:mm')}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -301,41 +340,36 @@ export function RegistroPonto() {
               {location?.isValid ? (
                 <CheckCircle className="w-5 h-5 text-finance" />
               ) : (
-                <MapPin className="w-5 h-5 text-projects" />
+                <MapPin className="w-5 h-5 text-destructive" />
               )}
-              Confirmar {pendingAction === 'entrada' ? 'Entrada' : 'Saída'}
+              Confirmar {actionLabels[pendingAction || 'entrada']?.label}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
-            {/* Time */}
             <div className="text-center py-4 bg-muted/50 rounded-lg">
               <p className="text-4xl font-display font-bold text-foreground">
                 {format(currentTime, 'HH:mm')}
               </p>
-              <p className="text-sm text-muted-foreground">
-                {format(currentTime, "dd/MM/yyyy")}
-              </p>
+              <p className="text-sm text-muted-foreground">{format(currentTime, 'dd/MM/yyyy')}</p>
             </div>
 
-            {/* Location info */}
             <div className="space-y-2">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                <MapPin className={`w-5 h-5 mt-0.5 ${location?.isValid ? 'text-finance' : 'text-projects'}`} />
+                <MapPin className={`w-5 h-5 mt-0.5 ${location?.isValid ? 'text-finance' : 'text-destructive'}`} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">
-                    {location?.endereco}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {location?.latitude.toFixed(6)}, {location?.longitude.toFixed(6)}
-                  </p>
+                  <p className="text-sm font-medium text-foreground">{location?.endereco}</p>
+                  {location && location.latitude !== 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                    </p>
+                  )}
                   {location?.isValid ? (
                     <Badge variant="outline" className="mt-1 text-finance border-finance/30">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Local autorizado
+                      <CheckCircle className="w-3 h-3 mr-1" /> Local autorizado
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="mt-1 text-projects border-projects/30">
+                    <Badge variant="outline" className="mt-1 text-destructive border-destructive/30">
                       ⚠️ Fora da área permitida
                     </Badge>
                   )}
@@ -352,8 +386,8 @@ export function RegistroPonto() {
             </div>
 
             {!location?.isValid && (
-              <p className="text-xs text-center text-muted-foreground bg-projects/10 p-2 rounded">
-                ⚠️ Você está fora da área autorizada. O registro será enviado para aprovação do gestor.
+              <p className="text-xs text-center text-muted-foreground bg-destructive/10 p-2 rounded">
+                ⚠️ Registro fora da área autorizada será enviado para aprovação.
               </p>
             )}
           </div>
@@ -362,17 +396,13 @@ export function RegistroPonto() {
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={confirmRegistro}
               disabled={isLoading}
-              className={pendingAction === 'entrada' ? 'bg-finance hover:bg-finance/90' : ''}
-              variant={pendingAction === 'saida' ? 'destructive' : 'default'}
+              className={pendingAction === 'entrada' || pendingAction === 'intervalo_fim' ? 'bg-finance hover:bg-finance/90' : ''}
+              variant={pendingAction === 'saida' ? 'destructive' : pendingAction === 'intervalo_inicio' ? 'default' : 'default'}
             >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4 mr-2" />
-              )}
+              {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
               Confirmar
             </Button>
           </DialogFooter>

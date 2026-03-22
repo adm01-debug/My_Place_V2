@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Clock, AlertTriangle, CheckCircle, TrendingUp, FileText, Upload, X, Loader2 } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, TrendingUp, FileText, Upload, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import { useLoadingState } from '@/hooks/useLoadingState';
 import { useRegistrosPonto } from '@/hooks/useRegistrosPonto';
 import { useJustificativasPonto } from '@/hooks/useJustificativasPonto';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, isSameDay, addMonths, subMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   Dialog,
@@ -51,52 +51,59 @@ export default function Ponto() {
   const [motivoDescricao, setMotivoDescricao] = useState('');
   const [anexoFile, setAnexoFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [mesAtual, setMesAtual] = useState(new Date());
+  const [showAllDays, setShowAllDays] = useState(false);
+
   const isLoading = useLoadingState(600);
   const { registros, isLoading: isLoadingRegistros, refetch } = useRegistrosPonto();
   const { justificativas, criarJustificativa, uploadAnexo, getJustificativaPorData, refetch: refetchJustificativas } = useJustificativasPonto();
   const { toast } = useToast();
 
-  const currentMonth = new Date();
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  const isCurrentMonth = isSameMonth(mesAtual, new Date());
+  const monthStart = startOfMonth(mesAtual);
+  const monthEnd = endOfMonth(mesAtual);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const handlePrevMonth = () => setMesAtual(prev => subMonths(prev, 1));
+  const handleNextMonth = () => {
+    if (!isCurrentMonth) setMesAtual(prev => addMonths(prev, 1));
+  };
 
   // Calculate statistics from real data
   const stats = useMemo(() => {
     let totalMinutes = 0;
     let extraMinutes = 0;
-    const DAILY_TARGET = 8 * 60; // 8 hours in minutes
+    const DAILY_TARGET = 8 * 60;
 
-    // Group registros by day
-    const registrosPorDia = registros.reduce((acc, reg) => {
+    const mesRegistros = registros.filter(r => {
+      const d = new Date(r.data_hora);
+      return d >= monthStart && d <= monthEnd;
+    });
+
+    const registrosPorDia = mesRegistros.reduce((acc, reg) => {
       const dateKey = format(new Date(reg.data_hora), 'yyyy-MM-dd');
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(reg);
       return acc;
     }, {} as Record<string, typeof registros>);
 
-    // Calculate hours for each day
     Object.values(registrosPorDia).forEach(dayRegs => {
-      const entradas = dayRegs.filter(r => r.tipo === 'entrada').sort((a, b) => 
+      const entradas = dayRegs.filter(r => r.tipo === 'entrada' || r.tipo === 'intervalo_fim').sort((a, b) =>
         new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()
       );
-      const saidas = dayRegs.filter(r => r.tipo === 'saida').sort((a, b) => 
+      const saidas = dayRegs.filter(r => r.tipo === 'saida' || r.tipo === 'intervalo_inicio').sort((a, b) =>
         new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()
       );
 
       for (let i = 0; i < entradas.length; i++) {
         const entrada = new Date(entradas[i].data_hora);
         const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
-        
         if (saida) {
-          const dayMinutes = (saida.getTime() - entrada.getTime()) / 60000;
-          totalMinutes += dayMinutes;
+          totalMinutes += (saida.getTime() - entrada.getTime()) / 60000;
         }
       }
     });
 
-    // Calculate extra hours (anything over 8h per day, simplified)
     const daysWorked = Object.keys(registrosPorDia).length;
     const expectedMinutes = daysWorked * DAILY_TARGET;
     extraMinutes = Math.max(0, totalMinutes - expectedMinutes);
@@ -111,31 +118,31 @@ export default function Ponto() {
       horasNormais: formatHours(Math.min(totalMinutes, daysWorked * DAILY_TARGET)),
       horasExtras: formatHours(extraMinutes),
       bancoHoras: extraMinutes > 0 ? `+${formatHours(extraMinutes)}` : '0:00',
+      diasTrabalhados: daysWorked,
     };
-  }, [registros]);
+  }, [registros, monthStart, monthEnd]);
 
-  // Generate espelho data from registros
+  // Generate espelho data
   const espelhoDias = useMemo(() => {
     const today = new Date();
-    
+
     return daysInMonth
       .filter(day => day <= today)
       .map(day => {
         const dateKey = format(day, 'yyyy-MM-dd');
-        const dayRegs = registros.filter(r => 
+        const dayRegs = registros.filter(r =>
           format(new Date(r.data_hora), 'yyyy-MM-dd') === dateKey
         );
-        
+
         const isWeekendDay = isWeekend(day);
-        const entradas = dayRegs.filter(r => r.tipo === 'entrada');
-        const saidas = dayRegs.filter(r => r.tipo === 'saida');
-        
-        // Check if there's a justificativa for this day
+        const entradas = dayRegs.filter(r => r.tipo === 'entrada' || r.tipo === 'intervalo_fim');
+        const saidas = dayRegs.filter(r => r.tipo === 'saida' || r.tipo === 'intervalo_inicio');
+
         const justificativa = getJustificativaPorData(dateKey);
-        
+
         let status: keyof typeof statusConfig = 'pendente';
         let totalHoras = '0:00';
-        
+
         if (justificativa) {
           status = 'justificado';
         } else if (isWeekendDay) {
@@ -143,7 +150,6 @@ export default function Ponto() {
         } else if (dayRegs.length === 0) {
           status = isSameDay(day, today) ? 'pendente' : 'falta';
         } else {
-          // Calculate total hours
           let totalMinutes = 0;
           for (let i = 0; i < entradas.length; i++) {
             const entrada = new Date(entradas[i].data_hora);
@@ -152,18 +158,20 @@ export default function Ponto() {
               totalMinutes += (saida.getTime() - entrada.getTime()) / 60000;
             }
           }
-          
+
           const h = Math.floor(totalMinutes / 60);
           const m = Math.floor(totalMinutes % 60);
           totalHoras = `${h}:${String(m).padStart(2, '0')}`;
-          
+
           if (totalMinutes >= 8 * 60) {
             status = totalMinutes > 8 * 60 ? 'extra' : 'ok';
           } else if (totalMinutes > 0) {
-            status = entradas.length > saidas.length ? 'pendente' : 'atraso';
+            const allEntradas = dayRegs.filter(r => r.tipo === 'entrada').length;
+            const allSaidas = dayRegs.filter(r => r.tipo === 'saida').length;
+            status = allEntradas > allSaidas ? 'pendente' : 'atraso';
           }
         }
-        
+
         return {
           data: day,
           dateKey,
@@ -180,9 +188,7 @@ export default function Ponto() {
       .reverse();
   }, [daysInMonth, registros, justificativas, getJustificativaPorData]);
 
-  const diaSemana = (date: Date) => {
-    return format(date, 'EEE', { locale: ptBR }).toUpperCase();
-  };
+  const diaSemana = (date: Date) => format(date, 'EEE', { locale: ptBR }).toUpperCase();
 
   const handleJustificar = (date: Date) => {
     setSelectedDate(date);
@@ -195,73 +201,48 @@ export default function Ponto() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'Arquivo muito grande',
-        description: 'O tamanho máximo é 5MB.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Arquivo muito grande', description: 'O tamanho máximo é 5MB.', variant: 'destructive' });
       return;
     }
-
     setAnexoFile(file);
   };
 
   const handleSubmitJustificativa = async () => {
     if (!selectedDate || !tipoJustificativa || !motivoDescricao.trim()) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha o tipo e a descrição.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Campos obrigatórios', description: 'Preencha o tipo e a descrição.', variant: 'destructive' });
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       let anexoUrl: string | null = null;
-      
       if (anexoFile) {
         anexoUrl = await uploadAnexo(anexoFile);
       }
 
       const dataFormatted = format(selectedDate, 'yyyy-MM-dd');
-      const result = await criarJustificativa(
-        dataFormatted,
-        tipoJustificativa,
-        motivoDescricao,
-        undefined,
-        anexoUrl || undefined
-      );
+      const result = await criarJustificativa(dataFormatted, tipoJustificativa, motivoDescricao, undefined, anexoUrl || undefined);
 
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
 
-      toast({
-        title: 'Justificativa enviada',
-        description: 'Sua justificativa será analisada pelo RH.',
-      });
-
+      toast({ title: 'Justificativa enviada', description: 'Sua justificativa será analisada pelo RH.' });
       setShowJustificativa(false);
       setTipoJustificativa('');
       setMotivoDescricao('');
       setAnexoFile(null);
       refetchJustificativas();
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao enviar justificativa',
-        description: error.message,
-        variant: 'destructive',
-      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast({ title: 'Erro ao enviar justificativa', description: message, variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const pendencias = espelhoDias.filter(d => d.status === 'falta');
+  const INITIAL_DAYS = 15;
+  const visibleDias = showAllDays ? espelhoDias : espelhoDias.slice(0, INITIAL_DAYS);
 
   if (isLoading || isLoadingRegistros) {
     return (
@@ -286,11 +267,17 @@ export default function Ponto() {
         {/* Registro de Ponto */}
         <RegistroPonto />
 
-        {/* Período */}
-        <div className="text-center">
-          <p className="text-muted-foreground text-sm">
-            {format(currentMonth, 'MMMM/yyyy', { locale: ptBR }).toUpperCase()}
+        {/* Month Selector */}
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <p className="text-sm font-semibold text-foreground uppercase tracking-wide">
+            {format(mesAtual, 'MMMM yyyy', { locale: ptBR })}
           </p>
+          <Button variant="ghost" size="icon" onClick={handleNextMonth} disabled={isCurrentMonth}>
+            <ChevronRight className="w-5 h-5" />
+          </Button>
         </div>
 
         {/* Resumo */}
@@ -347,14 +334,14 @@ export default function Ponto() {
             Espelho de Ponto
           </h3>
           <div className="space-y-2">
-            {espelhoDias.slice(0, 10).map((dia) => {
+            {visibleDias.map((dia) => {
               const config = statusConfig[dia.status];
               const Icon = config.icon;
               const isToday = isSameDay(dia.data, new Date());
-              
+
               return (
-                <Card 
-                  key={dia.data.toString()} 
+                <Card
+                  key={dia.data.toString()}
                   className={`p-3 ${isToday ? 'ring-2 ring-primary' : ''} ${dia.isWeekend ? 'opacity-60' : ''}`}
                 >
                   <div className="flex items-center justify-between">
@@ -363,29 +350,28 @@ export default function Ponto() {
                         <Icon className={`w-4 h-4 ${config.color}`} />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-foreground text-sm">
                             {format(dia.data, 'dd/MM')} ({diaSemana(dia.data)})
                           </p>
-                          {isToday && (
-                            <Badge variant="outline" className="text-xs">HOJE</Badge>
-                          )}
-                          {dia.isWeekend && (
-                            <Badge variant="secondary" className="text-xs">FDS</Badge>
-                          )}
+                          {isToday && <Badge variant="outline" className="text-xs">HOJE</Badge>}
+                          {dia.isWeekend && <Badge variant="secondary" className="text-xs">FDS</Badge>}
                           {dia.justificativa && (
-                            <Badge 
-                              variant={dia.justificativa.status === 'aprovado' ? 'default' : 'secondary'} 
+                            <Badge
+                              variant={dia.justificativa.status === 'aprovado' ? 'default' : 'secondary'}
                               className="text-xs"
                             >
-                              {dia.justificativa.status === 'pendente' ? 'Aguardando' : 
+                              {dia.justificativa.status === 'pendente' ? 'Aguardando' :
                                dia.justificativa.status === 'aprovado' ? 'Aprovado' : 'Rejeitado'}
                             </Badge>
                           )}
                         </div>
                         {dia.batidas.length > 0 && (
                           <p className="text-xs text-muted-foreground">
-                            {dia.batidas.map(b => b.horario).join(' | ')}
+                            {dia.batidas.map(b => {
+                              const icon = b.tipo === 'entrada' ? '→' : b.tipo === 'saida' ? '←' : b.tipo === 'intervalo_inicio' ? '☕' : '▶';
+                              return `${icon}${b.horario}`;
+                            }).join(' | ')}
                           </p>
                         )}
                       </div>
@@ -397,9 +383,9 @@ export default function Ponto() {
                     </div>
                   </div>
                   {dia.status === 'falta' && (
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="w-full mt-2 text-xs"
                       onClick={() => handleJustificar(dia.data)}
                     >
@@ -410,6 +396,17 @@ export default function Ponto() {
               );
             })}
           </div>
+
+          {/* Show more / less */}
+          {espelhoDias.length > INITIAL_DAYS && (
+            <Button
+              variant="ghost"
+              className="w-full mt-3 text-sm"
+              onClick={() => setShowAllDays(!showAllDays)}
+            >
+              {showAllDays ? 'Ver menos' : `Ver todos os ${espelhoDias.length} dias`}
+            </Button>
+          )}
         </div>
 
         {/* Banco de Horas */}
@@ -427,7 +424,7 @@ export default function Ponto() {
         </Card>
       </div>
 
-      {/* Modal Justificativa Funcional */}
+      {/* Modal Justificativa */}
       <Dialog open={showJustificativa} onOpenChange={setShowJustificativa}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -436,7 +433,7 @@ export default function Ponto() {
               Justificar Ausência
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-2">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Data</p>
@@ -447,8 +444,8 @@ export default function Ponto() {
 
             <div className="space-y-2">
               <Label>Tipo de Justificativa *</Label>
-              <Select 
-                value={tipoJustificativa} 
+              <Select
+                value={tipoJustificativa}
                 onValueChange={(v) => setTipoJustificativa(v as TipoJustificativa)}
               >
                 <SelectTrigger>
@@ -456,9 +453,7 @@ export default function Ponto() {
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(tipoLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -466,7 +461,7 @@ export default function Ponto() {
 
             <div className="space-y-2">
               <Label>Descrição / Motivo *</Label>
-              <Textarea 
+              <Textarea
                 placeholder="Descreva detalhadamente o motivo..."
                 value={motivoDescricao}
                 onChange={(e) => setMotivoDescricao(e.target.value)}
@@ -480,52 +475,30 @@ export default function Ponto() {
                 <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
                   <FileText className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm flex-1 truncate">{anexoFile.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setAnexoFile(null)}
-                  >
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setAnexoFile(null)}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
               ) : (
                 <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,.pdf"
-                    onChange={handleFileSelect}
-                  />
+                  <input type="file" className="hidden" accept="image/*,.pdf" onChange={handleFileSelect} />
                   <Upload className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Clique para anexar arquivo
-                  </span>
+                  <span className="text-sm text-muted-foreground">Clique para anexar arquivo</span>
                 </label>
               )}
-              <p className="text-xs text-muted-foreground">
-                Formatos aceitos: imagens, PDF. Máximo 5MB.
-              </p>
+              <p className="text-xs text-muted-foreground">Formatos aceitos: imagens, PDF. Máximo 5MB.</p>
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowJustificativa(false)}
-              disabled={isSubmitting}
-            >
+            <Button variant="outline" onClick={() => setShowJustificativa(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button
               onClick={handleSubmitJustificativa}
               disabled={isSubmitting || !tipoJustificativa || !motivoDescricao.trim()}
             >
-              {isSubmitting ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4 mr-1" />
-              )}
+              {isSubmitting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
               {isSubmitting ? 'Enviando...' : 'Enviar'}
             </Button>
           </DialogFooter>
