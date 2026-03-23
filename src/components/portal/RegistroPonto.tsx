@@ -312,7 +312,7 @@ export function RegistroPonto() {
                       key={batida.id}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                         isInterval
-                          ? 'bg-amber-500/10 text-amber-600'
+                          ? 'bg-projects/10 text-projects-dark'
                           : isEntrada
                           ? 'bg-finance/10 text-finance'
                           : 'bg-destructive/10 text-destructive'

@@ -266,27 +266,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const detectRole = useCallback((profile: Profile | null): UserRole => {
     if (!profile) return 'colaborador';
 
-    // 1. Fonte primária: tabela user_roles (segura, server-side)
+    // Fonte única e segura: tabela user_roles (server-side via RLS)
     if (dbRole === 'admin') return 'admin';
     if (dbRole === 'gestor') return 'gestor';
 
-    // 2. Fallback: flags do perfil (compatibilidade retroativa)
-    if (profile.is_admin) return 'admin';
-    if (profile.is_gestor) return 'gestor';
-
-    // 3. Último recurso: inferência por cargo (apenas para UX, nunca para segurança)
-    const cargo = (profile.cargo || '').toLowerCase();
-
-    if (cargo.includes('diretor') || cargo.includes('ceo') || cargo.includes('presidente')) {
-      return 'diretor';
-    }
-    if (cargo.includes('rh') || cargo.includes('recursos humanos') || cargo.includes('people') || cargo.includes('dp')) {
-      return 'rh';
-    }
-    if (cargo.includes('gerente') || cargo.includes('coordenador') || cargo.includes('supervisor') || cargo.includes('líder') || cargo.includes('lider')) {
-      return 'gestor';
-    }
-
+    // Sem fallback por cargo — roles devem ser atribuídos explicitamente
+    // na tabela user_roles para evitar escalação de privilégios
     return 'colaborador';
   }, [dbRole]);
 
