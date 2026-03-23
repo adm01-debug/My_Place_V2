@@ -18,22 +18,16 @@ describe('useFAQ', () => {
 
   it('deve inicializar com searchTerm vazio', async () => {
     const { useFAQ } = await import('@/hooks/useFAQ');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useFAQ(), { wrapper: createWrapper() });
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useFAQ(), { wrapper: createWrapper() });
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.searchTerm).toBe('');
     expect(result.current.categoriaAtiva).toBe('todos');
   });
 
   it('deve atualizar searchTerm', async () => {
     const { useFAQ } = await import('@/hooks/useFAQ');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useFAQ(), { wrapper: createWrapper() });
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useFAQ(), { wrapper: createWrapper() });
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     act(() => { result.current.setSearchTerm('férias'); });
     await waitFor(() => {
       expect(result.current.searchTerm).toBe('férias');
@@ -62,22 +56,16 @@ describe('useOffline', () => {
 describe('useHolerites', () => {
   it('deve ter função getMesNome', async () => {
     const { useHolerites } = await import('@/hooks/useHolerites');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useHolerites());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useHolerites());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.getMesNome(1)).toBe('Janeiro');
     expect(result.current.getMesNome(12)).toBe('Dezembro');
   });
 
   it('deve calcular totais corretamente', async () => {
     const { useHolerites } = await import('@/hooks/useHolerites');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useHolerites());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useHolerites());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     const mockHolerite = {
       id: '1', user_id: 'test', mes: 12, ano: 2025,
       salario_bruto: 6000, salario_liquido: 4500, descontos: 1500,
@@ -95,11 +83,8 @@ describe('useHolerites', () => {
 describe('useFerias', () => {
   it('deve ter saldoTotal definido', async () => {
     const { useFerias } = await import('@/hooks/useFerias');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useFerias());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useFerias());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.saldoTotal).toBeDefined();
   });
 });
@@ -122,21 +107,15 @@ describe('useNotificacoes', () => {
 describe('useBeneficios', () => {
   it('deve inicializar com benefícios vazios', async () => {
     const { useBeneficios } = await import('@/hooks/useBeneficios');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useBeneficios());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useBeneficios());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.beneficios).toEqual([]);
   });
 
   it('deve ter resumoDescontos com total zero', async () => {
     const { useBeneficios } = await import('@/hooks/useBeneficios');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useBeneficios());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useBeneficios());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.resumoDescontos).toBeDefined();
     expect(result.current.resumoDescontos.total).toBe(0);
   });
@@ -149,11 +128,8 @@ describe('useBeneficios', () => {
 describe('useRegistrosPonto', () => {
   it('deve ter função formatarHoras', async () => {
     const { useRegistrosPonto } = await import('@/hooks/useRegistrosPonto');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useRegistrosPonto());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useRegistrosPonto());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.formatarHoras(60)).toBe('+1:00');
     expect(result.current.formatarHoras(-30)).toBe('-0:30');
     expect(result.current.formatarHoras(0)).toBe('0:00');
@@ -161,11 +137,8 @@ describe('useRegistrosPonto', () => {
 
   it('deve inicializar com registros vazios', async () => {
     const { useRegistrosPonto } = await import('@/hooks/useRegistrosPonto');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useRegistrosPonto());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useRegistrosPonto());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current.registros).toEqual([]);
   });
 });

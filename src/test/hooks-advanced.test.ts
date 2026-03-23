@@ -1,16 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 // Uses global mock from setup.ts which supports deep chaining
 
 describe('useFeedback360', () => {
   it('should initialize', async () => {
     const { useFeedback360 } = await import('@/hooks/useFeedback360');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useFeedback360());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useFeedback360());
+    // Wait for async effects to settle
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -18,11 +16,8 @@ describe('useFeedback360', () => {
 describe('usePesquisasClima', () => {
   it('should initialize', async () => {
     const { usePesquisasClima } = await import('@/hooks/usePesquisasClima');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => usePesquisasClima());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => usePesquisasClima());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -30,11 +25,8 @@ describe('usePesquisasClima', () => {
 describe('useRemuneracaoVariavel', () => {
   it('should initialize', async () => {
     const { useRemuneracaoVariavel } = await import('@/hooks/useRemuneracaoVariavel');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useRemuneracaoVariavel());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useRemuneracaoVariavel());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -42,11 +34,8 @@ describe('useRemuneracaoVariavel', () => {
 describe('useDashboardGestor', () => {
   it('should initialize', async () => {
     const { useDashboardGestor } = await import('@/hooks/useDashboardGestor');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useDashboardGestor());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useDashboardGestor());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -54,11 +43,8 @@ describe('useDashboardGestor', () => {
 describe('useAniversariantes', () => {
   it('should initialize', async () => {
     const { useAniversariantes } = await import('@/hooks/useAniversariantes');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useAniversariantes());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useAniversariantes());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -66,11 +52,8 @@ describe('useAniversariantes', () => {
 describe('useJustificativasPonto', () => {
   it('should initialize', async () => {
     const { useJustificativasPonto } = await import('@/hooks/useJustificativasPonto');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useJustificativasPonto());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useJustificativasPonto());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -78,11 +61,8 @@ describe('useJustificativasPonto', () => {
 describe('useLocaisPermitidos', () => {
   it('should initialize', async () => {
     const { useLocaisPermitidos } = await import('@/hooks/useLocaisPermitidos');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useLocaisPermitidos());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useLocaisPermitidos());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -90,11 +70,8 @@ describe('useLocaisPermitidos', () => {
 describe('usePushNotifications', () => {
   it('should initialize', async () => {
     const { usePushNotifications } = await import('@/hooks/usePushNotifications');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => usePushNotifications());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => usePushNotifications());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
@@ -115,11 +92,8 @@ describe('useExportPDF', () => {
 describe('useUserRoles', () => {
   it('should initialize', async () => {
     const { useUserRoles } = await import('@/hooks/useUserRoles');
-    let result: any;
-    await act(async () => {
-      const hook = renderHook(() => useUserRoles());
-      result = hook.result;
-    });
+    const { result } = renderHook(() => useUserRoles());
+    await act(async () => { await new Promise(r => setTimeout(r, 10)); });
     expect(result.current).toBeDefined();
   });
 });
