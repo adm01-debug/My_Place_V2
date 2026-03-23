@@ -42,7 +42,7 @@ interface DashboardData {
   saldoFerias: number;
   proximasFerias: { data_inicio: string; dias: number } | null;
   comissaoMes: number;
-  emprestimoAtivo: { saldo_devedor: number; parcelas_restantes: number; proxima_parcela: number } | null;
+  emprestimoAtivo: { saldo_devedor: number; parcelas_restantes: number; proxima_parcela: number; quantidade_parcelas: number } | null;
   alertas: Alerta[];
   comunicados: ComunicadoResumo[];
   notificacoesNaoLidas: number;
@@ -268,6 +268,7 @@ export function useDashboard() {
           saldo_devedor: emprestimo.saldo_devedor,
           parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas,
           proxima_parcela: emprestimo.valor_parcela,
+          quantidade_parcelas: emprestimo.quantidade_parcelas,
         } : null,
         alertas,
         comunicados: comunicadosProcessados,
