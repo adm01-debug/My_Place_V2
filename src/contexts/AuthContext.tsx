@@ -229,21 +229,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // DETECÇÃO DE ROLE
   // ============================================================================
 
+  // ============================================================================
+  // DETECÇÃO DE ROLE VIA TABELA user_roles (SERVER-SIDE)
+  // ============================================================================
+
+  const [dbRole, setDbRole] = useState<'admin' | 'gestor' | 'user' | null>(null);
+
+  const fetchUserRole = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Erro ao buscar roles:', error);
+        setDbRole(null);
+        return;
+      }
+
+      // Priorizar: admin > gestor > user
+      const roles = (data ?? []).map(r => r.role);
+      if (roles.includes('admin')) {
+        setDbRole('admin');
+      } else if (roles.includes('gestor')) {
+        setDbRole('gestor');
+      } else {
+        setDbRole('user');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar roles:', error);
+      setDbRole(null);
+    }
+  }, []);
+
   const detectRole = useCallback((profile: Profile | null): UserRole => {
     if (!profile) return 'colaborador';
-    
-    // Verificar flags explícitas
+
+    // 1. Fonte primária: tabela user_roles (segura, server-side)
+    if (dbRole === 'admin') return 'admin';
+    if (dbRole === 'gestor') return 'gestor';
+
+    // 2. Fallback: flags do perfil (compatibilidade retroativa)
     if (profile.is_admin) return 'admin';
     if (profile.is_gestor) return 'gestor';
-    
-    // Verificar cargo
+
+    // 3. Último recurso: inferência por cargo (apenas para UX, nunca para segurança)
     const cargo = (profile.cargo || '').toLowerCase();
-    
+
     if (cargo.includes('diretor') || cargo.includes('ceo') || cargo.includes('presidente')) {
       return 'diretor';
-    }
-    if (cargo.includes('admin') || cargo.includes('administrador') || cargo.includes('ti')) {
-      return 'admin';
     }
     if (cargo.includes('rh') || cargo.includes('recursos humanos') || cargo.includes('people') || cargo.includes('dp')) {
       return 'rh';
@@ -251,9 +286,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (cargo.includes('gerente') || cargo.includes('coordenador') || cargo.includes('supervisor') || cargo.includes('líder') || cargo.includes('lider')) {
       return 'gestor';
     }
-    
+
     return 'colaborador';
-  }, []);
+  }, [dbRole]);
 
   const role = useMemo(() => detectRole(profile), [profile, detectRole]);
 

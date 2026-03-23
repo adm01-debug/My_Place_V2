@@ -176,7 +176,9 @@ export default function Dashboard() {
                 <span className="font-medium">{formatCurrency(emprestimoAtivo.proxima_parcela)}</span>
               </div>
               <Progress 
-                value={((12 - emprestimoAtivo.parcelas_restantes) / 12) * 100} 
+                value={emprestimoAtivo.quantidade_parcelas 
+                  ? ((emprestimoAtivo.quantidade_parcelas - emprestimoAtivo.parcelas_restantes) / emprestimoAtivo.quantidade_parcelas) * 100 
+                  : 0} 
                 className="h-2"
               />
               <p className="text-xs text-muted-foreground text-center">
