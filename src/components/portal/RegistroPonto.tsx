@@ -238,9 +238,9 @@ export function RegistroPonto() {
   };
 
   const actionLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-    entrada: { label: 'Entrada', icon: <Navigation className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90' },
-    intervalo_inicio: { label: 'Iniciar Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-amber-500 hover:bg-amber-600 text-white' },
-    intervalo_fim: { label: 'Fim Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90' },
+    entrada: { label: 'Entrada', icon: <Navigation className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90 text-primary-foreground' },
+    intervalo_inicio: { label: 'Iniciar Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-projects hover:bg-projects-dark text-primary-foreground' },
+    intervalo_fim: { label: 'Fim Intervalo', icon: <Coffee className="w-5 h-5" />, color: 'bg-finance hover:bg-finance/90 text-primary-foreground' },
     saida: { label: 'Saída', icon: <LogOut className="w-5 h-5" />, color: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' },
   };
 
@@ -312,7 +312,7 @@ export function RegistroPonto() {
                       key={batida.id}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                         isInterval
-                          ? 'bg-amber-500/10 text-amber-600'
+                          ? 'bg-projects/10 text-projects-dark'
                           : isEntrada
                           ? 'bg-finance/10 text-finance'
                           : 'bg-destructive/10 text-destructive'
