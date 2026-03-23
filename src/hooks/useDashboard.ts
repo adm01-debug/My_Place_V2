@@ -42,7 +42,7 @@ interface DashboardData {
   saldoFerias: number;
   proximasFerias: { data_inicio: string; dias: number } | null;
   comissaoMes: number;
-  emprestimoAtivo: { saldo_devedor: number; parcelas_restantes: number; proxima_parcela: number } | null;
+  emprestimoAtivo: { saldo_devedor: number; parcelas_restantes: number; proxima_parcela: number; quantidade_parcelas: number } | null;
   alertas: Alerta[];
   comunicados: ComunicadoResumo[];
   notificacoesNaoLidas: number;
