@@ -268,6 +268,7 @@ export function useDashboard() {
           saldo_devedor: emprestimo.saldo_devedor,
           parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas,
           proxima_parcela: emprestimo.valor_parcela,
+          quantidade_parcelas: emprestimo.quantidade_parcelas,
         } : null,
         alertas,
         comunicados: comunicadosProcessados,

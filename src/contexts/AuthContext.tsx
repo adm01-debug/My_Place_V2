@@ -608,6 +608,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(async () => {
             const profileData = await fetchProfile(newSession.user.id);
             setProfile(profileData);
+            await fetchUserRole(newSession.user.id);
           }, 0);
         } else {
           setProfile(null);
