@@ -15,7 +15,11 @@ describe('useLoadingState', () => {
   it('should return loading initially then false', async () => {
     vi.useFakeTimers();
     const { useLoadingState } = await import('@/hooks/useLoadingState');
-    const { result } = renderHook(() => useLoadingState(100));
+    let result: any;
+    act(() => {
+      const hook = renderHook(() => useLoadingState(100));
+      result = hook.result;
+    });
     expect(result.current).toBe(true);
     act(() => { vi.advanceTimersByTime(150); });
     expect(result.current).toBe(false);
@@ -44,10 +48,14 @@ describe('useValidation', () => {
 describe('useCrudBase', () => {
   it('should initialize', async () => {
     const { useCrudBase } = await import('@/hooks/useCrudBase');
-    const { result } = renderHook(() => useCrudBase({
-      queryKey: ['test'],
-      fetchFn: async () => [],
-    }), { wrapper: createWrapper() });
+    let result: any;
+    await act(async () => {
+      const hook = renderHook(() => useCrudBase({
+        queryKey: ['test'],
+        fetchFn: async () => [],
+      }), { wrapper: createWrapper() });
+      result = hook.result;
+    });
     expect(result.current).toBeDefined();
   });
 });
@@ -79,7 +87,11 @@ describe('useDocumentosDownload', () => {
 describe('useAssistenteRH', () => {
   it('should initialize', async () => {
     const { useAssistenteRH } = await import('@/hooks/useAssistenteRH');
-    const { result } = renderHook(() => useAssistenteRH());
+    let result: any;
+    await act(async () => {
+      const hook = renderHook(() => useAssistenteRH());
+      result = hook.result;
+    });
     expect(result.current).toBeDefined();
   });
 });
