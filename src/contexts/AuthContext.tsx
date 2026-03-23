@@ -623,7 +623,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchProfile]);
+  }, [fetchProfile, fetchUserRole]);
 
   // ============================================================================
   // VALOR DO CONTEXTO
