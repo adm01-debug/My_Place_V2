@@ -10,7 +10,7 @@ import type { KudoCategoria } from '@/hooks/useKudos';
 interface EnviarKudoDialogProps {
   categorias: KudoCategoria[];
   usuarios: { id: string; nome: string }[];
-  onEnviar: (data: { para_usuario_id: string; categoria_id: string; mensagem: string; publico: boolean }) => Promise<void>;
+  onEnviar: (data: { para_usuario_id: string; categoria_id: string; mensagem: string; publico: boolean }) => Promise<any>;
 }
 
 export const EnviarKudoDialog: React.FC<EnviarKudoDialogProps> = ({ categorias, usuarios, onEnviar }) => {
