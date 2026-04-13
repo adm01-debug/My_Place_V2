@@ -1,12 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  type UserRole, 
+  type PermissionAction, 
+  type ResourceType, 
+  ROLE_PERMISSIONS, 
+  ROUTE_ACCESS 
+} from './auth-permissions';
+
+// Re-export types for consumers
+export type { UserRole, PermissionAction, ResourceType };
 
 // ============================================================================
 // TIPOS E INTERFACES
 // ============================================================================
-
-export type UserRole = 'colaborador' | 'gestor' | 'rh' | 'admin' | 'diretor';
 
 export interface Profile {
   id: string;
@@ -24,155 +32,6 @@ export interface Profile {
   gestor_id?: string | null;
 }
 
-export type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'export';
-
-export type ResourceType = 
-  | 'dashboard'
-  | 'ponto'
-  | 'ferias'
-  | 'holerites'
-  | 'beneficios'
-  | 'treinamentos'
-  | 'documentos'
-  | 'comunicados'
-  | 'emprestimos'
-  | 'metas'
-  | 'feedback'
-  | 'pesquisas'
-  | 'organograma'
-  | 'calendario'
-  | 'solicitacoes'
-  | 'admin'
-  | 'gestao'
-  | 'relatorios'
-  | 'usuarios'
-  | 'configuracoes';
-
-interface Permission {
-  resource: ResourceType;
-  actions: PermissionAction[];
-}
-
-// ============================================================================
-// PERMISSÕES POR ROLE
-// ============================================================================
-
-const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  colaborador: [
-    { resource: 'dashboard', actions: ['view'] },
-    { resource: 'ponto', actions: ['view', 'create'] },
-    { resource: 'ferias', actions: ['view', 'create'] },
-    { resource: 'holerites', actions: ['view', 'export'] },
-    { resource: 'beneficios', actions: ['view'] },
-    { resource: 'treinamentos', actions: ['view'] },
-    { resource: 'documentos', actions: ['view'] },
-    { resource: 'comunicados', actions: ['view'] },
-    { resource: 'emprestimos', actions: ['view', 'create'] },
-    { resource: 'metas', actions: ['view'] },
-    { resource: 'feedback', actions: ['view', 'create'] },
-    { resource: 'pesquisas', actions: ['view', 'create'] },
-    { resource: 'organograma', actions: ['view'] },
-    { resource: 'calendario', actions: ['view'] },
-    { resource: 'solicitacoes', actions: ['view', 'create'] },
-  ],
-  gestor: [
-    { resource: 'dashboard', actions: ['view'] },
-    { resource: 'ponto', actions: ['view', 'create', 'approve'] },
-    { resource: 'ferias', actions: ['view', 'create', 'approve'] },
-    { resource: 'holerites', actions: ['view', 'export'] },
-    { resource: 'beneficios', actions: ['view'] },
-    { resource: 'treinamentos', actions: ['view', 'create'] },
-    { resource: 'documentos', actions: ['view'] },
-    { resource: 'comunicados', actions: ['view', 'create'] },
-    { resource: 'emprestimos', actions: ['view', 'create', 'approve'] },
-    { resource: 'metas', actions: ['view', 'create', 'edit'] },
-    { resource: 'feedback', actions: ['view', 'create'] },
-    { resource: 'pesquisas', actions: ['view', 'create'] },
-    { resource: 'organograma', actions: ['view'] },
-    { resource: 'calendario', actions: ['view', 'create'] },
-    { resource: 'solicitacoes', actions: ['view', 'create', 'approve'] },
-    { resource: 'gestao', actions: ['view'] },
-    { resource: 'relatorios', actions: ['view', 'export'] },
-  ],
-  rh: [
-    { resource: 'dashboard', actions: ['view'] },
-    { resource: 'ponto', actions: ['view', 'create', 'edit', 'approve', 'export'] },
-    { resource: 'ferias', actions: ['view', 'create', 'edit', 'approve', 'export'] },
-    { resource: 'holerites', actions: ['view', 'create', 'edit', 'export'] },
-    { resource: 'beneficios', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'treinamentos', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'documentos', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'comunicados', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'emprestimos', actions: ['view', 'create', 'edit', 'approve', 'export'] },
-    { resource: 'metas', actions: ['view', 'create', 'edit'] },
-    { resource: 'feedback', actions: ['view', 'create', 'edit'] },
-    { resource: 'pesquisas', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'organograma', actions: ['view', 'edit'] },
-    { resource: 'calendario', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'solicitacoes', actions: ['view', 'create', 'edit', 'approve'] },
-    { resource: 'gestao', actions: ['view'] },
-    { resource: 'relatorios', actions: ['view', 'export'] },
-    { resource: 'usuarios', actions: ['view', 'edit'] },
-  ],
-  admin: [
-    { resource: 'dashboard', actions: ['view'] },
-    { resource: 'ponto', actions: ['view', 'create', 'edit', 'delete', 'approve', 'export'] },
-    { resource: 'ferias', actions: ['view', 'create', 'edit', 'delete', 'approve', 'export'] },
-    { resource: 'holerites', actions: ['view', 'create', 'edit', 'delete', 'export'] },
-    { resource: 'beneficios', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'treinamentos', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'documentos', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'comunicados', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'emprestimos', actions: ['view', 'create', 'edit', 'delete', 'approve', 'export'] },
-    { resource: 'metas', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'feedback', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'pesquisas', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'organograma', actions: ['view', 'edit'] },
-    { resource: 'calendario', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'solicitacoes', actions: ['view', 'create', 'edit', 'delete', 'approve'] },
-    { resource: 'admin', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'gestao', actions: ['view'] },
-    { resource: 'relatorios', actions: ['view', 'export'] },
-    { resource: 'usuarios', actions: ['view', 'create', 'edit', 'delete'] },
-    { resource: 'configuracoes', actions: ['view', 'edit'] },
-  ],
-  diretor: [
-    { resource: 'dashboard', actions: ['view'] },
-    { resource: 'ponto', actions: ['view', 'approve', 'export'] },
-    { resource: 'ferias', actions: ['view', 'approve', 'export'] },
-    { resource: 'holerites', actions: ['view', 'export'] },
-    { resource: 'beneficios', actions: ['view'] },
-    { resource: 'treinamentos', actions: ['view'] },
-    { resource: 'documentos', actions: ['view'] },
-    { resource: 'comunicados', actions: ['view', 'create'] },
-    { resource: 'emprestimos', actions: ['view', 'approve', 'export'] },
-    { resource: 'metas', actions: ['view', 'create', 'edit', 'approve'] },
-    { resource: 'feedback', actions: ['view'] },
-    { resource: 'pesquisas', actions: ['view'] },
-    { resource: 'organograma', actions: ['view'] },
-    { resource: 'calendario', actions: ['view'] },
-    { resource: 'solicitacoes', actions: ['view', 'approve'] },
-    { resource: 'admin', actions: ['view'] },
-    { resource: 'gestao', actions: ['view'] },
-    { resource: 'relatorios', actions: ['view', 'export'] },
-    { resource: 'usuarios', actions: ['view'] },
-    { resource: 'configuracoes', actions: ['view'] },
-  ],
-};
-
-// Rotas protegidas por role
-const ROUTE_ACCESS: Record<string, UserRole[]> = {
-  '/admin': ['admin', 'rh'],
-  '/gestao': ['gestor', 'rh', 'admin', 'diretor'],
-  '/relatorios': ['gestor', 'rh', 'admin', 'diretor'],
-  '/configuracoes': ['admin'],
-  '/usuarios': ['rh', 'admin'],
-};
-
-// ============================================================================
-// INTERFACE DO CONTEXTO
-// ============================================================================
-
 interface LockoutInfo {
   isLocked: boolean;
   failedAttempts: number;
@@ -181,31 +40,22 @@ interface LockoutInfo {
 }
 
 interface AuthContextType {
-  // Estado básico
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  
-  // Role e permissões
   role: UserRole;
   isAdmin: boolean;
   isGestor: boolean;
   isRH: boolean;
   isDiretor: boolean;
-  
-  // Funções de verificação de permissão
   hasPermission: (action: PermissionAction, resource: ResourceType) => boolean;
   canAccess: (route: string) => boolean;
   hasAnyRole: (...roles: UserRole[]) => boolean;
-  
-  // Gestão de sessão
   sessionExpiresAt: Date | null;
   isSessionExpiringSoon: boolean;
   refreshSession: () => Promise<void>;
-  
-  // Autenticação
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; lockoutInfo?: LockoutInfo }>;
   signUp: (email: string, password: string, nome: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -224,16 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // ============================================================================
-  // DETECÇÃO DE ROLE
-  // ============================================================================
-
-  // ============================================================================
-  // DETECÇÃO DE ROLE VIA TABELA user_roles (SERVER-SIDE)
-  // ============================================================================
-
   const [dbRole, setDbRole] = useState<'admin' | 'gestor' | 'user' | null>(null);
+
+  // ============================================================================
+  // ROLE DETECTION
+  // ============================================================================
 
   const fetchUserRole = useCallback(async (userId: string) => {
     try {
@@ -248,7 +93,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Priorizar: admin > gestor > user
       const roles = (data ?? []).map(r => r.role);
       if (roles.includes('admin')) {
         setDbRole('admin');
@@ -265,21 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const detectRole = useCallback((profile: Profile | null): UserRole => {
     if (!profile) return 'colaborador';
-
-    // Fonte única e segura: tabela user_roles (server-side via RLS)
     if (dbRole === 'admin') return 'admin';
     if (dbRole === 'gestor') return 'gestor';
-
-    // Sem fallback por cargo — roles devem ser atribuídos explicitamente
-    // na tabela user_roles para evitar escalação de privilégios
     return 'colaborador';
   }, [dbRole]);
 
   const role = useMemo(() => detectRole(profile), [profile, detectRole]);
-
-  // ============================================================================
-  // FLAGS DE CONVENIÊNCIA
-  // ============================================================================
 
   const isAdmin = role === 'admin';
   const isGestor = role === 'gestor' || role === 'admin' || role === 'diretor';
@@ -287,27 +122,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isDiretor = role === 'diretor';
 
   // ============================================================================
-  // VERIFICAÇÃO DE PERMISSÕES
+  // PERMISSIONS
   // ============================================================================
 
   const hasPermission = useCallback((action: PermissionAction, resource: ResourceType): boolean => {
     const permissions = ROLE_PERMISSIONS[role];
     if (!permissions) return false;
-    
     const resourcePermission = permissions.find(p => p.resource === resource);
     if (!resourcePermission) return false;
-    
     return resourcePermission.actions.includes(action);
   }, [role]);
 
   const canAccess = useCallback((route: string): boolean => {
-    // Verificar rotas protegidas específicas
     const allowedRoles = ROUTE_ACCESS[route];
-    if (allowedRoles) {
-      return allowedRoles.includes(role);
-    }
-    
-    // Rotas públicas ou sem restrição específica
+    if (allowedRoles) return allowedRoles.includes(role);
     return true;
   }, [role]);
 
@@ -316,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [role]);
 
   // ============================================================================
-  // GESTÃO DE SESSÃO E TOKEN
+  // SESSION MANAGEMENT
   // ============================================================================
 
   const sessionExpiresAt = useMemo((): Date | null => {
@@ -346,16 +174,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Auto-refresh 2 minutos antes de expirar
   useEffect(() => {
     if (!session?.expires_at) return;
-
     const expiresAt = session.expires_at * 1000;
-    const refreshTime = expiresAt - 2 * 60 * 1000; // 2 minutos antes
+    const refreshTime = expiresAt - 2 * 60 * 1000;
     const now = Date.now();
 
     if (refreshTime <= now) {
-      // Já está perto de expirar, renovar agora
       refreshSession();
       return;
     }
@@ -368,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [session?.expires_at, refreshSession]);
 
   // ============================================================================
-  // FETCH PROFILE
+  // PROFILE
   // ============================================================================
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
@@ -398,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, fetchProfile]);
 
   // ============================================================================
-  // AUTENTICAÇÃO
+  // AUTHENTICATION
   // ============================================================================
 
   const MAX_ATTEMPTS = 5;
@@ -406,11 +231,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkAccountLocked = useCallback(async (email: string): Promise<LockoutInfo> => {
     try {
       const { data, error } = await supabase.rpc('check_account_locked', { p_email: email });
-      
       if (error || !data || data.length === 0) {
         return { isLocked: false, failedAttempts: 0, lockedUntil: null, remainingAttempts: MAX_ATTEMPTS };
       }
-
       const result = data[0];
       return {
         isLocked: result.is_locked,
@@ -426,11 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const recordLoginAttempt = useCallback(async (email: string, success: boolean) => {
     try {
-      await supabase.rpc('record_login_attempt', { 
-        p_email: email, 
-        p_success: success,
-        p_ip_address: null 
-      });
+      await supabase.rpc('record_login_attempt', { p_email: email, p_success: success, p_ip_address: null });
     } catch (error) {
       console.error('Erro ao registrar tentativa:', error);
     }
@@ -439,104 +258,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string; lockoutInfo?: LockoutInfo }> => {
     try {
       setIsLoading(true);
-      
-      // Check if account is locked
       const lockoutInfo = await checkAccountLocked(email);
       if (lockoutInfo.isLocked) {
-        const minutesLeft = lockoutInfo.lockedUntil 
+        const minutesLeft = lockoutInfo.lockedUntil
           ? Math.ceil((lockoutInfo.lockedUntil.getTime() - Date.now()) / 60000)
           : 15;
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: `Conta bloqueada por ${minutesLeft} minuto${minutesLeft !== 1 ? 's' : ''} devido a múltiplas tentativas incorretas`,
-          lockoutInfo 
+          lockoutInfo
         };
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        // Record failed attempt
         await recordLoginAttempt(email, false);
-        
-        // Get updated lockout info
         const updatedLockout = await checkAccountLocked(email);
-        
-        let errorMessage = error.message === 'Invalid login credentials' 
-          ? 'Email ou senha incorretos' 
-          : error.message;
-        
-        if (updatedLockout.remainingAttempts > 0 && updatedLockout.remainingAttempts < MAX_ATTEMPTS) {
-          errorMessage += `. ${updatedLockout.remainingAttempts} tentativa${updatedLockout.remainingAttempts !== 1 ? 's' : ''} restante${updatedLockout.remainingAttempts !== 1 ? 's' : ''}`;
+        let errorMsg = 'Credenciais inválidas';
+        if (error.message?.includes('Invalid login')) {
+          errorMsg = `Email ou senha incorretos. ${updatedLockout.remainingAttempts} tentativa${updatedLockout.remainingAttempts !== 1 ? 's' : ''} restante${updatedLockout.remainingAttempts !== 1 ? 's' : ''}`;
+        } else if (error.message?.includes('Email not confirmed')) {
+          errorMsg = 'Email não verificado. Verifique sua caixa de entrada';
         }
-        
-        return { 
-          success: false, 
-          error: errorMessage,
-          lockoutInfo: updatedLockout
-        };
+        return { success: false, error: errorMsg, lockoutInfo: updatedLockout };
       }
 
-      // Record successful login
       await recordLoginAttempt(email, true);
 
       if (data.user) {
-        setUser(data.user);
-        setSession(data.session);
         const profileData = await fetchProfile(data.user.id);
         setProfile(profileData);
+        await fetchUserRole(data.user.id);
       }
 
       return { success: true };
     } catch (error) {
       console.error('Erro no login:', error);
-      return { success: false, error: 'Erro ao fazer login' };
+      return { success: false, error: 'Erro ao fazer login. Tente novamente.' };
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProfile, checkAccountLocked, recordLoginAttempt]);
+  }, [checkAccountLocked, recordLoginAttempt, fetchProfile, fetchUserRole]);
 
   const signUp = useCallback(async (email: string, password: string, nome: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
-      
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: { nome },
-        },
+        options: { data: { nome } },
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        let errorMsg = 'Erro ao criar conta';
+        if (error.message?.includes('already registered')) {
+          errorMsg = 'Este email já está cadastrado';
+        } else if (error.message?.includes('weak_password')) {
+          errorMsg = 'Senha muito fraca. Use pelo menos 8 caracteres';
+        }
+        return { success: false, error: errorMsg };
       }
 
-      if (data.user) {
-        // Criar perfil
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            email,
-            nome,
-          });
-
-        if (profileError) {
-          console.error('Erro ao criar perfil:', profileError);
-        }
+      if (data.user && !data.session) {
+        return { success: true, error: 'Verifique seu email para confirmar o cadastro' };
       }
 
       return { success: true };
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      return { success: false, error: 'Erro ao criar conta' };
+      return { success: false, error: 'Erro ao criar conta. Tente novamente.' };
     } finally {
       setIsLoading(false);
     }
@@ -544,147 +335,115 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      setIsLoading(true);
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setProfile(null);
+      setDbRole(null);
     } catch (error) {
-      console.error('Erro no logout:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Erro ao sair:', error);
     }
   }, []);
 
   // ============================================================================
-  // INICIALIZAÇÃO
+  // INITIALIZATION
   // ============================================================================
 
   useEffect(() => {
-    // Verificar sessão inicial
+    let mounted = true;
+
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (currentSession?.user) {
+
+        if (currentSession?.user && mounted) {
           setSession(currentSession);
           setUser(currentSession.user);
+
           const profileData = await fetchProfile(currentSession.user.id);
-          setProfile(profileData);
-          await fetchUserRole(currentSession.user.id);
+          if (mounted) {
+            setProfile(profileData);
+            await fetchUserRole(currentSession.user.id);
+          }
         }
       } catch (error) {
         console.error('Erro ao inicializar auth:', error);
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
     initAuth();
 
-    // Listener para mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
+        if (!mounted) return;
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        if (newSession?.user) {
-          // Usar setTimeout para evitar deadlock
-          setTimeout(async () => {
-            const profileData = await fetchProfile(newSession.user.id);
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          const profileData = await fetchProfile(newSession.user.id);
+          if (mounted) {
             setProfile(profileData);
             await fetchUserRole(newSession.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
+          }
         }
 
         if (event === 'SIGNED_OUT') {
           setProfile(null);
+          setDbRole(null);
         }
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [fetchProfile, fetchUserRole]);
 
-  // ============================================================================
-  // VALOR DO CONTEXTO
-  // ============================================================================
-
-  const value: AuthContextType = {
-    // Estado básico
-    user,
-    session,
-    profile,
-    isAuthenticated: !!user,
-    isLoading,
-    
-    // Role e permissões
-    role,
-    isAdmin,
-    isGestor,
-    isRH,
-    isDiretor,
-    
-    // Funções de verificação
-    hasPermission,
-    canAccess,
-    hasAnyRole,
-    
-    // Gestão de sessão
-    sessionExpiresAt,
-    isSessionExpiringSoon,
-    refreshSession,
-    
-    // Autenticação
-    signIn,
-    signUp,
-    signOut,
-    refreshProfile,
-    checkAccountLocked,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      session,
+      profile,
+      isAuthenticated: !!session && !!user,
+      isLoading,
+      role,
+      isAdmin,
+      isGestor,
+      isRH,
+      isDiretor,
+      hasPermission,
+      canAccess,
+      hasAnyRole,
+      sessionExpiresAt,
+      isSessionExpiringSoon,
+      refreshSession,
+      signIn,
+      signUp,
+      signOut,
+      refreshProfile,
+      checkAccountLocked,
+    }),
+    [
+      user, session, profile, isLoading, role,
+      isAdmin, isGestor, isRH, isDiretor,
+      hasPermission, canAccess, hasAnyRole,
+      sessionExpiresAt, isSessionExpiringSoon,
+      refreshSession, signIn, signUp, signOut,
+      refreshProfile, checkAccountLocked,
+    ]
   );
-};
 
-// ============================================================================
-// HOOKS
-// ============================================================================
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
-
-// Hook de conveniência para verificar permissão específica
-export const usePermission = (action: PermissionAction, resource: ResourceType): boolean => {
-  const { hasPermission } = useAuth();
-  return hasPermission(action, resource);
-};
-
-// Hook de conveniência para verificar acesso a rota
-export const useRouteAccess = (route: string): boolean => {
-  const { canAccess } = useAuth();
-  return canAccess(route);
-};
-
-// Hook para verificar se usuário é gestor de outro usuário
-export const useIsManagerOf = (userId: string): boolean => {
-  const { profile, isGestor } = useAuth();
-  if (!isGestor || !profile) return false;
-  
-  // Implementação simplificada - em produção, buscar do banco
-  return profile.id !== userId;
-};
-
-export default AuthContext;

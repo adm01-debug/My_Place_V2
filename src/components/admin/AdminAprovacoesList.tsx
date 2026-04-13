@@ -1,9 +1,12 @@
-import { Check, ChevronRight, ClipboardList, Umbrella, CreditCard, Clock, DollarSign, Filter } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useMemo, useState } from 'react';
+import {
+  ClipboardList, Umbrella, CreditCard, Clock, DollarSign,
+  ChevronRight, Check, Filter
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const TIPO_REMUNERACAO_LABELS: Record<string, string> = {
   comissao: 'Comissão',
@@ -17,24 +20,60 @@ interface AdminAprovacoesListProps {
   ferias: any[];
   emprestimos: any[];
   justificativas: any[];
-  remuneracoesFiltradas: any[];
   remuneracoes: any[];
-  filtroTipoRemuneracao: string;
-  setFiltroTipoRemuneracao: (v: string) => void;
-  filtroPeriodoRemuneracao: string;
-  setFiltroPeriodoRemuneracao: (v: string) => void;
-  periodoOptions: string[];
   pendentesTotal: number;
   onOpenAprovacao: (tipo: string, data: any) => void;
 }
 
-export const AdminAprovacoesList = ({
-  solicitacoes, ferias, emprestimos, justificativas,
-  remuneracoesFiltradas, remuneracoes,
-  filtroTipoRemuneracao, setFiltroTipoRemuneracao,
-  filtroPeriodoRemuneracao, setFiltroPeriodoRemuneracao,
-  periodoOptions, pendentesTotal, onOpenAprovacao,
-}: AdminAprovacoesListProps) => {
+function ApprovalCard({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) {
+  return (
+    <Card className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer" onClick={onClick}>
+      <div className="flex items-center justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="font-medium truncate">{title}</p>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+      </div>
+    </Card>
+  );
+}
+
+function ApprovalSection({ icon: Icon, title, count, children }: {
+  icon: any; title: string; count: number; children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+        <Icon className="w-4 h-4" />{title} ({count})
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+export function AdminAprovacoesList({
+  solicitacoes, ferias, emprestimos, justificativas, remuneracoes,
+  pendentesTotal, onOpenAprovacao,
+}: AdminAprovacoesListProps) {
+  const [filtroTipoRem, setFiltroTipoRem] = useState('todos');
+  const [filtroPeriodoRem, setFiltroPeriodoRem] = useState('todos');
+
+  const periodoOptions = useMemo(() => {
+    const periodos = new Set<string>();
+    remuneracoes.forEach((r: any) => periodos.add(`${r.mes}/${r.ano}`));
+    return Array.from(periodos).sort((a, b) => {
+      const [mA, aA] = a.split('/').map(Number);
+      const [mB, aB] = b.split('/').map(Number);
+      return aB - aA || mB - mA;
+    });
+  }, [remuneracoes]);
+
+  const remFiltradas = useMemo(() => remuneracoes.filter((r: any) => {
+    return (filtroTipoRem === 'todos' || r.tipo === filtroTipoRem) &&
+           (filtroPeriodoRem === 'todos' || `${r.mes}/${r.ano}` === filtroPeriodoRem);
+  }), [remuneracoes, filtroTipoRem, filtroPeriodoRem]);
+
   if (pendentesTotal === 0) {
     return (
       <Card className="p-8 text-center border-0 shadow-card">
@@ -45,150 +84,77 @@ export const AdminAprovacoesList = ({
   }
 
   return (
-    <div className="space-y-4">
+    <>
       {solicitacoes.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <ClipboardList className="w-4 h-4" /> Solicitações ({solicitacoes.length})
-          </h3>
-          {solicitacoes.map(s => (
-            <Card key={s.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-              onClick={() => onOpenAprovacao('solicitacao', s)}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{s.titulo}</p>
-                  <p className="text-sm text-muted-foreground">{s.profile?.nome} • {s.tipo}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </Card>
+        <ApprovalSection icon={ClipboardList} title="Solicitações" count={solicitacoes.length}>
+          {solicitacoes.map((s: any) => (
+            <ApprovalCard key={s.id} onClick={() => onOpenAprovacao('solicitacao', s)} title={s.titulo} subtitle={`${s.profile?.nome} • ${s.tipo}`} />
           ))}
-        </div>
+        </ApprovalSection>
       )}
-
       {ferias.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <Umbrella className="w-4 h-4" /> Férias ({ferias.length})
-          </h3>
-          {ferias.map(f => (
-            <Card key={f.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-              onClick={() => onOpenAprovacao('ferias', f)}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{f.profile?.nome}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(f.data_inicio), 'dd/MM', { locale: ptBR })} - {format(new Date(f.data_fim), 'dd/MM/yyyy', { locale: ptBR })} • {f.dias_solicitados} dias
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </Card>
+        <ApprovalSection icon={Umbrella} title="Férias" count={ferias.length}>
+          {ferias.map((f: any) => (
+            <ApprovalCard key={f.id} onClick={() => onOpenAprovacao('ferias', f)} title={f.profile?.nome}
+              subtitle={`${format(new Date(f.data_inicio), 'dd/MM', { locale: ptBR })} - ${format(new Date(f.data_fim), 'dd/MM/yyyy', { locale: ptBR })} • ${f.dias_solicitados} dias`} />
           ))}
-        </div>
+        </ApprovalSection>
       )}
-
       {emprestimos.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <CreditCard className="w-4 h-4" /> Empréstimos ({emprestimos.length})
-          </h3>
-          {emprestimos.map(e => (
-            <Card key={e.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-              onClick={() => onOpenAprovacao('emprestimo', e)}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{e.profile?.nome}</p>
-                  <p className="text-sm text-muted-foreground">R$ {e.valor_original.toLocaleString('pt-BR')} em {e.quantidade_parcelas}x</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </Card>
+        <ApprovalSection icon={CreditCard} title="Empréstimos" count={emprestimos.length}>
+          {emprestimos.map((e: any) => (
+            <ApprovalCard key={e.id} onClick={() => onOpenAprovacao('emprestimo', e)} title={e.profile?.nome}
+              subtitle={`R$ ${e.valor_original.toLocaleString('pt-BR')} em ${e.quantidade_parcelas}x`} />
           ))}
-        </div>
+        </ApprovalSection>
       )}
-
       {justificativas.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Justificativas de Ponto ({justificativas.length})
-          </h3>
-          {justificativas.map(j => (
-            <Card key={j.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-              onClick={() => onOpenAprovacao('justificativa', j)}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{j.profile?.nome}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(j.data), 'dd/MM/yyyy', { locale: ptBR })} • {j.tipo}
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </Card>
+        <ApprovalSection icon={Clock} title="Justificativas de Ponto" count={justificativas.length}>
+          {justificativas.map((j: any) => (
+            <ApprovalCard key={j.id} onClick={() => onOpenAprovacao('justificativa', j)} title={j.profile?.nome}
+              subtitle={`${format(new Date(j.data), 'dd/MM/yyyy', { locale: ptBR })} • ${j.tipo}`} />
           ))}
-        </div>
+        </ApprovalSection>
       )}
-
       {remuneracoes.length > 0 && (
         <div className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <DollarSign className="w-4 h-4" /> Remunerações Variáveis ({remuneracoesFiltradas.length} de {remuneracoes.length})
+              <DollarSign className="w-4 h-4" />Remunerações Variáveis ({remFiltradas.length}/{remuneracoes.length})
             </h3>
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
-              <Select value={filtroTipoRemuneracao} onValueChange={setFiltroTipoRemuneracao}>
-                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <Select value={filtroTipoRem} onValueChange={setFiltroTipoRem}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="comissao">Comissão</SelectItem>
                   <SelectItem value="bonificacao">Bonificação</SelectItem>
                   <SelectItem value="plr">PLR</SelectItem>
                   <SelectItem value="premio">Prêmio</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={filtroPeriodoRemuneracao} onValueChange={setFiltroPeriodoRemuneracao}>
-                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="Período" /></SelectTrigger>
+              <Select value={filtroPeriodoRem} onValueChange={setFiltroPeriodoRem}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os períodos</SelectItem>
-                  {periodoOptions.map(periodo => (
-                    <SelectItem key={periodo} value={periodo}>
-                      {periodo.split('/')[0].padStart(2, '0')}/{periodo.split('/')[1]}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="todos">Todos</SelectItem>
+                  {periodoOptions.map(p => <SelectItem key={p} value={p}>{p.split('/')[0].padStart(2,'0')}/{p.split('/')[1]}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
-          
-          {remuneracoesFiltradas.length === 0 ? (
-            <Card className="p-4 text-center border-0 shadow-card">
-              <p className="text-sm text-muted-foreground">Nenhuma remuneração encontrada com os filtros selecionados</p>
-            </Card>
+          {remFiltradas.length === 0 ? (
+            <Card className="p-4 text-center border-0 shadow-card"><p className="text-sm text-muted-foreground">Nenhuma remuneração com os filtros selecionados</p></Card>
           ) : (
             <div className="space-y-2">
-              {remuneracoesFiltradas.map((r: any) => (
-                <Card key={r.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                  onClick={() => onOpenAprovacao('remuneracao', r)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{r.profile?.nome}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{r.descricao} • R$ {Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  </div>
-                </Card>
+              {remFiltradas.map((r: any) => (
+                <ApprovalCard key={r.id} onClick={() => onOpenAprovacao('remuneracao', r)} title={r.profile?.nome}
+                  subtitle={`${TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo} • R$ ${Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • ${String(r.mes).padStart(2,'0')}/${r.ano}`} />
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </>
   );
-};
+}

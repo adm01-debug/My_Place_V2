@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { 
-  LayoutDashboard, Megaphone, GraduationCap, ClipboardList, 
-  Umbrella, CreditCard, Clock, Users, ChevronRight, Check, X,
-  Plus, Pencil, Trash2, AlertCircle, DollarSign, Filter
+  Megaphone, GraduationCap, ClipboardList, 
+  Umbrella, CreditCard, Clock, Plus, Pencil, Trash2, DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,52 +10,28 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAdminData } from '@/hooks/useAdminData';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { AdminComunicadoModal } from '@/components/admin/AdminComunicadoModal';
 import { AdminTreinamentoModal } from '@/components/admin/AdminTreinamentoModal';
 import { AdminAprovacaoModal } from '@/components/admin/AdminAprovacaoModal';
-import { cn } from '@/lib/utils';
-
-const TIPO_REMUNERACAO_LABELS: Record<string, string> = {
-  comissao: 'Comissão',
-  bonificacao: 'Bonificação',
-  plr: 'PLR',
-  premio: 'Prêmio',
-};
+import { AdminStatCard } from '@/components/admin/AdminStatCard';
+import { AdminAprovacoesList } from '@/components/admin/AdminAprovacoesList';
 
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
   const {
-    comunicados,
-    treinamentos,
-    solicitacoes,
-    ferias,
-    emprestimos,
-    justificativas,
-    remuneracoes,
-    stats,
-    isLoading,
-    refetch,
-    criarComunicado,
-    atualizarComunicado,
-    excluirComunicado,
-    criarTreinamento,
-    atualizarTreinamento,
-    excluirTreinamento,
-    aprovarSolicitacao,
-    rejeitarSolicitacao,
-    aprovarFerias,
-    rejeitarFerias,
-    aprovarEmprestimo,
-    rejeitarEmprestimo,
-    aprovarJustificativa,
-    rejeitarJustificativa,
-    aprovarRemuneracao,
-    rejeitarRemuneracao,
+    comunicados, treinamentos, solicitacoes, ferias, emprestimos,
+    justificativas, remuneracoes, stats, isLoading, refetch,
+    criarComunicado, atualizarComunicado, excluirComunicado,
+    criarTreinamento, atualizarTreinamento, excluirTreinamento,
+    aprovarSolicitacao, rejeitarSolicitacao,
+    aprovarFerias, rejeitarFerias,
+    aprovarEmprestimo, rejeitarEmprestimo,
+    aprovarJustificativa, rejeitarJustificativa,
+    aprovarRemuneracao, rejeitarRemuneracao,
   } = useAdminData();
 
   const [comunicadoModal, setComunicadoModal] = useState<{ open: boolean; data?: any }>({ open: false });
@@ -67,37 +42,10 @@ export default function Admin() {
     data?: any;
   }>({ open: false });
 
-  // Filtros para remunerações variáveis
-  const [filtroTipoRemuneracao, setFiltroTipoRemuneracao] = useState<string>('todos');
-  const [filtroPeriodoRemuneracao, setFiltroPeriodoRemuneracao] = useState<string>('todos');
-
-  // Gera opções de período baseado nos dados
-  const periodoOptions = useMemo(() => {
-    const periodos = new Set<string>();
-    remuneracoes.forEach(r => {
-      periodos.add(`${r.mes}/${r.ano}`);
-    });
-    return Array.from(periodos).sort((a, b) => {
-      const [mesA, anoA] = a.split('/').map(Number);
-      const [mesB, anoB] = b.split('/').map(Number);
-      return anoB - anoA || mesB - mesA;
-    });
-  }, [remuneracoes]);
-
-  // Filtra remunerações baseado nos filtros selecionados
-  const remuneracoesFiltradas = useMemo(() => {
-    return remuneracoes.filter(r => {
-      const matchTipo = filtroTipoRemuneracao === 'todos' || r.tipo === filtroTipoRemuneracao;
-      const matchPeriodo = filtroPeriodoRemuneracao === 'todos' || `${r.mes}/${r.ano}` === filtroPeriodoRemuneracao;
-      return matchTipo && matchPeriodo;
-    });
-  }, [remuneracoes, filtroTipoRemuneracao, filtroPeriodoRemuneracao]);
-
   const handleSaveComunicado = async (data: any) => {
     const result = comunicadoModal.data
       ? await atualizarComunicado(comunicadoModal.data.id, data)
       : await criarComunicado(data);
-
     if (result.success) {
       toast({ title: comunicadoModal.data ? 'Comunicado atualizado' : 'Comunicado criado' });
       setComunicadoModal({ open: false });
@@ -108,18 +56,14 @@ export default function Admin() {
 
   const handleDeleteComunicado = async (id: string) => {
     const result = await excluirComunicado(id);
-    if (result.success) {
-      toast({ title: 'Comunicado excluído' });
-    } else {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
-    }
+    if (result.success) toast({ title: 'Comunicado excluído' });
+    else toast({ title: 'Erro', description: result.error, variant: 'destructive' });
   };
 
   const handleSaveTreinamento = async (data: any) => {
     const result = treinamentoModal.data
       ? await atualizarTreinamento(treinamentoModal.data.id, data)
       : await criarTreinamento(data);
-
     if (result.success) {
       toast({ title: treinamentoModal.data ? 'Treinamento atualizado' : 'Treinamento criado' });
       setTreinamentoModal({ open: false });
@@ -130,33 +74,19 @@ export default function Admin() {
 
   const handleDeleteTreinamento = async (id: string) => {
     const result = await excluirTreinamento(id);
-    if (result.success) {
-      toast({ title: 'Treinamento excluído' });
-    } else {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
-    }
+    if (result.success) toast({ title: 'Treinamento excluído' });
+    else toast({ title: 'Erro', description: result.error, variant: 'destructive' });
   };
 
   const handleAprovar = async (tipo: string, id: string) => {
     let result;
     switch (tipo) {
-      case 'solicitacao':
-        result = await aprovarSolicitacao(id);
-        break;
-      case 'ferias':
-        result = await aprovarFerias(id, user?.id || '');
-        break;
-      case 'emprestimo':
-        result = await aprovarEmprestimo(id);
-        break;
-      case 'justificativa':
-        result = await aprovarJustificativa(id);
-        break;
-      case 'remuneracao':
-        result = await aprovarRemuneracao(id, user?.id || '');
-        break;
+      case 'solicitacao': result = await aprovarSolicitacao(id); break;
+      case 'ferias': result = await aprovarFerias(id, user?.id || ''); break;
+      case 'emprestimo': result = await aprovarEmprestimo(id); break;
+      case 'justificativa': result = await aprovarJustificativa(id); break;
+      case 'remuneracao': result = await aprovarRemuneracao(id, user?.id || ''); break;
     }
-
     if (result?.success) {
       toast({ title: 'Aprovado com sucesso' });
       setAprovacaoModal({ open: false });
@@ -168,23 +98,12 @@ export default function Admin() {
   const handleRejeitar = async (tipo: string, id: string, motivo: string) => {
     let result;
     switch (tipo) {
-      case 'solicitacao':
-        result = await rejeitarSolicitacao(id, motivo);
-        break;
-      case 'ferias':
-        result = await rejeitarFerias(id, motivo);
-        break;
-      case 'emprestimo':
-        result = await rejeitarEmprestimo(id, motivo);
-        break;
-      case 'justificativa':
-        result = await rejeitarJustificativa(id, motivo);
-        break;
-      case 'remuneracao':
-        result = await rejeitarRemuneracao(id, motivo);
-        break;
+      case 'solicitacao': result = await rejeitarSolicitacao(id, motivo); break;
+      case 'ferias': result = await rejeitarFerias(id, motivo); break;
+      case 'emprestimo': result = await rejeitarEmprestimo(id, motivo); break;
+      case 'justificativa': result = await rejeitarJustificativa(id, motivo); break;
+      case 'remuneracao': result = await rejeitarRemuneracao(id, motivo); break;
     }
-
     if (result?.success) {
       toast({ title: 'Rejeitado' });
       setAprovacaoModal({ open: false });
@@ -192,23 +111,6 @@ export default function Admin() {
       toast({ title: 'Erro', description: result?.error, variant: 'destructive' });
     }
   };
-
-  const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) => (
-    <Card className={cn(
-      "p-4 border-0 shadow-card bg-card/80 backdrop-blur-sm",
-      value > 0 && "ring-2 ring-primary/20"
-    )}>
-      <div className="flex items-center gap-3">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", color)}>
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
-      </div>
-    </Card>
-  );
 
   if (isLoading) {
     return (
@@ -223,211 +125,42 @@ export default function Admin() {
   return (
     <PageLayout title="Painel Admin" onRefresh={refetch}>
       <div className="space-y-6">
-        {/* Stats Overview */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <StatCard icon={ClipboardList} label="Solicitações" value={stats.solicitacoesPendentes} color="bg-primary" />
-          <StatCard icon={Umbrella} label="Férias" value={stats.feriasPendentes} color="bg-projects" />
-          <StatCard icon={CreditCard} label="Empréstimos" value={stats.emprestimosPendentes} color="bg-finance" />
-          <StatCard icon={Clock} label="Justificativas" value={stats.justificativasPendentes} color="bg-hr" />
-          <StatCard icon={DollarSign} label="Remunerações" value={stats.remuneracoesPendentes} color="bg-amber-500" />
+          <AdminStatCard icon={ClipboardList} label="Solicitações" value={stats.solicitacoesPendentes} color="bg-primary" />
+          <AdminStatCard icon={Umbrella} label="Férias" value={stats.feriasPendentes} color="bg-projects" />
+          <AdminStatCard icon={CreditCard} label="Empréstimos" value={stats.emprestimosPendentes} color="bg-finance" />
+          <AdminStatCard icon={Clock} label="Justificativas" value={stats.justificativasPendentes} color="bg-hr" />
+          <AdminStatCard icon={DollarSign} label="Remunerações" value={stats.remuneracoesPendentes} color="bg-amber-500" />
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="aprovacoes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="aprovacoes" className="gap-2">
               <ClipboardList className="w-4 h-4" />
               <span className="hidden sm:inline">Aprovações</span>
-              {stats.pendentesTotal > 0 && (
-                <Badge variant="destructive" className="ml-1">{stats.pendentesTotal}</Badge>
-              )}
+              {stats.pendentesTotal > 0 && <Badge variant="destructive" className="ml-1">{stats.pendentesTotal}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="comunicados" className="gap-2">
-              <Megaphone className="w-4 h-4" />
-              <span className="hidden sm:inline">Comunicados</span>
+              <Megaphone className="w-4 h-4" /><span className="hidden sm:inline">Comunicados</span>
             </TabsTrigger>
             <TabsTrigger value="treinamentos" className="gap-2">
-              <GraduationCap className="w-4 h-4" />
-              <span className="hidden sm:inline">Treinamentos</span>
+              <GraduationCap className="w-4 h-4" /><span className="hidden sm:inline">Treinamentos</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Aprovações Tab */}
           <TabsContent value="aprovacoes" className="space-y-4">
-            {stats.pendentesTotal === 0 ? (
-              <Card className="p-8 text-center border-0 shadow-card">
-                <Check className="w-12 h-12 mx-auto text-finance mb-3" />
-                <p className="text-muted-foreground">Nenhuma pendência no momento</p>
-              </Card>
-            ) : (
-              <>
-                {/* Solicitações */}
-                {solicitacoes.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4" />
-                      Solicitações ({solicitacoes.length})
-                    </h3>
-                    {solicitacoes.map(s => (
-                      <Card key={s.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => setAprovacaoModal({ open: true, tipo: 'solicitacao', data: s })}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{s.titulo}</p>
-                            <p className="text-sm text-muted-foreground">{s.profile?.nome} • {s.tipo}</p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Férias */}
-                {ferias.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                      <Umbrella className="w-4 h-4" />
-                      Férias ({ferias.length})
-                    </h3>
-                    {ferias.map(f => (
-                      <Card key={f.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => setAprovacaoModal({ open: true, tipo: 'ferias', data: f })}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{f.profile?.nome}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(f.data_inicio), 'dd/MM', { locale: ptBR })} - {format(new Date(f.data_fim), 'dd/MM/yyyy', { locale: ptBR })} • {f.dias_solicitados} dias
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Empréstimos */}
-                {emprestimos.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                      <CreditCard className="w-4 h-4" />
-                      Empréstimos ({emprestimos.length})
-                    </h3>
-                    {emprestimos.map(e => (
-                      <Card key={e.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => setAprovacaoModal({ open: true, tipo: 'emprestimo', data: e })}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{e.profile?.nome}</p>
-                            <p className="text-sm text-muted-foreground">
-                              R$ {e.valor_original.toLocaleString('pt-BR')} em {e.quantidade_parcelas}x
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Justificativas */}
-                {justificativas.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Justificativas de Ponto ({justificativas.length})
-                    </h3>
-                    {justificativas.map(j => (
-                      <Card key={j.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => setAprovacaoModal({ open: true, tipo: 'justificativa', data: j })}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{j.profile?.nome}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(j.data), 'dd/MM/yyyy', { locale: ptBR })} • {j.tipo}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Remunerações Variáveis */}
-                {remuneracoes.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
-                        Remunerações Variáveis ({remuneracoesFiltradas.length} de {remuneracoes.length})
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-muted-foreground" />
-                        <Select value={filtroTipoRemuneracao} onValueChange={setFiltroTipoRemuneracao}>
-                          <SelectTrigger className="w-[130px] h-8 text-xs">
-                            <SelectValue placeholder="Tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todos">Todos os tipos</SelectItem>
-                            <SelectItem value="comissao">Comissão</SelectItem>
-                            <SelectItem value="bonificacao">Bonificação</SelectItem>
-                            <SelectItem value="plr">PLR</SelectItem>
-                            <SelectItem value="premio">Prêmio</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select value={filtroPeriodoRemuneracao} onValueChange={setFiltroPeriodoRemuneracao}>
-                          <SelectTrigger className="w-[130px] h-8 text-xs">
-                            <SelectValue placeholder="Período" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todos">Todos os períodos</SelectItem>
-                            {periodoOptions.map(periodo => (
-                              <SelectItem key={periodo} value={periodo}>
-                                {periodo.split('/')[0].padStart(2, '0')}/{periodo.split('/')[1]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    {remuneracoesFiltradas.length === 0 ? (
-                      <Card className="p-4 text-center border-0 shadow-card">
-                        <p className="text-sm text-muted-foreground">Nenhuma remuneração encontrada com os filtros selecionados</p>
-                      </Card>
-                    ) : (
-                      <div className="space-y-2">
-                        {remuneracoesFiltradas.map(r => (
-                          <Card key={r.id} className="p-4 border-0 shadow-card hover:bg-muted/30 transition-colors cursor-pointer"
-                            onClick={() => setAprovacaoModal({ open: true, tipo: 'remuneracao', data: r })}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{r.profile?.nome}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {TIPO_REMUNERACAO_LABELS[r.tipo] || r.tipo} • R$ {Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {String(r.mes).padStart(2, '0')}/{r.ano}
-                                </p>
-                              </div>
-                              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+            <AdminAprovacoesList
+              solicitacoes={solicitacoes} ferias={ferias} emprestimos={emprestimos}
+              justificativas={justificativas} remuneracoes={remuneracoes}
+              pendentesTotal={stats.pendentesTotal}
+              onOpenAprovacao={(tipo, data) => setAprovacaoModal({ open: true, tipo: tipo as any, data })}
+            />
           </TabsContent>
 
-          {/* Comunicados Tab */}
           <TabsContent value="comunicados" className="space-y-4">
             <Button onClick={() => setComunicadoModal({ open: true })} className="w-full gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Comunicado
+              <Plus className="w-4 h-4" />Novo Comunicado
             </Button>
-
             {comunicados.length === 0 ? (
               <Card className="p-8 text-center border-0 shadow-card">
                 <Megaphone className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
@@ -435,7 +168,7 @@ export default function Admin() {
               </Card>
             ) : (
               <div className="space-y-2">
-                {comunicados.map(c => (
+                {comunicados.map((c: any) => (
                   <Card key={c.id} className="p-4 border-0 shadow-card">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -450,12 +183,8 @@ export default function Admin() {
                         </p>
                       </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setComunicadoModal({ open: true, data: c })}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteComunicado(c.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setComunicadoModal({ open: true, data: c })}><Pencil className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteComunicado(c.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                       </div>
                     </div>
                   </Card>
@@ -464,13 +193,10 @@ export default function Admin() {
             )}
           </TabsContent>
 
-          {/* Treinamentos Tab */}
           <TabsContent value="treinamentos" className="space-y-4">
             <Button onClick={() => setTreinamentoModal({ open: true })} className="w-full gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Treinamento
+              <Plus className="w-4 h-4" />Novo Treinamento
             </Button>
-
             {treinamentos.length === 0 ? (
               <Card className="p-8 text-center border-0 shadow-card">
                 <GraduationCap className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
@@ -478,7 +204,7 @@ export default function Admin() {
               </Card>
             ) : (
               <div className="space-y-2">
-                {treinamentos.map(t => (
+                {treinamentos.map((t: any) => (
                   <Card key={t.id} className="p-4 border-0 shadow-card">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -492,12 +218,8 @@ export default function Admin() {
                         </p>
                       </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setTreinamentoModal({ open: true, data: t })}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteTreinamento(t.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setTreinamentoModal({ open: true, data: t })}><Pencil className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteTreinamento(t.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                       </div>
                     </div>
                   </Card>
@@ -508,29 +230,9 @@ export default function Admin() {
         </Tabs>
       </div>
 
-      {/* Modals */}
-      <AdminComunicadoModal
-        open={comunicadoModal.open}
-        onClose={() => setComunicadoModal({ open: false })}
-        data={comunicadoModal.data}
-        onSave={handleSaveComunicado}
-      />
-
-      <AdminTreinamentoModal
-        open={treinamentoModal.open}
-        onClose={() => setTreinamentoModal({ open: false })}
-        data={treinamentoModal.data}
-        onSave={handleSaveTreinamento}
-      />
-
-      <AdminAprovacaoModal
-        open={aprovacaoModal.open}
-        onClose={() => setAprovacaoModal({ open: false })}
-        tipo={aprovacaoModal.tipo}
-        data={aprovacaoModal.data}
-        onAprovar={handleAprovar}
-        onRejeitar={handleRejeitar}
-      />
+      <AdminComunicadoModal open={comunicadoModal.open} onClose={() => setComunicadoModal({ open: false })} data={comunicadoModal.data} onSave={handleSaveComunicado} />
+      <AdminTreinamentoModal open={treinamentoModal.open} onClose={() => setTreinamentoModal({ open: false })} data={treinamentoModal.data} onSave={handleSaveTreinamento} />
+      <AdminAprovacaoModal open={aprovacaoModal.open} onClose={() => setAprovacaoModal({ open: false })} tipo={aprovacaoModal.tipo} data={aprovacaoModal.data} onAprovar={handleAprovar} onRejeitar={handleRejeitar} />
     </PageLayout>
   );
 }
