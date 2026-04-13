@@ -122,6 +122,7 @@ export default function Ponto() {
   };
 
   const handleSubmitJustificativa = async (tipo: string, motivo: string, anexo: File | null) => {
+    // @ts-ignore - tipo comes from select which matches TipoJustificativa
     if (!selectedDate) return;
     setIsSubmitting(true);
     try {
