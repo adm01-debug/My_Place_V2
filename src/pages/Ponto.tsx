@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import type { TipoJustificativa } from '@/hooks/useJustificativasPonto';
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,7 +129,7 @@ export default function Ponto() {
       let anexoUrl: string | null = null;
       if (anexo) anexoUrl = await uploadAnexo(anexo);
       const dataFormatted = format(selectedDate, 'yyyy-MM-dd');
-      const result = await criarJustificativa(dataFormatted, tipo, motivo, undefined, anexoUrl || undefined);
+      const result = await criarJustificativa(dataFormatted, tipo as TipoJustificativa, motivo, undefined, anexoUrl || undefined);
       if (!result.success) throw new Error(result.error);
       toast({ title: 'Justificativa enviada', description: 'Sua justificativa será analisada pelo RH.' });
       setShowJustificativa(false);
