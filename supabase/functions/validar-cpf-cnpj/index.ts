@@ -16,20 +16,56 @@ interface ValidationResponse {
   error?: string;
 }
 
+// Rate limiting in-memory
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const window = 60_000; // 1 minute
+  const maxReqs = 30;
+  const entry = requestCounts.get(ip);
+  
+  if (!entry || now >= entry.resetAt) {
+    requestCounts.set(ip, { count: 1, resetAt: now + window });
+    return false;
+  }
+  
+  if (entry.count >= maxReqs) return true;
+  entry.count++;
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limit
+  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  if (isRateLimited(ip)) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
     const body: ValidationRequest = await req.json();
     const { type = 'auto', value } = body;
 
-    if (!value) {
+    if (!value || typeof value !== 'string') {
       return new Response(JSON.stringify({ 
         valid: false, 
-        error: 'Value is required' 
+        error: 'Value is required and must be a string' 
       }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Max length guard
+    if (value.length > 30) {
+      return new Response(JSON.stringify({ valid: false, error: 'Value too long' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -75,7 +111,6 @@ function validateCPF(cpf: string): ValidationResponse {
     return { valid: false, type: 'cpf', formatted: '', raw, error: 'Invalid CPF pattern' };
   }
 
-  // First digit validation
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += parseInt(cpf.charAt(i)) * (10 - i);
@@ -86,7 +121,6 @@ function validateCPF(cpf: string): ValidationResponse {
     return { valid: false, type: 'cpf', formatted: '', raw, error: 'Invalid CPF checksum' };
   }
 
-  // Second digit validation
   sum = 0;
   for (let i = 0; i < 10; i++) {
     sum += parseInt(cpf.charAt(i)) * (11 - i);
@@ -112,7 +146,6 @@ function validateCNPJ(cnpj: string): ValidationResponse {
     return { valid: false, type: 'cnpj', formatted: '', raw, error: 'Invalid CNPJ pattern' };
   }
 
-  // First digit validation
   const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   let sum = 0;
   for (let i = 0; i < 12; i++) {
@@ -124,7 +157,6 @@ function validateCNPJ(cnpj: string): ValidationResponse {
     return { valid: false, type: 'cnpj', formatted: '', raw, error: 'Invalid CNPJ checksum' };
   }
 
-  // Second digit validation
   const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   sum = 0;
   for (let i = 0; i < 13; i++) {
