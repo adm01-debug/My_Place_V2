@@ -72,11 +72,11 @@ export function useBeneficios() {
 
     // Fetch benefícios
     const { data: beneficiosData, error: beneficiosError } = await supabase
-      .from('beneficios' as any)
+      .from('beneficios')
       .select('*')
       .eq('user_id', user.id)
       .eq('ativo', true)
-      .order('tipo') as { data: any[] | null; error: any };
+      .order('tipo');
 
     if (beneficiosError) {
       console.error('Error fetching beneficios:', beneficiosError);
@@ -91,13 +91,13 @@ export function useBeneficios() {
 
     // Fetch dependentes para cada benefício de saúde/odonto
     const beneficiosWithDependentes = await Promise.all(
-      (beneficiosData || []).map(async (beneficio: any) => {
+      (beneficiosData || []).map(async (beneficio) => {
         if (['plano_saude', 'plano_odonto'].includes(beneficio.tipo)) {
           const { data: dependentesData } = await supabase
-            .from('beneficios_dependentes' as any)
+            .from('dependentes_beneficio')
             .select('*')
             .eq('beneficio_id', beneficio.id)
-            .eq('ativo', true) as { data: any[] | null; error: any };
+            .eq('ativo', true);
           
           return {
             ...beneficio,
@@ -150,11 +150,12 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { data, error } = await supabase
-      .from('beneficios_dependentes' as any)
+      .from('dependentes_beneficio')
       .insert({
         beneficio_id: beneficioId,
+        user_id: user.id,
         ...dependente,
-      } as any)
+      })
       .select()
       .single();
 
@@ -170,8 +171,8 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('beneficios_dependentes' as any)
-      .update({ ativo: false } as any)
+      .from('dependentes_beneficio')
+      .update({ ativo: false })
       .eq('id', dependenteId);
 
     if (error) {
