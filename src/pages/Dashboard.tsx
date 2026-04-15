@@ -170,6 +170,19 @@ export default function Dashboard() {
           />
         </div>
 
+        {/* Widget contextual por perfil */}
+        {(isGestor || isAdmin) && (
+          <GestorDashboardWidget treinamentosPendentes={treinamentosPendentes} />
+        )}
+
+        {comissaoMes > 0 && (
+          <ComissaoDestaque comissaoMes={comissaoMes} bancoHoras={bancoHoras} />
+        )}
+
+        {comissaoMes === 0 && (
+          <BancoHorasDestaque bancoHoras={bancoHoras} horasTrabalhadas={horasTrabalhadas} />
+        )}
+
         {/* Empréstimo Ativo */}
         {emprestimoAtivo && (
           <Card 
