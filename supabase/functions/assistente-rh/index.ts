@@ -5,7 +5,31 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const systemPrompt = `Você é o Assistente Virtual de RH do portal do colaborador. Seu nome é "Assistente RH".
+function buildSystemPrompt(contexto?: Record<string, unknown>) {
+  let contextBlock = '';
+  
+  if (contexto) {
+    const parts: string[] = [];
+    if (contexto.nome) parts.push(`- Nome do colaborador: ${contexto.nome}`);
+    if (contexto.cargo) parts.push(`- Cargo: ${contexto.cargo}`);
+    if (contexto.departamento) parts.push(`- Departamento: ${contexto.departamento}`);
+    if (contexto.saldoFerias !== undefined) parts.push(`- Saldo de férias: ${contexto.saldoFerias} dias`);
+    if (contexto.bancoHoras) parts.push(`- Banco de horas: ${contexto.bancoHoras}`);
+    if (contexto.horasTrabalhadas) parts.push(`- Horas trabalhadas este mês: ${contexto.horasTrabalhadas}`);
+    if (contexto.salarioEstimado) parts.push(`- Último salário líquido: R$ ${Number(contexto.salarioEstimado).toFixed(2)}`);
+    if (contexto.treinamentosPendentes !== undefined) parts.push(`- Treinamentos pendentes: ${contexto.treinamentosPendentes}`);
+    if (contexto.solicitacoesPendentes !== undefined) parts.push(`- Solicitações pendentes: ${contexto.solicitacoesPendentes}`);
+    if (contexto.emprestimoAtivo) {
+      const emp = contexto.emprestimoAtivo as Record<string, number>;
+      parts.push(`- Empréstimo ativo: saldo R$ ${emp.saldo_devedor?.toFixed(2)}, ${emp.parcelas_restantes} parcelas restantes`);
+    }
+    
+    if (parts.length > 0) {
+      contextBlock = `\n\nDADOS DO COLABORADOR ATUAL (use para personalizar respostas):\n${parts.join('\n')}`;
+    }
+  }
+
+  return `Você é o Assistente Virtual de RH do portal do colaborador. Seu nome é "Assistente RH".
 
 Você é especialista em:
 - Políticas de RH da empresa
@@ -16,6 +40,7 @@ Você é especialista em:
 - Treinamentos corporativos
 - Empréstimos consignados
 - Documentos trabalhistas
+${contextBlock}
 
 REGRAS IMPORTANTES:
 1. Seja sempre cordial, profissional e objetivo
@@ -25,6 +50,8 @@ REGRAS IMPORTANTES:
 5. Mantenha respostas concisas, mas completas
 6. Use emojis com moderação para tornar a conversa mais amigável
 7. Sempre que possível, indique onde o colaborador pode encontrar mais informações no portal
+8. QUANDO O COLABORADOR PERGUNTAR SOBRE SEUS DADOS PESSOAIS (férias, banco de horas, salário, etc), USE OS DADOS REAIS fornecidos acima para dar respostas precisas e personalizadas
+9. Se o colaborador perguntar "quantos dias de férias tenho?", responda com o saldo real
 
 BASE DE CONHECIMENTO FAQ:
 
@@ -64,6 +91,7 @@ BASE DE CONHECIMENTO FAQ:
 
 Se o usuário perguntar algo fora do escopo de RH, gentilmente redirecione para o tema apropriado.
 Quando apropriado, sugira que o colaborador acesse a página de FAQ (/faq) para mais perguntas frequentes.`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -71,12 +99,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, contexto } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const systemPrompt = buildSystemPrompt(contexto);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

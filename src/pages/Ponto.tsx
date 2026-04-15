@@ -16,6 +16,7 @@ import { ptBR } from 'date-fns/locale';
 import { PontoStats } from '@/components/ponto/PontoStats';
 import { EspelhoDiaCard, type EspelhoDia } from '@/components/ponto/EspelhoDiaCard';
 import { JustificativaDialog } from '@/components/ponto/JustificativaDialog';
+import { ExportarEspelho } from '@/components/ponto/ExportarEspelho';
 
 export default function Ponto() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -217,6 +218,9 @@ export default function Ponto() {
             <HistoricoPonto />
           </div>
         </Card>
+
+        {/* Exportar Espelho de Ponto */}
+        <ExportarEspelho mes={mesAtual.getMonth() + 1} ano={mesAtual.getFullYear()} />
       </div>
 
       <JustificativaDialog

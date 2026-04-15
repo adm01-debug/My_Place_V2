@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { BookOpen, AlertTriangle, CheckCircle, Download, Play, ExternalLink } from 'lucide-react';
+import { GamificationStats } from '@/components/treinamentos/GamificationStats';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -128,6 +129,13 @@ export default function Treinamentos() {
   return (
     <PageLayout title="Meus Treinamentos" showBack onRefresh={refetch}>
       <div className="space-y-6 animate-fade-in-up">
+        {/* Gamificação */}
+        <GamificationStats 
+          totalRealizados={totalRealizados} 
+          horasTotal={horasTotal} 
+          totalPendentes={totalPendentes}
+        />
+
         {/* Estatísticas */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="p-3 text-center">

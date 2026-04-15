@@ -18,9 +18,11 @@ import { TrilhasWidget } from '@/components/portal/TrilhasWidget';
 import { SmartGreeting } from '@/components/portal/SmartGreeting';
 import { StatCardWithTrend } from '@/components/portal/StatCardWithTrend';
 import { SectionHeader } from '@/components/portal/SectionHeader';
+import { GestorDashboardWidget, ComissaoDestaque, BancoHorasDestaque } from '@/components/dashboard/RoleWidgets';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -53,10 +55,12 @@ export default function Dashboard() {
     comunicados,
     notificacoesNaoLidas,
     solicitacoesPendentes,
+    treinamentosPendentes,
     isLoading,
     refetch
   } = useDashboard();
 
+  const { isGestor, isAdmin } = useAuth();
   const { unreadCount } = useNotificacoes();
   const { isSubscribed, permission, subscribe } = usePushNotifications();
 
@@ -165,6 +169,19 @@ export default function Dashboard() {
             onClick={() => navigate('/variavel')}
           />
         </div>
+
+        {/* Widget contextual por perfil */}
+        {(isGestor || isAdmin) && (
+          <GestorDashboardWidget treinamentosPendentes={treinamentosPendentes} />
+        )}
+
+        {comissaoMes > 0 && (
+          <ComissaoDestaque comissaoMes={comissaoMes} bancoHoras={bancoHoras} />
+        )}
+
+        {comissaoMes === 0 && (
+          <BancoHorasDestaque bancoHoras={bancoHoras} horasTrabalhadas={horasTrabalhadas} />
+        )}
 
         {/* Empréstimo Ativo */}
         {emprestimoAtivo && (
