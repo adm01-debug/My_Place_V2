@@ -8,23 +8,25 @@ interface Treinamento {
   titulo: string;
   descricao: string | null;
   carga_horaria: number;
-  tipo: 'obrigatorio' | 'recomendado' | 'opcional';
   categoria: string;
-  url_treinamento: string | null;
-  url_material: string | null;
+  obrigatorio: boolean;
+  conteudo_url: string | null;
+  thumbnail_url: string | null;
+  instrutor: string | null;
+  ativo: boolean;
 }
 
 interface TreinamentoColaborador {
   id: string;
   treinamento_id: string;
-  status: 'pendente' | 'em_andamento' | 'concluido' | 'expirado';
+  user_id: string;
+  status: string;
   progresso: number;
   data_inicio: string | null;
   data_conclusao: string | null;
+  data_limite: string | null;
   nota: number | null;
   certificado_url: string | null;
-  validade: string | null;
-  prazo: string | null;
   treinamento: Treinamento;
 }
 
