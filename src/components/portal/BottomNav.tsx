@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Wallet, Clock, Umbrella, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,7 @@ const navItems = [
   { icon: Menu, label: 'Mais', path: '/menu' },
 ];
 
-export function BottomNav() {
+export const BottomNav = React.memo(function BottomNav() {
   const location = useLocation();
 
   return (
@@ -64,4 +65,4 @@ export function BottomNav() {
       </div>
     </nav>
   );
-}
+});
