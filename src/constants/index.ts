@@ -71,3 +71,68 @@ export const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'application/msword', 
 // API
 export const API_TIMEOUT_MS = 30000;
 export const RETRY_COUNT = 3;
+
+// Solicitações
+export const SOLICITACAO_STATUS = {
+  PENDENTE: 'pendente',
+  APROVADO: 'aprovado',
+  REJEITADO: 'rejeitado',
+  CONCLUIDO: 'concluido',
+} as const;
+
+// Empréstimos
+export const EMPRESTIMO_STATUS = {
+  PENDENTE: 'pendente',
+  ATIVO: 'ativo',
+  QUITADO: 'quitado',
+  REJEITADO: 'rejeitado',
+} as const;
+
+export const EMPRESTIMO_TAXA_PADRAO = 1.5;
+
+// Treinamentos
+export const TREINAMENTO_STATUS = {
+  NAO_INICIADO: 'nao_iniciado',
+  EM_ANDAMENTO: 'em_andamento',
+  CONCLUIDO: 'concluido',
+} as const;
+
+// Metas
+export const META_STATUS = {
+  EM_ANDAMENTO: 'em_andamento',
+  CONCLUIDA: 'concluida',
+  CANCELADA: 'cancelada',
+  ATRASADA: 'atrasada',
+} as const;
+
+// Remuneração Variável
+export const REMUNERACAO_TIPO = {
+  COMISSAO: 'comissao',
+  BONUS: 'bonus',
+  PLR: 'plr',
+  GRATIFICACAO: 'gratificacao',
+} as const;
+
+// Jornada de trabalho
+export const JORNADA = {
+  HORAS_DIA: 8,
+  HORAS_SEMANA: 44,
+  INTERVALO_MIN: 60,
+  TOLERANCIA_MIN: 10,
+} as const;
+
+// Meses
+export const MESES_LABELS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+] as const;
+
+// Storage buckets
+export const STORAGE_BUCKETS = {
+  AVATARS: 'avatars',
+  DOCUMENTOS: 'documentos',
+  ATESTADOS: 'atestados',
+  CERTIFICADOS: 'certificados',
+  COMUNICADOS: 'comunicados',
+  ANEXOS: 'anexos',
+} as const;
