@@ -18,9 +18,11 @@ import { TrilhasWidget } from '@/components/portal/TrilhasWidget';
 import { SmartGreeting } from '@/components/portal/SmartGreeting';
 import { StatCardWithTrend } from '@/components/portal/StatCardWithTrend';
 import { SectionHeader } from '@/components/portal/SectionHeader';
+import { GestorDashboardWidget, ComissaoDestaque, BancoHorasDestaque } from '@/components/dashboard/RoleWidgets';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
