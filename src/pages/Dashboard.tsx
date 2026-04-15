@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Clock, Umbrella, TrendingUp, Bell, 
