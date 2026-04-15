@@ -15,12 +15,15 @@ interface Dependente {
 
 interface Beneficio {
   id: string;
-  tipo: 'vale_transporte' | 'vale_refeicao' | 'vale_alimentacao' | 'plano_saude' | 'plano_odonto' | 'seguro_vida' | 'auxilio_creche' | 'gympass' | 'outros';
+  tipo: string;
+  nome: string;
   ativo: boolean;
   credito_mensal: number;
   desconto: number;
   saldo_cartao: number;
   valor_empresa: number;
+  valor_mensal: number;
+  valor_desconto: number;
   operadora: string | null;
   plano: string | null;
   numero_cartao: string | null;
