@@ -153,7 +153,7 @@ export default function Admin() {
               solicitacoes={solicitacoes} ferias={ferias} emprestimos={emprestimos}
               justificativas={justificativas} remuneracoes={remuneracoes}
               pendentesTotal={stats.pendentesTotal}
-              onOpenAprovacao={(tipo, data) => setAprovacaoModal({ open: true, tipo: tipo as any, data })}
+              onOpenAprovacao={(tipo, data) => setAprovacaoModal({ open: true, tipo: tipo as 'solicitacao' | 'ferias' | 'emprestimo' | 'justificativa' | 'remuneracao', data })}
             />
           </TabsContent>
 
