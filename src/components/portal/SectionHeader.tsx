@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -14,16 +14,16 @@ interface SectionHeaderProps {
   className?: string;
 }
 
-export function SectionHeader({ 
+export const SectionHeader = forwardRef<HTMLDivElement, SectionHeaderProps>(({ 
   icon: Icon, 
   title, 
   action, 
   count, 
   accentColor = 'bg-primary',
   className 
-}: SectionHeaderProps) {
+}, ref) => {
   return (
-    <div className={cn('flex items-center justify-between', className)}>
+    <div ref={ref} className={cn('flex items-center justify-between', className)}>
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
         <span className={cn('w-1 h-4 rounded-full', accentColor)} />
         {Icon && <Icon className="w-3.5 h-3.5" />}
@@ -46,4 +46,6 @@ export function SectionHeader({
       )}
     </div>
   );
-}
+});
+
+SectionHeader.displayName = 'SectionHeader';
