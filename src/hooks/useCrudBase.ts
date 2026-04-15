@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('CrudBase');
 
 // =====================================================
 // TYPES
@@ -137,7 +140,7 @@ export function useCrudBase<T extends { id: string }>(
     try {
       return await createMutation.mutateAsync(item);
     } catch (err) {
-      console.error('Create error:', err);
+      log.error('Create error:', err);
       return null;
     }
   }, [createMutation]);
@@ -146,7 +149,7 @@ export function useCrudBase<T extends { id: string }>(
     try {
       return await updateMutation.mutateAsync({ id, changes });
     } catch (err) {
-      console.error('Update error:', err);
+      log.error('Update error:', err);
       return null;
     }
   }, [updateMutation]);
@@ -155,7 +158,7 @@ export function useCrudBase<T extends { id: string }>(
     try {
       return await deleteMutation.mutateAsync(id);
     } catch (err) {
-      console.error('Delete error:', err);
+      log.error('Delete error:', err);
       return false;
     }
   }, [deleteMutation]);

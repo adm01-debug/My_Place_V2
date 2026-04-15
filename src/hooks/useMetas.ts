@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Metas');
 
 export interface KeyResult {
   id: string;
@@ -117,7 +120,7 @@ export function useMetas() {
 
       setMetas(metasComKr);
     } catch (err) {
-      console.error('Erro ao buscar metas:', err);
+      log.error('Erro ao buscar metas:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar metas');
     } finally {
       setIsLoading(false);
@@ -151,7 +154,7 @@ export function useMetas() {
       await fetchMetas();
       return novaMeta;
     } catch (err) {
-      console.error('Erro ao criar meta:', err);
+      log.error('Erro ao criar meta:', err);
       toast.error('Erro ao criar meta');
       return null;
     }
@@ -170,7 +173,7 @@ export function useMetas() {
       await fetchMetas();
       return true;
     } catch (err) {
-      console.error('Erro ao atualizar meta:', err);
+      log.error('Erro ao atualizar meta:', err);
       toast.error('Erro ao atualizar meta');
       return false;
     }
@@ -200,7 +203,7 @@ export function useMetas() {
       await fetchMetas();
       return true;
     } catch (err) {
-      console.error('Erro ao adicionar key result:', err);
+      log.error('Erro ao adicionar key result:', err);
       toast.error('Erro ao adicionar key result');
       return false;
     }
@@ -219,7 +222,7 @@ export function useMetas() {
       await fetchMetas();
       return true;
     } catch (err) {
-      console.error('Erro ao atualizar key result:', err);
+      log.error('Erro ao atualizar key result:', err);
       toast.error('Erro ao atualizar progresso');
       return false;
     }
@@ -238,7 +241,7 @@ export function useMetas() {
       await fetchMetas();
       return true;
     } catch (err) {
-      console.error('Erro ao excluir meta:', err);
+      log.error('Erro ao excluir meta:', err);
       toast.error('Erro ao excluir meta');
       return false;
     }

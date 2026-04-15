@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('LocaisPermitidos');
 
 type LocalPermitidoDB = Database['public']['Tables']['locais_permitidos']['Row'];
 
@@ -34,7 +37,7 @@ export function useLocaisPermitidos() {
       .order('nome');
 
     if (error) {
-      console.error('Error fetching locais:', error);
+      log.error('Error fetching locais:', error);
       toast({
         title: 'Erro ao carregar locais',
         description: error.message,
@@ -60,7 +63,7 @@ export function useLocaisPermitidos() {
         });
 
       if (error) {
-        console.error('Error validating location:', error);
+        log.error('Error validating location:', error);
         // Fallback: validação local
         return validarLocalizacaoLocal(latitude, longitude);
       }
@@ -74,7 +77,7 @@ export function useLocaisPermitidos() {
         todosLocais: resultados,
       };
     } catch (error) {
-      console.error('Error calling fn_validar_localizacao:', error);
+      log.error('Error calling fn_validar_localizacao:', error);
       return validarLocalizacaoLocal(latitude, longitude);
     }
   };

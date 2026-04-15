@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Treinamentos');
 
 interface Treinamento {
   id: string;
@@ -78,7 +81,7 @@ export function useTreinamentos() {
       .order('created_at', { ascending: false });
 
     if (treinamentosError) {
-      console.error('Error fetching treinamentos:', treinamentosError);
+      log.error('Error fetching treinamentos:', treinamentosError);
       toast({
         title: 'Erro ao carregar treinamentos',
         description: treinamentosError.message,

@@ -2,6 +2,9 @@ import { useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ExportPDF');
 
 interface ExportOptions {
   filename?: string;
@@ -104,7 +107,7 @@ export function useExportPDF() {
 
       toast({ title: 'PDF gerado', description: 'Use a caixa de diálogo para salvar ou imprimir.' });
     } catch (error: any) {
-      console.error('Error exporting PDF:', error);
+      log.error('Error exporting PDF:', error);
       toast({ title: 'Erro ao exportar PDF', description: error.message, variant: 'destructive' });
     } finally {
       setIsExporting(false);

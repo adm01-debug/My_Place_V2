@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AuthContext');
   type UserRole, 
   type PermissionAction, 
   type ResourceType, 
@@ -88,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Erro ao buscar roles:', error);
+        log.error('Erro ao buscar roles:', error);
         setDbRole(null);
         return;
       }
@@ -102,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setDbRole('user');
       }
     } catch (error) {
-      console.error('Erro ao buscar roles:', error);
+      log.error('Erro ao buscar roles:', error);
       setDbRole(null);
     }
   }, []);
@@ -162,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
-        console.error('Erro ao renovar sessão:', error);
+        log.error('Erro ao renovar sessão:', error);
         return;
       }
       if (data.session) {
@@ -170,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data.user);
       }
     } catch (error) {
-      console.error('Erro ao renovar sessão:', error);
+      log.error('Erro ao renovar sessão:', error);
     }
   }, []);
 
@@ -205,12 +208,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        console.error('Erro ao buscar perfil:', error);
+        log.error('Erro ao buscar perfil:', error);
         return null;
       }
       return data;
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
+      log.error('Erro ao buscar perfil:', error);
       return null;
     }
   }, []);
@@ -242,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         remainingAttempts: Math.max(0, MAX_ATTEMPTS - result.failed_attempts),
       };
     } catch (error) {
-      console.error('Erro ao verificar bloqueio:', error);
+      log.error('Erro ao verificar bloqueio:', error);
       return { isLocked: false, failedAttempts: 0, lockedUntil: null, remainingAttempts: MAX_ATTEMPTS };
     }
   }, []);
@@ -251,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.rpc('record_login_attempt', { p_email: email, p_success: success, p_ip_address: undefined });
     } catch (error) {
-      console.error('Erro ao registrar tentativa:', error);
+      log.error('Erro ao registrar tentativa:', error);
     }
   }, []);
 
@@ -294,7 +297,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true };
     } catch (error) {
-      console.error('Erro no login:', error);
+      log.error('Erro no login:', error);
       return { success: false, error: 'Erro ao fazer login. Tente novamente.' };
     } finally {
       setIsLoading(false);
@@ -326,7 +329,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true };
     } catch (error) {
-      console.error('Erro no cadastro:', error);
+      log.error('Erro no cadastro:', error);
       return { success: false, error: 'Erro ao criar conta. Tente novamente.' };
     } finally {
       setIsLoading(false);
@@ -341,7 +344,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       setDbRole(null);
     } catch (error) {
-      console.error('Erro ao sair:', error);
+      log.error('Erro ao sair:', error);
     }
   }, []);
 
@@ -367,7 +370,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
-        console.error('Erro ao inicializar auth:', error);
+        log.error('Erro ao inicializar auth:', error);
       } finally {
         if (mounted) setIsLoading(false);
       }

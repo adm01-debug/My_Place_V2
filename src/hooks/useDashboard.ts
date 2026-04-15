@@ -4,6 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { calcularHorasTrabalhadas, calcularBancoHoras } from './useHorasCalculator';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Dashboard');
 
 // ============================================================================
 // TYPES
@@ -169,7 +172,7 @@ export function useDashboard() {
         treinamentosPendentes: treinamentosResult.count || 0,
       });
     } catch (error) {
-      console.error('Error fetching dashboard:', error);
+      log.error('Error fetching dashboard:', error);
       toast({ title: 'Erro ao carregar dashboard', description: 'Alguns dados podem estar indisponíveis', variant: 'destructive' });
     }
 

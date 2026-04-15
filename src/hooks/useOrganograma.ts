@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Organograma');
 
 export interface ColaboradorOrganograma {
   id: string;
@@ -66,7 +69,7 @@ export function useOrganograma() {
       setColaboradores(colaboradoresComNivel);
       setArvore(buildTree(colaboradoresComNivel));
     } catch (err) {
-      console.error('Erro ao buscar organograma:', err);
+      log.error('Erro ao buscar organograma:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar organograma');
     } finally {
       setIsLoading(false);

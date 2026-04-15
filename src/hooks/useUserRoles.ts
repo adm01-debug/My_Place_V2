@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('rRoles');
 
 type AppRole = Database['public']['Enums']['app_role'];
 type UserRoleRow = Database['public']['Tables']['user_roles']['Row'];
@@ -32,7 +35,7 @@ export function useUserRoles() {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error fetching user roles:', error);
+      log.error('Error fetching user roles:', error);
       setIsLoading(false);
       return;
     }

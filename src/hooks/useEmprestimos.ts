@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, addMonths, isBefore, isAfter } from 'date-fns';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Emprestimos');
 
 type StatusEmprestimo = 'ativo' | 'quitado' | 'cancelado';
 type StatusParcela = 'pendente' | 'paga' | 'atrasada';
@@ -63,7 +66,7 @@ export function useEmprestimos() {
       .order('created_at', { ascending: false });
 
     if (emprestimosError) {
-      console.error('Error fetching emprestimos:', emprestimosError);
+      log.error('Error fetching emprestimos:', emprestimosError);
       toast({
         title: 'Erro ao carregar empréstimos',
         description: emprestimosError.message,

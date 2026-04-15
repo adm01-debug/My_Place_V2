@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth, format, isSameDay, parseISO, isWithinInterval } from 'date-fns';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('CalendarioCorporativo');
 
 export interface EventoCalendario {
   id: string;
@@ -117,7 +120,7 @@ export function useCalendarioCorporativo(mesAtual: Date) {
 
       setEventos([...eventosFormatados, ...aniversariantesFormatados, ...feriasFormatadas]);
     } catch (err) {
-      console.error('Erro ao buscar calendário:', err);
+      log.error('Erro ao buscar calendário:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar calendário');
     } finally {
       setIsLoading(false);

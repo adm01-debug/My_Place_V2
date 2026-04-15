@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('PesquisasClima');
 
 interface Pesquisa {
   id: string;
@@ -135,7 +138,7 @@ export function usePesquisasClima() {
       ]);
 
     } catch (error) {
-      console.error('Erro ao carregar pesquisas:', error);
+      log.error('Erro ao carregar pesquisas:', error);
     } finally {
       setIsLoading(false);
     }
@@ -205,7 +208,7 @@ export function usePesquisasClima() {
       return true;
 
     } catch (error) {
-      console.error('Erro ao enviar respostas:', error);
+      log.error('Erro ao enviar respostas:', error);
       toast.error('Erro ao enviar respostas');
       return false;
     } finally {

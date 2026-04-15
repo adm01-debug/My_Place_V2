@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Holerites');
 
 export interface HoleriteItem {
   codigo: string;
@@ -59,7 +62,7 @@ export function useHolerites() {
       })) as Holerite[];
       setHolerites(mappedHolerites);
     } catch (err: any) {
-      console.error('Erro ao buscar holerites:', err);
+      log.error('Erro ao buscar holerites:', err);
       toast({ title: 'Erro ao carregar holerites', description: err.message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
@@ -90,7 +93,7 @@ export function useHolerites() {
         }
         window.open(holerite.pdf_url, '_blank');
         return { success: true };
-      } catch (err) { console.error('Erro ao baixar PDF:', err); }
+      } catch (err) { log.error('Erro ao baixar PDF:', err); }
     }
 
     setIsGeneratingPdf(true);

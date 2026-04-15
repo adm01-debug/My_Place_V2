@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Notificacoes');
 
 type TipoNotificacao = 'info' | 'success' | 'warning' | 'alert' | 'system';
 
@@ -49,7 +52,7 @@ export function useNotificacoes() {
       .limit(50);
 
     if (error) {
-      console.error('Error fetching notificacoes:', error);
+      log.error('Error fetching notificacoes:', error);
       setIsLoading(false);
       return;
     }

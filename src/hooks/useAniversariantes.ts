@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Aniversariantes');
 
 export interface Aniversariante {
   id: string;
@@ -85,7 +88,7 @@ export function useAniversariantes() {
 
       setAniversariantes(aniversariantesMes);
     } catch (error) {
-      console.error('Erro ao buscar aniversariantes:', error);
+      log.error('Erro ao buscar aniversariantes:', error);
     }
     setIsLoading(false);
   };
@@ -125,7 +128,7 @@ export function useAniversariantes() {
 
       return true;
     } catch (error) {
-      console.error('Erro ao enviar parabéns:', error);
+      log.error('Erro ao enviar parabéns:', error);
       toast({
         title: 'Erro ao enviar',
         description: 'Não foi possível enviar os parabéns.',

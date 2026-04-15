@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('2FA');
 
 interface TwoFAStatus {
   enabled: boolean;
@@ -38,14 +41,14 @@ export function use2FA() {
       });
       
       if (error) {
-        console.error('Error fetching 2FA status:', error);
+        log.error('Error fetching 2FA status:', error);
         return null;
       }
       
       setStatus(data);
       return data;
     } catch (error) {
-      console.error('Error fetching 2FA status:', error);
+      log.error('Error fetching 2FA status:', error);
       return null;
     } finally {
       setIsLoading(false);

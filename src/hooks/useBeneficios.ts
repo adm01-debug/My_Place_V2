@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Beneficios');
 
 interface Dependente {
   id: string;
@@ -91,7 +94,7 @@ export function useBeneficios() {
       .order('tipo');
 
     if (beneficiosError) {
-      console.error('Error fetching beneficios:', beneficiosError);
+      log.error('Error fetching beneficios:', beneficiosError);
       toast({
         title: 'Erro ao carregar benefícios',
         description: beneficiosError.message,
