@@ -2,11 +2,12 @@ import { Suspense, lazy } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageErrorBoundary from "@/components/portal/PageErrorBoundary";
+import Navbar from "@/components/layout/Navbar";
 
 const Login = lazy(() => import("./pages/Login"));
 const Perfil = lazy(() => import("./pages/Perfil"));
@@ -46,6 +47,17 @@ function Page({ children, name }: { children: React.ReactNode; name: string }) {
   );
 }
 
+function AuthenticatedLayout() {
+  return (
+    <ProtectedRoute>
+      <Navbar />
+      <main className="pb-16 md:pb-0">
+        <Outlet />
+      </main>
+    </ProtectedRoute>
+  );
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
@@ -56,8 +68,10 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Page name="Login"><Login /></Page>} />
               <Route path="/reset-password" element={<Page name="Redefinir Senha"><ResetPassword /></Page>} />
-              <Route path="/" element={<ProtectedRoute><Page name="Home"><Home /></Page></ProtectedRoute>} />
-              <Route path="/perfil" element={<ProtectedRoute><Page name="Perfil"><Perfil /></Page></ProtectedRoute>} />
+              <Route element={<AuthenticatedLayout />}>
+                <Route path="/" element={<Page name="Home"><Home /></Page>} />
+                <Route path="/perfil" element={<Page name="Perfil"><Perfil /></Page>} />
+              </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
           </AuthProvider>

@@ -1,14 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
-  LogOut, User, Building2, Briefcase, Calendar, 
-  Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
-  Receipt, FileText, type LucideIcon
+  Building2, Briefcase, Calendar, Hash, Shield, 
+  Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 
@@ -67,7 +64,7 @@ function getGreeting(): string {
 }
 
 export default function Home() {
-  const { user, profile, role, signOut } = useAuth();
+  const { user, profile, role } = useAuth();
   const navigate = useNavigate();
 
   const initials = profile?.nome
@@ -95,22 +92,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="w-full max-w-lg mx-auto p-4 pt-8 pb-12 space-y-6">
-        {/* Header with greeting */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sun className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm text-muted-foreground">{getGreeting()}</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={signOut}
-            className="text-muted-foreground hover:text-destructive"
-            aria-label="Sair"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+      <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-12 space-y-6">
+        {/* Greeting */}
+        <div className="flex items-center gap-2">
+          <Sun className="w-5 h-5 text-yellow-500" />
+          <span className="text-sm text-muted-foreground">{getGreeting()}, <span className="font-medium text-foreground">{firstName}</span></span>
         </div>
 
         {/* Profile Card */}
@@ -192,33 +178,6 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <Card className="border-border/50 shadow-lg">
-          <CardContent className="p-2">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/perfil')} 
-              className="w-full justify-between h-12 px-4"
-            >
-              <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-primary" />
-                <span>Editar Perfil</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </Button>
-            <Separator />
-            <Button 
-              variant="ghost" 
-              onClick={signOut} 
-              className="w-full justify-between h-12 px-4 text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <div className="flex items-center gap-3">
-                <LogOut className="w-4 h-4" />
-                <span>Sair da conta</span>
-              </div>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
