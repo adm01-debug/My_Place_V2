@@ -2,14 +2,18 @@
 // MONITORING & ANALYTICS UTILITIES
 // =====================================================
 
+import { createLogger } from './logger';
+
+const log = createLogger('Monitoring');
+
 // =====================================================
-// ERROR TRACKING (Sentry-like)
+// ERROR TRACKING
 // =====================================================
 
 interface ErrorContext {
   user?: { id: string; email?: string };
   tags?: Record<string, string>;
-  extra?: Record<string, any>;
+  extra?: Record<string, unknown>;
 }
 
 class ErrorTracker {
@@ -25,11 +29,11 @@ class ErrorTracker {
     return ErrorTracker.instance;
   }
 
-  init(dsn: string): void {
-    this.dsn = dsn;
+  init(dsn?: string): void {
+    if (dsn) this.dsn = dsn;
     this.enabled = true;
     this.setupGlobalHandlers();
-    console.log('[ErrorTracker] Initialized');
+    log.info('ErrorTracker initialized');
   }
 
   setUser(user: { id: string; email?: string }): void {
@@ -50,53 +54,39 @@ class ErrorTracker {
       },
       context: { ...this.context, ...context },
       url: window.location.href,
-      userAgent: navigator.userAgent,
     };
 
-    // Always log locally
-    console.error('[ErrorTracker] Captured:', payload.error.name, payload.error.message);
+    log.error(`${payload.error.name}: ${payload.error.message}`);
 
     if (!this.enabled) return;
 
-    // Store in localStorage for debugging
     try {
       const errors = JSON.parse(localStorage.getItem('error_log') || '[]');
       errors.push(payload);
-      // Keep only last 50 errors
       if (errors.length > 50) errors.splice(0, errors.length - 50);
       localStorage.setItem('error_log', JSON.stringify(errors));
     } catch {
       // Ignore storage errors
     }
 
-    // Send to backend if DSN configured
     if (this.dsn) {
       fetch(this.dsn, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      }).catch(() => { /* silent fail for error reporting */ });
+      }).catch(() => { /* silent fail */ });
     }
   }
 
   captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
     if (!this.enabled) return;
-
-    const payload = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      context: this.context,
-      url: window.location.href,
-    };
-
-    console.log(`[ErrorTracker] ${level}:`, payload);
+    log.info(`${level}: ${message}`);
   }
 
   private setupGlobalHandlers(): void {
-    window.onerror = (message, source, lineno, colno, error) => {
-      this.captureException(error || new Error(String(message)), {
-        extra: { source, lineno, colno },
+    window.onerror = (_message, source, lineno, colno, error) => {
+      this.captureException(error || new Error(String(_message)), {
+        extra: { source: source ?? '', lineno: lineno ?? 0, colno: colno ?? 0 },
       });
     };
 
@@ -114,7 +104,7 @@ export const errorTracker = ErrorTracker.getInstance();
 // ANALYTICS
 // =====================================================
 
-type EventName = 
+type EventName =
   | 'page_view'
   | 'button_click'
   | 'form_submit'
@@ -126,7 +116,7 @@ type EventName =
 
 interface AnalyticsEvent {
   name: EventName;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   timestamp?: Date;
 }
 
@@ -146,24 +136,22 @@ class Analytics {
   init(): void {
     this.enabled = true;
     this.flushQueue();
-    console.log('[Analytics] Initialized');
+    log.info('Analytics initialized');
   }
 
-  identify(userId: string, traits?: Record<string, any>): void {
+  identify(userId: string, traits?: Record<string, unknown>): void {
     this.userId = userId;
     this.track('page_view', { identified: true, ...traits });
   }
 
-  track(name: EventName, properties?: Record<string, any>): void {
+  track(name: EventName, properties?: Record<string, unknown>): void {
     const event: AnalyticsEvent = {
       name,
       properties: {
         ...properties,
         userId: this.userId,
         url: window.location.pathname,
-        referrer: document.referrer,
         screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
       },
       timestamp: new Date(),
     };
@@ -181,13 +169,7 @@ class Analytics {
   }
 
   private send(event: AnalyticsEvent): void {
-    // In production, send to analytics service
-    console.log('[Analytics]', event.name, event.properties);
-    
-    // Example: Send to Plausible
-    // if (window.plausible) {
-    //   window.plausible(event.name, { props: event.properties });
-    // }
+    log.debug(`Analytics event: ${event.name}`, event.properties as Record<string, unknown>);
   }
 
   private flushQueue(): void {
@@ -205,11 +187,11 @@ export const analytics = Analytics.getInstance();
 // =====================================================
 
 interface PerformanceMetrics {
-  fcp: number | null;  // First Contentful Paint
-  lcp: number | null;  // Largest Contentful Paint
-  fid: number | null;  // First Input Delay
-  cls: number | null;  // Cumulative Layout Shift
-  ttfb: number | null; // Time to First Byte
+  fcp: number | null;
+  lcp: number | null;
+  fid: number | null;
+  cls: number | null;
+  ttfb: number | null;
 }
 
 class PerformanceMonitor {
@@ -227,14 +209,12 @@ class PerformanceMonitor {
 
   init(): void {
     if (typeof window === 'undefined') return;
-
     this.observePaint();
     this.observeLCP();
     this.observeFID();
     this.observeCLS();
     this.measureTTFB();
-
-    console.log('[PerformanceMonitor] Initialized');
+    log.info('PerformanceMonitor initialized');
   }
 
   getMetrics(): PerformanceMetrics {
@@ -286,7 +266,6 @@ class PerformanceMonitor {
     });
     observer.observe({ type: 'layout-shift', buffered: true });
 
-    // Report CLS on page hide
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         analytics.track('performance', { metric: 'CLS', value: this.metrics.cls });
@@ -317,7 +296,7 @@ export function initMonitoring(options?: {
   const { errorTracking = true, analytics: enableAnalytics = true, performance = true } = options || {};
 
   if (errorTracking) {
-    // errorTracker.init('your-sentry-dsn');
+    errorTracker.init();
   }
 
   if (enableAnalytics) {
