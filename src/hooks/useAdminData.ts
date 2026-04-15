@@ -263,7 +263,7 @@ export function useAdminData() {
   const criarComunicado = async (comunicado: Partial<Comunicado>) => {
     const { error } = await supabase
       .from('comunicados')
-      .insert([comunicado as any]);
+      .insert([comunicado as Record<string, unknown>]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();
@@ -296,7 +296,7 @@ export function useAdminData() {
   const criarTreinamento = async (treinamento: Partial<Treinamento>) => {
     const { error } = await supabase
       .from('treinamentos')
-      .insert([treinamento as any]);
+      .insert([treinamento as Record<string, unknown>]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();
