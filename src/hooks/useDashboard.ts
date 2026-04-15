@@ -193,13 +193,15 @@ export function useDashboard() {
       const solicitacoesCount = solicitacoesResult.count;
       const treinamentosCount = treinamentosResult.count;
 
+      const comissaoTotal = (remuneracaoVariavel || []).reduce((acc: number, r: any) => acc + Number(r.valor), 0);
+
       // Calcular horas trabalhadas
       const calcularHoras = (registros: any[] | null): string => {
         if (!registros || registros.length === 0) return '0:00';
         
         let totalMinutos = 0;
-        const entradas = registros.filter(r => r.tipo === 'entrada');
-        const saidas = registros.filter(r => r.tipo === 'saida');
+        const entradas = registros.filter((r: any) => r.tipo === 'entrada');
+        const saidas = registros.filter((r: any) => r.tipo === 'saida');
 
         for (let i = 0; i < entradas.length; i++) {
           const entrada = new Date(entradas[i].data_hora);
@@ -212,8 +214,47 @@ export function useDashboard() {
         return `${horas}:${String(minutos).padStart(2, '0')}`;
       };
 
+      // Calcular banco de horas real
+      const calcularBancoHoras = (registros: any[] | null): string => {
+        if (!registros || registros.length === 0) return '0:00';
+        
+        const JORNADA_DIARIA = 8 * 60; // 8h em minutos
+        const registrosPorDia: Record<string, any[]> = {};
+        
+        registros.forEach((r: any) => {
+          const dateKey = format(new Date(r.data_hora), 'yyyy-MM-dd');
+          if (!registrosPorDia[dateKey]) registrosPorDia[dateKey] = [];
+          registrosPorDia[dateKey].push(r);
+        });
+
+        let saldoMinutos = 0;
+        Object.values(registrosPorDia).forEach(dayRegs => {
+          const entradas = dayRegs.filter((r: any) => r.tipo === 'entrada' || r.tipo === 'intervalo_fim')
+            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+          const saidas = dayRegs.filter((r: any) => r.tipo === 'saida' || r.tipo === 'intervalo_inicio')
+            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+          
+          let minutesDia = 0;
+          for (let i = 0; i < entradas.length; i++) {
+            const entrada = new Date(entradas[i].data_hora);
+            const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
+            if (saida) minutesDia += differenceInMinutes(saida, entrada);
+          }
+          
+          // Só contabiliza se teve pelo menos uma saída (dia completo)
+          if (saidas.length > 0) {
+            saldoMinutos += minutesDia - JORNADA_DIARIA;
+          }
+        });
+
+        const horas = Math.floor(Math.abs(saldoMinutos) / 60);
+        const mins = Math.abs(saldoMinutos) % 60;
+        const sinal = saldoMinutos >= 0 ? '+' : '-';
+        return `${sinal}${horas}:${String(mins).padStart(2, '0')}`;
+      };
+
       // Calcular saldo de férias
-      const diasUsados = (feriasUsadas || []).reduce((acc, f) => acc + f.dias_solicitados, 0);
+      const diasUsados = (feriasUsadas || []).reduce((acc: number, f: any) => acc + f.dias_solicitados, 0);
       const saldoFerias = Math.max(0, 30 - diasUsados);
 
       // Gerar alertas baseados em dados reais
@@ -269,7 +310,7 @@ export function useDashboard() {
         } : null,
         horasTrabalhadas: calcularHoras(registrosMes),
         horasHoje: calcularHoras(registrosHoje),
-        bancoHoras: '+0:00', // TODO: Implementar cálculo real
+        bancoHoras: calcularBancoHoras(registrosMes),
         saldoFerias,
         proximasFerias: feriasAprovadas?.[0] ? {
           data_inicio: feriasAprovadas[0].data_inicio,
