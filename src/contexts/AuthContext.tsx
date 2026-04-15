@@ -382,6 +382,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, newSession) => {
         if (!mounted) return;
 
+        log.info(`Auth event: ${event}`);
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -391,6 +392,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(profileData);
             await fetchUserRole(newSession.user.id);
           }
+        }
+
+        if (event === 'TOKEN_REFRESHED' && newSession?.user) {
+          // Silently update session without reloading profile
+          log.info('Token refreshed successfully');
         }
 
         if (event === 'SIGNED_OUT') {
