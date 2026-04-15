@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfMonth, endOfMonth, differenceInMinutes } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { calcularHorasTrabalhadas, calcularBancoHoras } from './useHorasCalculator';
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 interface Alerta {
   id: string;
   tipo: 'warning' | 'info' | 'success' | 'alert';
   titulo: string;
   descricao: string;
-  acao?: {
-    label: string;
-    link: string;
-  };
+  acao?: { label: string; link: string };
 }
 
 interface ComunicadoResumo {
@@ -50,6 +52,10 @@ interface DashboardData {
   treinamentosPendentes: number;
 }
 
+// ============================================================================
+// HOOK
+// ============================================================================
+
 export function useDashboard() {
   const [data, setData] = useState<DashboardData>({
     colaborador: null,
@@ -74,7 +80,6 @@ export function useDashboard() {
 
   const fetchDashboard = async () => {
     if (!user) return;
-
     setIsLoading(true);
 
     try {
@@ -84,7 +89,6 @@ export function useDashboard() {
       const fimMes = endOfMonth(new Date());
       const hoje = format(new Date(), 'yyyy-MM-dd');
 
-      // Parallel fetch all data
       const [
         holeriteResult,
         registrosMesResult,
@@ -98,199 +102,46 @@ export function useDashboard() {
         solicitacoesResult,
         treinamentosResult,
       ] = await Promise.all([
-        // 1. Último holerite
-        supabase
-          .from('holerites')
-          .select('mes, ano, salario_liquido')
-          .eq('user_id', user.id)
-          .order('ano', { ascending: false })
-          .order('mes', { ascending: false })
-          .limit(1)
-          .single(),
-        // 2. Registros de ponto do mês
-        supabase
-          .from('registros_ponto')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('data_hora', inicioMes.toISOString())
-          .lte('data_hora', fimMes.toISOString())
-          .order('data_hora', { ascending: true }),
-        // 3. Registros de ponto de hoje
-        supabase
-          .from('registros_ponto')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('data_hora', `${hoje}T00:00:00`)
-          .lte('data_hora', `${hoje}T23:59:59`)
-          .order('data_hora', { ascending: true }),
-        // 4. Férias aprovadas
-        supabase
-          .from('ferias')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('status', 'aprovado')
-          .gte('data_inicio', hoje)
-          .order('data_inicio', { ascending: true })
-          .limit(1),
-        // 5. Saldo de férias
-        supabase
-          .from('ferias')
-          .select('dias_solicitados')
-          .eq('user_id', user.id)
-          .in('status', ['aprovado', 'concluido']),
-        // 6. Remuneração variável do mês
-        supabase
-          .from('remuneracao_variavel')
-          .select('valor')
-          .eq('user_id', user.id)
-          .eq('mes', mesAtual)
-          .eq('ano', anoAtual)
-          .in('status', ['aprovado', 'pago']),
-        // 7. Empréstimo ativo
-        supabase
-          .from('emprestimos')
-          .select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela')
-          .eq('user_id', user.id)
-          .eq('status', 'ativo')
-          .limit(1)
-          .single(),
-        // 8. Comunicados recentes
-        supabase
-          .from('comunicados')
-          .select(`id, titulo, resumo, categoria, data_publicacao, importante, comunicados_lidos!left(id)`)
-          .eq('ativo', true)
-          .order('data_publicacao', { ascending: false })
-          .limit(3),
-        // 9. Notificações não lidas
-        supabase
-          .from('notificacoes')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('lida', false),
-        // 10. Solicitações pendentes
-        supabase
-          .from('solicitacoes')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .in('status', ['pendente', 'em_analise']),
-        // 11. Treinamentos pendentes
-        supabase
-          .from('treinamentos_colaborador')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'pendente'),
+        supabase.from('holerites').select('mes, ano, salario_liquido').eq('user_id', user.id).order('ano', { ascending: false }).order('mes', { ascending: false }).limit(1).single(),
+        supabase.from('registros_ponto').select('*').eq('user_id', user.id).gte('data_hora', inicioMes.toISOString()).lte('data_hora', fimMes.toISOString()).order('data_hora', { ascending: true }),
+        supabase.from('registros_ponto').select('*').eq('user_id', user.id).gte('data_hora', `${hoje}T00:00:00`).lte('data_hora', `${hoje}T23:59:59`).order('data_hora', { ascending: true }),
+        supabase.from('ferias').select('*').eq('user_id', user.id).eq('status', 'aprovado').gte('data_inicio', hoje).order('data_inicio', { ascending: true }).limit(1),
+        supabase.from('ferias').select('dias_solicitados').eq('user_id', user.id).in('status', ['aprovado', 'concluido']),
+        supabase.from('remuneracao_variavel').select('valor').eq('user_id', user.id).eq('mes', mesAtual).eq('ano', anoAtual).in('status', ['aprovado', 'pago']),
+        supabase.from('emprestimos').select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela').eq('user_id', user.id).eq('status', 'ativo').limit(1).single(),
+        supabase.from('comunicados').select('id, titulo, resumo, categoria, data_publicacao, importante, comunicados_lidos!left(id)').eq('ativo', true).order('data_publicacao', { ascending: false }).limit(3),
+        supabase.from('notificacoes').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('lida', false),
+        supabase.from('solicitacoes').select('*', { count: 'exact', head: true }).eq('user_id', user.id).in('status', ['pendente', 'em_analise']),
+        supabase.from('treinamentos_colaborador').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
       ]);
 
       const holerite = holeriteResult.data;
-      const registrosMes = registrosMesResult.data;
-      const registrosHoje = registrosHojeResult.data;
-      const feriasAprovadas = feriasAprovadasResult.data;
-      const feriasUsadas = feriasUsadasResult.data;
-      const remuneracaoVariavel = remuneracaoResult.data;
-      const emprestimo = emprestimoResult.data;
-      const comunicados = comunicadosResult.data;
-      const notificacoesCount = notificacoesResult.count;
-      const solicitacoesCount = solicitacoesResult.count;
-      const treinamentosCount = treinamentosResult.count;
+      const registrosMes = registrosMesResult.data as Array<{ tipo: string; data_hora: string }> | null;
+      const registrosHoje = registrosHojeResult.data as Array<{ tipo: string; data_hora: string }> | null;
 
-      const comissaoTotal = (remuneracaoVariavel || []).reduce((acc: number, r: any) => acc + Number(r.valor), 0);
-
-      // Calcular horas trabalhadas
-      const calcularHoras = (registros: any[] | null): string => {
-        if (!registros || registros.length === 0) return '0:00';
-        
-        let totalMinutos = 0;
-        const entradas = registros.filter((r: any) => r.tipo === 'entrada');
-        const saidas = registros.filter((r: any) => r.tipo === 'saida');
-
-        for (let i = 0; i < entradas.length; i++) {
-          const entrada = new Date(entradas[i].data_hora);
-          const saida = saidas[i] ? new Date(saidas[i].data_hora) : new Date();
-          totalMinutos += differenceInMinutes(saida, entrada);
-        }
-
-        const horas = Math.floor(totalMinutos / 60);
-        const minutos = totalMinutos % 60;
-        return `${horas}:${String(minutos).padStart(2, '0')}`;
-      };
-
-      // Calcular banco de horas real
-      const calcularBancoHoras = (registros: any[] | null): string => {
-        if (!registros || registros.length === 0) return '0:00';
-        
-        const JORNADA_DIARIA = 8 * 60; // 8h em minutos
-        const registrosPorDia: Record<string, any[]> = {};
-        
-        registros.forEach((r: any) => {
-          const dateKey = format(new Date(r.data_hora), 'yyyy-MM-dd');
-          if (!registrosPorDia[dateKey]) registrosPorDia[dateKey] = [];
-          registrosPorDia[dateKey].push(r);
-        });
-
-        let saldoMinutos = 0;
-        Object.values(registrosPorDia).forEach(dayRegs => {
-          const entradas = dayRegs.filter((r: any) => r.tipo === 'entrada' || r.tipo === 'intervalo_fim')
-            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
-          const saidas = dayRegs.filter((r: any) => r.tipo === 'saida' || r.tipo === 'intervalo_inicio')
-            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
-          
-          let minutesDia = 0;
-          for (let i = 0; i < entradas.length; i++) {
-            const entrada = new Date(entradas[i].data_hora);
-            const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
-            if (saida) minutesDia += differenceInMinutes(saida, entrada);
-          }
-          
-          // Só contabiliza se teve pelo menos uma saída (dia completo)
-          if (saidas.length > 0) {
-            saldoMinutos += minutesDia - JORNADA_DIARIA;
-          }
-        });
-
-        const horas = Math.floor(Math.abs(saldoMinutos) / 60);
-        const mins = Math.abs(saldoMinutos) % 60;
-        const sinal = saldoMinutos >= 0 ? '+' : '-';
-        return `${sinal}${horas}:${String(mins).padStart(2, '0')}`;
-      };
-
-      // Calcular saldo de férias
-      const diasUsados = (feriasUsadas || []).reduce((acc: number, f: any) => acc + f.dias_solicitados, 0);
+      const comissaoTotal = (remuneracaoResult.data || []).reduce((acc: number, r: { valor: number }) => acc + Number(r.valor), 0);
+      const diasUsados = (feriasUsadasResult.data || []).reduce((acc: number, f: { dias_solicitados: number }) => acc + f.dias_solicitados, 0);
       const saldoFerias = Math.max(0, 30 - diasUsados);
+      const emprestimo = emprestimoResult.data;
 
-      // Gerar alertas baseados em dados reais
+      // Alertas
       const alertas: Alerta[] = [];
-
-      // Alerta de ponto não batido
       if (registrosHoje && registrosHoje.length === 0 && new Date().getHours() >= 9) {
-        alertas.push({
-          id: 'ponto-hoje',
-          tipo: 'warning',
-          titulo: 'Ponto não registrado',
-          descricao: 'Você ainda não registrou o ponto hoje',
-          acao: { label: 'Registrar', link: '/ponto' },
-        });
+        alertas.push({ id: 'ponto-hoje', tipo: 'warning', titulo: 'Ponto não registrado', descricao: 'Você ainda não registrou o ponto hoje', acao: { label: 'Registrar', link: '/ponto' } });
       }
-
-      // Alerta de férias vencendo
       if (saldoFerias >= 25) {
-        alertas.push({
-          id: 'ferias-saldo',
-          tipo: 'info',
-          titulo: 'Férias disponíveis',
-          descricao: `Você tem ${saldoFerias} dias de férias disponíveis`,
-          acao: { label: 'Solicitar', link: '/ferias' },
-        });
+        alertas.push({ id: 'ferias-saldo', tipo: 'info', titulo: 'Férias disponíveis', descricao: `Você tem ${saldoFerias} dias de férias disponíveis`, acao: { label: 'Solicitar', link: '/ferias' } });
       }
 
-      // Processar comunicados
-      const comunicadosProcessados: ComunicadoResumo[] = (comunicados || []).map((c: any) => ({
-        id: c.id,
-        titulo: c.titulo,
-        resumo: c.resumo,
-        categoria: c.categoria,
-        data_publicacao: c.data_publicacao,
-        importante: c.importante,
-        lido: Array.isArray(c.comunicados_lidos) ? c.comunicados_lidos.length > 0 : !!c.comunicados_lidos,
+      // Comunicados
+      const comunicadosProcessados: ComunicadoResumo[] = (comunicadosResult.data || []).map((c: Record<string, unknown>) => ({
+        id: c.id as string,
+        titulo: c.titulo as string,
+        resumo: c.resumo as string | null,
+        categoria: c.categoria as string,
+        data_publicacao: c.data_publicacao as string,
+        importante: c.importante as boolean,
+        lido: Array.isArray(c.comunicados_lidos) ? (c.comunicados_lidos as unknown[]).length > 0 : !!c.comunicados_lidos,
       }));
 
       setData({
@@ -303,40 +154,23 @@ export function useDashboard() {
           matricula: profile.matricula,
         } : null,
         salarioEstimado: holerite?.salario_liquido || 0,
-        ultimoHolerite: holerite ? {
-          mes: holerite.mes,
-          ano: holerite.ano,
-          liquido: holerite.salario_liquido,
-        } : null,
-        horasTrabalhadas: calcularHoras(registrosMes),
-        horasHoje: calcularHoras(registrosHoje),
+        ultimoHolerite: holerite ? { mes: holerite.mes, ano: holerite.ano, liquido: holerite.salario_liquido } : null,
+        horasTrabalhadas: calcularHorasTrabalhadas(registrosMes),
+        horasHoje: calcularHorasTrabalhadas(registrosHoje),
         bancoHoras: calcularBancoHoras(registrosMes),
         saldoFerias,
-        proximasFerias: feriasAprovadas?.[0] ? {
-          data_inicio: feriasAprovadas[0].data_inicio,
-          dias: feriasAprovadas[0].dias_solicitados,
-        } : null,
+        proximasFerias: feriasAprovadasResult.data?.[0] ? { data_inicio: feriasAprovadasResult.data[0].data_inicio, dias: feriasAprovadasResult.data[0].dias_solicitados } : null,
         comissaoMes: comissaoTotal,
-        emprestimoAtivo: emprestimo ? {
-          saldo_devedor: emprestimo.saldo_devedor,
-          parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas,
-          proxima_parcela: emprestimo.valor_parcela,
-          quantidade_parcelas: emprestimo.quantidade_parcelas,
-        } : null,
+        emprestimoAtivo: emprestimo ? { saldo_devedor: emprestimo.saldo_devedor, parcelas_restantes: emprestimo.quantidade_parcelas - emprestimo.parcelas_pagas, proxima_parcela: emprestimo.valor_parcela, quantidade_parcelas: emprestimo.quantidade_parcelas } : null,
         alertas,
         comunicados: comunicadosProcessados,
-        notificacoesNaoLidas: notificacoesCount || 0,
-        solicitacoesPendentes: solicitacoesCount || 0,
-        treinamentosPendentes: treinamentosCount || 0,
+        notificacoesNaoLidas: notificacoesResult.count || 0,
+        solicitacoesPendentes: solicitacoesResult.count || 0,
+        treinamentosPendentes: treinamentosResult.count || 0,
       });
-
     } catch (error) {
       console.error('Error fetching dashboard:', error);
-      toast({
-        title: 'Erro ao carregar dashboard',
-        description: 'Alguns dados podem estar indisponíveis',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro ao carregar dashboard', description: 'Alguns dados podem estar indisponíveis', variant: 'destructive' });
     }
 
     setIsLoading(false);
@@ -346,9 +180,5 @@ export function useDashboard() {
     fetchDashboard();
   }, [user, profile]);
 
-  return {
-    ...data,
-    isLoading,
-    refetch: fetchDashboard,
-  };
+  return { ...data, isLoading, refetch: fetchDashboard };
 }
