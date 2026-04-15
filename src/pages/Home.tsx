@@ -80,7 +80,7 @@ export default function Home() {
 
         {/* Profile Card */}
         <Card className="border-border/50 shadow-xl overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-primary to-primary/60" />
+          <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
           <CardContent className="relative pt-0 pb-6 -mt-12">
             <div className="flex flex-col items-center text-center space-y-3">
               <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
