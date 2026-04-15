@@ -25,7 +25,7 @@ export interface Meta {
   data_fim: string;
   valor_meta: number;
   valor_atual: number;
-  unidade: string;
+  unidade: string | null;
   key_results?: KeyResult[];
   progresso?: number;
 }
