@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useDashboard } from '@/hooks/useDashboard';
 
 export interface Message {
   id: string;
@@ -13,6 +14,33 @@ export function useAssistenteRH() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    colaborador,
+    saldoFerias,
+    bancoHoras,
+    horasTrabalhadas,
+    salarioEstimado,
+    treinamentosPendentes,
+    solicitacoesPendentes,
+    emprestimoAtivo,
+  } = useDashboard();
+
+  const buildContexto = useCallback(() => ({
+    nome: colaborador?.nome,
+    cargo: colaborador?.cargo,
+    departamento: colaborador?.departamento,
+    saldoFerias,
+    bancoHoras,
+    horasTrabalhadas,
+    salarioEstimado,
+    treinamentosPendentes,
+    solicitacoesPendentes,
+    emprestimoAtivo: emprestimoAtivo ? {
+      saldo_devedor: emprestimoAtivo.saldo_devedor,
+      parcelas_restantes: emprestimoAtivo.parcelas_restantes,
+    } : null,
+  }), [colaborador, saldoFerias, bancoHoras, horasTrabalhadas, salarioEstimado, treinamentosPendentes, solicitacoesPendentes, emprestimoAtivo]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -60,7 +88,10 @@ export function useAssistenteRH() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: messagesToSend }),
+        body: JSON.stringify({ 
+          messages: messagesToSend,
+          contexto: buildContexto(),
+        }),
       });
 
       if (!response.ok) {
@@ -124,7 +155,6 @@ export function useAssistenteRH() {
       console.error('Assistente RH error:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
       
-      // Remove empty assistant message if exists
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant' && !last.content) {
@@ -135,7 +165,7 @@ export function useAssistenteRH() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, buildContexto]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
