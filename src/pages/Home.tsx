@@ -25,6 +25,39 @@ function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType
   );
 }
 
+interface QuickAccessItem {
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  path: string;
+  color: string;
+}
+
+const quickAccessItems: QuickAccessItem[] = [
+  { icon: Clock, label: 'Ponto', description: 'Registrar entrada/saída', path: '/ponto', color: 'text-blue-500 bg-blue-500/10' },
+  { icon: Palmtree, label: 'Férias', description: 'Solicitar e consultar', path: '/ferias', color: 'text-emerald-500 bg-emerald-500/10' },
+  { icon: Receipt, label: 'Holerites', description: 'Consultar pagamentos', path: '/holerites', color: 'text-amber-500 bg-amber-500/10' },
+  { icon: FileText, label: 'Solicitações', description: 'Abrir e acompanhar', path: '/solicitacoes', color: 'text-purple-500 bg-purple-500/10' },
+];
+
+function QuickAccessCard({ item, onClick }: { item: QuickAccessItem; onClick: () => void }) {
+  const [iconColor, bgColor] = item.color.split(' ');
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border/50 bg-card hover:bg-accent/50 transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+    >
+      <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${bgColor}`}>
+        <item.icon className={`w-6 h-6 ${iconColor}`} />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-semibold text-foreground">{item.label}</p>
+        <p className="text-xs text-muted-foreground leading-tight">{item.description}</p>
+      </div>
+    </button>
+  );
+}
+
 function getGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return 'Bom dia';
