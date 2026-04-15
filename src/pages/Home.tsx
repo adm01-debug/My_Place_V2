@@ -181,33 +181,6 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <Card className="border-border/50 shadow-lg">
-          <CardContent className="p-2">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/perfil')} 
-              className="w-full justify-between h-12 px-4"
-            >
-              <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-primary" />
-                <span>Editar Perfil</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </Button>
-            <Separator />
-            <Button 
-              variant="ghost" 
-              onClick={signOut} 
-              className="w-full justify-between h-12 px-4 text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <div className="flex items-center gap-3">
-                <LogOut className="w-4 h-4" />
-                <span>Sair da conta</span>
-              </div>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
