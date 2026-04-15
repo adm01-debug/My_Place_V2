@@ -58,8 +58,20 @@ export default function Dashboard() {
   } = useDashboard();
 
   const { unreadCount } = useNotificacoes();
+  const { isSubscribed, permission, subscribe } = usePushNotifications();
 
-  if (isLoading) {
+  // Auto-prompt push notifications on first visit
+  useEffect(() => {
+    const prompted = localStorage.getItem('push_prompted');
+    if (!prompted && !isSubscribed && permission === 'default') {
+      const timer = setTimeout(() => {
+        subscribe();
+        localStorage.setItem('push_prompted', 'true');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSubscribed, permission, subscribe]);
+
     return (
       <PageLayout title="Dashboard">
         <div className="space-y-6">
