@@ -47,16 +47,20 @@ export function useOrganograma() {
     setError(null);
 
     try {
+      // Use the security definer RPC that returns only safe fields (no PII)
       const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select('id, nome, cargo, departamento, avatar_url, gestor_id')
-        .order('nome');
+        .rpc('get_organograma');
 
       if (fetchError) throw fetchError;
 
       const colaboradoresComNivel = (data || []).map(c => ({
-        ...c,
-        nivel: 0,
+        id: c.id,
+        nome: c.nome,
+        cargo: c.cargo,
+        departamento: c.departamento,
+        avatar_url: c.avatar_url,
+        gestor_id: c.gestor_id,
+        nivel: c.nivel ?? 0,
       }));
 
       setColaboradores(colaboradoresComNivel);
