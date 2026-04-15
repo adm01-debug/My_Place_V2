@@ -282,6 +282,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let errorMsg = 'Erro ao criar conta';
         if (error.message?.includes('already registered')) {
           errorMsg = 'Este email já está cadastrado';
+        } else if (error.message?.includes('breach') || error.message?.includes('leaked') || error.message?.includes('HIBP')) {
+          errorMsg = 'Senha encontrada em vazamentos de dados. Por favor, escolha outra senha';
         } else if (error.message?.includes('weak_password')) {
           errorMsg = 'Senha muito fraca. Use pelo menos 8 caracteres';
         }
