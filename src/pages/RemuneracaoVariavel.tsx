@@ -415,7 +415,7 @@ export default function RemuneracaoVariavel() {
         onOpenChange={handleCloseModal}
         onSubmit={handleSubmit}
         initialData={editingItem ? {
-          tipo: editingItem.tipo,
+          tipo: editingItem.tipo as 'bonificacao' | 'comissao' | 'outro' | 'plr' | 'premio',
           descricao: editingItem.descricao,
           valor: Number(editingItem.valor),
           mes: editingItem.mes,

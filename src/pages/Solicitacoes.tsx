@@ -297,7 +297,7 @@ export default function Solicitacoes() {
 
             <div className="space-y-2">
               <Label>Prioridade</Label>
-              <Select value={prioridade} onValueChange={(v) => setPrioridade(v)}>
+              <Select value={prioridade} onValueChange={(v) => setPrioridade(v as 'alta' | 'baixa' | 'normal' | 'urgente')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

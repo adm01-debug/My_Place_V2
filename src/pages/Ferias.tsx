@@ -317,7 +317,7 @@ export default function Ferias() {
               <Label>Tipo</Label>
               <Select 
                 value={formData.tipo} 
-                onValueChange={(v) => setFormData({ ...formData, tipo: v })}
+                onValueChange={(v) => setFormData({ ...formData, tipo: v as 'abono' | 'ferias' | 'venda' })}
               >
                 <SelectTrigger>
                   <SelectValue />
