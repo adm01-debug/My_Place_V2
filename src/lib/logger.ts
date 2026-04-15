@@ -65,14 +65,14 @@ function emit(entry: LogEntry): void {
  */
 export function createLogger(module: string) {
   return {
-    debug: (msg: string, data?: Record<string, unknown>) =>
-      emit({ ts: new Date().toISOString(), level: 'debug', module, msg, data }),
-    info: (msg: string, data?: Record<string, unknown>) =>
-      emit({ ts: new Date().toISOString(), level: 'info', module, msg, data }),
-    warn: (msg: string, data?: Record<string, unknown>) =>
-      emit({ ts: new Date().toISOString(), level: 'warn', module, msg, data }),
-    error: (msg: string, data?: Record<string, unknown>) =>
-      emit({ ts: new Date().toISOString(), level: 'error', module, msg, data }),
+    debug: (msg: string, data?: unknown) =>
+      emit({ ts: new Date().toISOString(), level: 'debug', module, msg, data: data as Record<string, unknown> }),
+    info: (msg: string, data?: unknown) =>
+      emit({ ts: new Date().toISOString(), level: 'info', module, msg, data: data as Record<string, unknown> }),
+    warn: (msg: string, data?: unknown) =>
+      emit({ ts: new Date().toISOString(), level: 'warn', module, msg, data: data as Record<string, unknown> }),
+    error: (msg: string, data?: unknown) =>
+      emit({ ts: new Date().toISOString(), level: 'error', module, msg, data: data as Record<string, unknown> }),
   };
 }
 
