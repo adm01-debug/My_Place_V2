@@ -43,6 +43,7 @@ export default function Dashboard() {
     salarioEstimado, 
     horasTrabalhadas, 
     horasHoje,
+    bancoHoras,
     saldoFerias, 
     comissaoMes, 
     emprestimoAtivo,
@@ -129,7 +130,7 @@ export default function Dashboard() {
             iconBg="bg-primary/10"
             label="Horas Mês"
             value={horasTrabalhadas}
-            subtitle={`Hoje: ${horasHoje}`}
+            subtitle={`Hoje: ${horasHoje} | BH: ${bancoHoras}`}
             onClick={() => navigate('/ponto')}
           />
           <StatCardWithTrend
