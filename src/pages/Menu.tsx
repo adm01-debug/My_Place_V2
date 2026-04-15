@@ -5,7 +5,7 @@ import {
   Network, CalendarDays, Target, Users, Heart
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
