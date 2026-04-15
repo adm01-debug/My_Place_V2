@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInMonths, addYears } from 'date-fns';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Ferias');
 
 interface Ferias {
   id: string;
@@ -85,7 +88,7 @@ export function useFerias() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching ferias:', error);
+      log.error('Error fetching ferias:', error);
       toast({
         title: 'Erro ao carregar férias',
         description: error.message,

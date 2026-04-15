@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('DashboardGestor');
 
 interface ResumoGestor {
   totalColaboradores: number;
@@ -76,7 +79,7 @@ export function useDashboardGestor() {
 
       setData(response);
     } catch (err) {
-      console.error('Dashboard gestor error:', err);
+      log.error('Dashboard gestor error:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dashboard');
     } finally {
       setIsLoading(false);

@@ -1,6 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('FAQ');
 
 export interface FAQItem {
   id: string;
@@ -72,11 +75,11 @@ export function useFAQ() {
   const faqsDestaque = useMemo(() => faqs.filter(faq => faq.destaque).slice(0, 5), [faqs]);
 
   const incrementarVisualizacao = useCallback(async (faqId: string) => {
-    try { await supabase.rpc('incrementar_visualizacao_faq', { p_faq_id: faqId }); } catch (e) { console.error(e); }
+    try { await supabase.rpc('incrementar_visualizacao_faq', { p_faq_id: faqId }); } catch (e) { log.error("FAQ error", e); }
   }, []);
 
   const registrarUtilidade = useCallback(async (faqId: string, util: boolean) => {
-    try { await supabase.rpc('registrar_utilidade_faq', { p_faq_id: faqId, p_util: util }); refetch(); return { success: true }; } catch (e) { console.error(e); return { success: false }; }
+    try { await supabase.rpc('registrar_utilidade_faq', { p_faq_id: faqId, p_util: util }); refetch(); return { success: true }; } catch (e) { log.error("FAQ error", e); return { success: false }; }
   }, [refetch]);
 
   const getFAQById = useCallback((id: string) => faqs.find(faq => faq.id === id), [faqs]);

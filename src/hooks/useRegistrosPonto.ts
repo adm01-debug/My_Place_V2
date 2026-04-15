@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfMonth, endOfMonth, differenceInMinutes } from 'date-fns';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('RegistrosPonto');
 
 type TipoRegistro = 'entrada' | 'saida' | 'intervalo_inicio' | 'intervalo_fim';
 type StatusRegistro = 'aprovado' | 'pendente' | 'rejeitado' | 'fora_area';
@@ -66,7 +69,7 @@ export function useRegistrosPonto() {
       .order('data_hora', { ascending: true });
 
     if (error) {
-      console.error('Error fetching registros:', error);
+      log.error('Error fetching registros:', error);
       toast({
         title: 'Erro ao carregar registros',
         description: error.message,

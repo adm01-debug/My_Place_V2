@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Documentos');
 
 type DocumentoRow = Database['public']['Tables']['documentos']['Row'];
 
@@ -62,7 +65,7 @@ export function useDocumentos() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching documentos:', error);
+      log.error('Error fetching documentos:', error);
       toast({
         title: 'Erro ao carregar documentos',
         description: error.message,
@@ -120,7 +123,7 @@ export function useDocumentos() {
       return { success: true };
 
     } catch (err: unknown) {
-      console.error('Error downloading documento:', err);
+      log.error('Error downloading documento:', err);
       const message = err instanceof Error ? err.message : 'Erro ao baixar documento';
       return { success: false, error: message };
     }

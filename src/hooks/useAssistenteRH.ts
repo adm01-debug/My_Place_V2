@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useDashboard } from '@/hooks/useDashboard';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AssistenteRH');
 
 export interface Message {
   id: string;
@@ -152,7 +155,7 @@ export function useAssistenteRH() {
         }
       }
     } catch (err) {
-      console.error('Assistente RH error:', err);
+      log.error('Assistente RH error:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
       
       setMessages(prev => {

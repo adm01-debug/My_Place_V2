@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('JustificativasPonto');
 
 export type TipoJustificativa = 
   | 'atestado' 
@@ -46,7 +49,7 @@ export function useJustificativasPonto() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching justificativas:', error);
+      log.error('Error fetching justificativas:', error);
       toast({
         title: 'Erro ao carregar justificativas',
         description: error.message,
@@ -101,7 +104,7 @@ export function useJustificativasPonto() {
       .upload(fileName, file);
 
     if (error) {
-      console.error('Error uploading anexo:', error);
+      log.error('Error uploading anexo:', error);
       toast({
         title: 'Erro ao enviar arquivo',
         description: error.message,

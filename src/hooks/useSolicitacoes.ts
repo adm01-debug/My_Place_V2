@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Solicitacoes');
 
 interface Solicitacao {
   id: string;
@@ -32,7 +35,7 @@ export function useSolicitacoes() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching solicitacoes:', error);
+      log.error('Error fetching solicitacoes:', error);
       toast({
         title: 'Erro ao carregar solicitações',
         description: error.message,

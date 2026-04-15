@@ -2,6 +2,9 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('DocumentosDownload');
 
 interface DownloadOptions {
   documento_id: string;
@@ -22,7 +25,7 @@ export function useDocumentosDownload() {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', documentoId);
     } catch (err) {
-      console.error('Erro ao registrar download:', err);
+      log.error('Erro ao registrar download:', err);
     }
   }, [user?.id]);
 

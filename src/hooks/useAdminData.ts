@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AdminData');
 
 interface Comunicado {
   id: string;
@@ -200,7 +203,7 @@ export function useAdminData() {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.error('Error fetching admin data:', error);
+      log.error('Error fetching admin data:', error);
       toast({
         title: 'Erro ao carregar dados',
         description: message,

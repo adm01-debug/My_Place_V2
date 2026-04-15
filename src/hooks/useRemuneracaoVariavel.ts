@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('RemuneracaoVariavel');
 
 export type RemuneracaoVariavel = Tables<'remuneracao_variavel'>;
 export type RemuneracaoVariavelInsert = TablesInsert<'remuneracao_variavel'>;
@@ -148,7 +151,7 @@ export function useRemuneracaoVariavel(filters?: RemuneracaoFilters) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar remuneração variável';
       setError(message);
-      console.error('Error fetching remuneracao:', err);
+      log.error('Error fetching remuneracao:', err);
     } finally {
       setIsLoading(false);
     }
@@ -276,7 +279,7 @@ export function useRemuneracaoVariavel(filters?: RemuneracaoFilters) {
       .single();
 
     if (error) {
-      console.error('Error fetching remuneracao by id:', error);
+      log.error('Error fetching remuneracao by id:', error);
       return null;
     }
 

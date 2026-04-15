@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Trilhas');
 
 // =====================================================
 // TYPES
@@ -161,7 +164,7 @@ export function useTrilhas() {
       setTrilhas(trilhasComProgresso);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      console.error('Erro ao buscar trilhas:', err);
+      log.error('Erro ao buscar trilhas:', err);
       setError(errorMessage);
     }
   }, [progressoLocal, etapasConcluidas]);

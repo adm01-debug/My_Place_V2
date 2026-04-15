@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('BiometricAuth');
 
 interface BiometricCredential {
   credentialId: string;
@@ -113,7 +116,7 @@ export const useBiometricAuth = () => {
 
       return { success: false, error: 'Falha ao registrar biometria' };
     } catch (error: any) {
-      console.error('Biometric registration error:', error);
+      log.error('Biometric registration error:', error);
       
       if (error.name === 'NotAllowedError') {
         return { success: false, error: 'Permissão negada para usar biometria' };
@@ -165,7 +168,7 @@ export const useBiometricAuth = () => {
 
       return { success: false, error: 'Falha na autenticação biométrica' };
     } catch (error: any) {
-      console.error('Biometric authentication error:', error);
+      log.error('Biometric authentication error:', error);
       
       if (error.name === 'NotAllowedError') {
         return { success: false, error: 'Autenticação cancelada ou negada' };

@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Offline');
 
 interface OfflineRegistroPonto {
   id: number;
@@ -198,7 +201,7 @@ export function useOffline() {
       
       await getOfflineCount();
     } catch (err) {
-      console.error('Erro ao sincronizar:', err);
+      log.error('Erro ao sincronizar:', err);
       toast({
         title: 'Erro na sincronização',
         description: 'Não foi possível sincronizar os dados offline.',

@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Feedback360');
 
 interface Ciclo {
   id: string;
@@ -202,7 +205,7 @@ export function useFeedback360() {
       setEvolucaoCiclos(evolucaoResult);
 
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      log.error('Erro ao carregar dados:', error);
     } finally {
       setIsLoading(false);
     }

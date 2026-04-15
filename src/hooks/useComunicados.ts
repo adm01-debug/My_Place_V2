@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Comunicados');
 
 type CategoriaComunicado = 
   | 'RH' | 'Financeiro' | 'Institucional' | 'Saúde' 
@@ -59,7 +62,7 @@ export function useComunicados() {
       .order('data_publicacao', { ascending: false });
 
     if (error) {
-      console.error('Error fetching comunicados:', error);
+      log.error('Error fetching comunicados:', error);
       toast({
         title: 'Erro ao carregar comunicados',
         description: error.message,
