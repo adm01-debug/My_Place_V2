@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { vi, afterEach } from 'vitest';
 
 // Helper to create a deeply chainable mock that resolves with { data: [], error: null }
-const defaultResult = { data: [], error: null };
+const defaultResult = { data: [] as unknown[], error: null as Error | null };
 const createChainableMock = () => {
   const handler: ProxyHandler<any> = {
     get: (_target, prop) => {

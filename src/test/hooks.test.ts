@@ -69,7 +69,7 @@ describe('useHolerites', () => {
     const mockHolerite = {
       id: '1', user_id: 'test', mes: 12, ano: 2025,
       salario_bruto: 6000, salario_liquido: 4500, descontos: 1500,
-      pdf_url: null, detalhes: null, created_at: '2025-12-01',
+      pdf_url: null as string | null, detalhes: null as Record<string, unknown> | null, created_at: '2025-12-01',
     };
     const totais = result.current.calcularTotais(mockHolerite);
     expect(totais.liquido).toBe(4500);

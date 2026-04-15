@@ -89,7 +89,7 @@ export function useTreinamentos() {
     }
 
     // Trilha de desenvolvimento não existe na DB - ignorar
-    const trilhaData = null;
+    const trilhaData: TrilhaDesenvolvimento | null = null;
 
     // Organizar por status
     const pendentes = (treinamentosData || [])

@@ -283,8 +283,8 @@ export class RetryErrorBoundary extends Component<RetryErrorBoundaryProps, Retry
       this.retryTimeoutId = setTimeout(() => {
         this.setState(prev => ({
           hasError: false,
-          error: null,
-          errorInfo: null,
+          error: null as Error | null,
+          errorInfo: null as React.ErrorInfo | null,
           retryCount: prev.retryCount + 1,
         }));
       }, retryDelay * (this.state.retryCount + 1)); // Backoff exponencial
