@@ -81,7 +81,7 @@ User Agent: ${navigator.userAgent}
       }
 
       const { error, errorInfo, copied } = this.state;
-      const { showDetails = process.env.NODE_ENV === 'development', pageName } = this.props;
+      const { showDetails = import.meta.env.DEV, pageName } = this.props;
 
       return (
         <div className="flex min-h-[400px] items-center justify-center p-4">

@@ -1,144 +1,66 @@
 import { useState } from 'react';
-import { PageLayout } from '@/components/portal/PageLayout';
-import { ProfileSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
-import { PerfilAvatar } from '@/components/perfil/PerfilAvatar';
-import { PerfilDados } from '@/components/perfil/PerfilDados';
-import { PerfilSeguranca } from '@/components/perfil/PerfilSeguranca';
-import { PerfilConquistas } from '@/components/perfil/PerfilConquistas';
-import { useKudos } from '@/hooks/useKudos';
-import { useTrilhas } from '@/hooks/useTrilhas';
-import { useLoadingState } from '@/hooks/useLoadingState';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ArrowLeft, Save } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Perfil() {
-  const isLoading = useLoadingState(500);
   const { user, profile } = useAuth();
-  const { meusBadges, meusPontos, nivelAtual } = useKudos();
-  const { trilhasEmAndamento } = useTrilhas();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [nome, setNome] = useState(profile?.nome || '');
+  const [saving, setSaving] = useState(false);
 
-  const [showSolicitacao, setShowSolicitacao] = useState(false);
-  const [tipoSolicitacao, setTipoSolicitacao] = useState<'endereco' | 'contato' | 'bancario' | null>(null);
-  const [formData, setFormData] = useState({ descricao: '' });
-
-  const handleSolicitarAlteracao = async () => {
-    if (!user || !tipoSolicitacao) return;
-
-    const tipoLabels = {
-      endereco: 'Alteração de Endereço',
-      contato: 'Alteração de Contato',
-      bancario: 'Alteração de Dados Bancários',
-    };
-
-    const { error } = await supabase.from('solicitacoes').insert({
-      user_id: user.id,
-      tipo: 'cadastro',
-      titulo: tipoLabels[tipoSolicitacao],
-      descricao: formData.descricao,
-      prioridade: 'normal',
-    });
-
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ nome })
+      .eq('id', user.id);
     if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao salvar', variant: 'destructive' });
     } else {
-      toast({ title: 'Solicitação enviada!', description: 'O RH irá analisar sua solicitação.' });
-      setShowSolicitacao(false);
-      setFormData({ descricao: '' });
+      toast({ title: 'Perfil atualizado!' });
     }
+    setSaving(false);
   };
 
-  const openSolicitacao = (tipo: 'endereco' | 'contato' | 'bancario') => {
-    setTipoSolicitacao(tipo);
-    setShowSolicitacao(true);
-  };
-
-  if (isLoading || !profile) {
-    return (
-      <PageLayout title="Meu Perfil" showBack>
-        <div className="space-y-6">
-          <ProfileSkeleton />
-          <ListItemSkeleton />
-          <ListItemSkeleton />
-        </div>
-      </PageLayout>
-    );
-  }
+  const initials = profile?.nome
+    ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'U';
 
   return (
-    <PageLayout title="Meu Perfil" showBack>
-      <div className="space-y-6 animate-fade-in-up">
-        <PerfilAvatar
-          userId={user?.id || ''}
-          nome={profile.nome}
-          avatarUrl={profile.avatar_url}
-          matricula={profile.matricula}
-        />
-
-        <PerfilDados profile={profile} onSolicitar={openSolicitacao} />
-
-        <PerfilSeguranca />
-      </div>
-
-      <PerfilConquistas
-        meusBadges={meusBadges}
-        meusPontos={meusPontos ?? undefined}
-        nivelAtual={String(nivelAtual)}
-        trilhasEmAndamento={trilhasEmAndamento}
-      />
-
-      {/* Modal de Solicitação */}
-      <Dialog open={showSolicitacao} onOpenChange={setShowSolicitacao}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              Solicitar Alteração de {
-                tipoSolicitacao === 'endereco' ? 'Endereço' :
-                tipoSolicitacao === 'contato' ? 'Contato' : 'Dados Bancários'
-              }
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Descreva a alteração necessária *</Label>
-              <Textarea
-                placeholder={
-                  tipoSolicitacao === 'endereco'
-                    ? 'Informe o novo endereço completo...'
-                    : tipoSolicitacao === 'contato'
-                    ? 'Informe o novo telefone/email...'
-                    : 'Informe os novos dados bancários (banco, agência, conta)...'
-                }
-                value={formData.descricao}
-                onChange={(e) => setFormData({ descricao: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Sua solicitação será enviada ao RH para análise e aprovação.
-            </p>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSolicitacao(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSolicitarAlteracao} disabled={!formData.descricao.trim()}>
-              Enviar Solicitação
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </PageLayout>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-md p-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-bold">Meu Perfil</h1>
+        </div>
+        <div className="flex justify-center">
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={profile?.avatar_url || ''} />
+            <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">{initials}</AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="space-y-4">
+          <div><Label>Nome</Label><Input value={nome} onChange={e => setNome(e.target.value)} /></div>
+          <div><Label>Email</Label><Input value={profile?.email || user?.email || ''} disabled /></div>
+          {profile?.cargo && <div><Label>Cargo</Label><Input value={profile.cargo} disabled /></div>}
+          {profile?.departamento && <div><Label>Departamento</Label><Input value={profile.departamento} disabled /></div>}
+        </div>
+        <Button onClick={handleSave} disabled={saving} className="w-full">
+          <Save className="w-4 h-4 mr-2" />{saving ? 'Salvando...' : 'Salvar'}
+        </Button>
+      </Card>
+    </div>
   );
 }
