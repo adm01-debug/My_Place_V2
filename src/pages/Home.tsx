@@ -1,49 +1,164 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  LogOut, User, Building2, Briefcase, Calendar, 
+  Hash, Shield, ChevronRight, Sun 
+} from 'lucide-react';
+
+function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium text-foreground truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
 
 export default function Home() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
 
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U';
 
+  const firstName = profile?.nome?.split(' ')[0] || 'Colaborador';
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  const roleLabel: Record<string, string> = {
+    admin: 'Administrador',
+    gestor: 'Gestor',
+    colaborador: 'Colaborador',
+  };
+
+  const roleBadgeVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
+    admin: 'default',
+    gestor: 'secondary',
+    colaborador: 'outline',
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 space-y-6 text-center">
-        <Avatar className="w-20 h-20 mx-auto">
-          <AvatarImage src={profile?.avatar_url || ''} />
-          <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Olá, {profile?.nome || 'Colaborador'}!
-          </h1>
-          <p className="text-muted-foreground mt-1">{profile?.email || user?.email}</p>
-          {profile?.cargo && (
-            <p className="text-sm text-muted-foreground">{profile.cargo} • {profile.departamento}</p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <Button variant="outline" onClick={() => navigate('/perfil')} className="w-full">
-            <User className="w-4 h-4 mr-2" />
-            Meu Perfil
-          </Button>
-          <Button variant="destructive" onClick={signOut} className="w-full">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="w-full max-w-lg mx-auto p-4 pt-8 pb-12 space-y-6">
+        {/* Header with greeting */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sun className="w-5 h-5 text-yellow-500" />
+            <span className="text-sm text-muted-foreground">{getGreeting()}</span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={signOut}
+            className="text-muted-foreground hover:text-destructive"
+            aria-label="Sair"
+          >
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
-      </Card>
+
+        {/* Profile Card */}
+        <Card className="border-border/50 shadow-xl overflow-hidden">
+          <div className="h-24 bg-gradient-to-r from-primary to-primary/60" />
+          <CardContent className="relative pt-0 pb-6 -mt-12">
+            <div className="flex flex-col items-center text-center space-y-3">
+              <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
+                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
+                <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="space-y-1">
+                <h1 className="text-xl font-bold text-foreground">{profile?.nome || 'Colaborador'}</h1>
+                <p className="text-sm text-muted-foreground">{profile?.email || user?.email}</p>
+              </div>
+
+              <Badge variant={roleBadgeVariant[role] || 'outline'} className="gap-1">
+                <Shield className="w-3 h-3" />
+                {roleLabel[role] || 'Colaborador'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Details Card */}
+        <Card className="border-border/50 shadow-lg">
+          <CardHeader className="pb-2">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Informações Profissionais
+            </h2>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {profile?.cargo && (
+              <ProfileInfoItem icon={Briefcase} label="Cargo" value={profile.cargo} />
+            )}
+            {profile?.departamento && (
+              <ProfileInfoItem icon={Building2} label="Departamento" value={profile.departamento} />
+            )}
+            {profile?.matricula && (
+              <ProfileInfoItem icon={Hash} label="Matrícula" value={profile.matricula} />
+            )}
+            {profile?.data_admissao && (
+              <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
+            )}
+            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                Nenhuma informação profissional cadastrada ainda.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Actions */}
+        <Card className="border-border/50 shadow-lg">
+          <CardContent className="p-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/perfil')} 
+              className="w-full justify-between h-12 px-4"
+            >
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-primary" />
+                <span>Editar Perfil</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </Button>
+            <Separator />
+            <Button 
+              variant="ghost" 
+              onClick={signOut} 
+              className="w-full justify-between h-12 px-4 text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <div className="flex items-center gap-3">
+                <LogOut className="w-4 h-4" />
+                <span>Sair da conta</span>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
