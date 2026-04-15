@@ -1,14 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { createLogger } from '@/lib/logger';
-import { 
-  type UserRole, 
-  type PermissionAction, 
-  type ResourceType, 
-  ROLE_PERMISSIONS, 
-  ROUTE_ACCESS 
-} from './auth-permissions';
+// import { User, Session } from '@supabase/supabase-js';
+// import { supabase } from '@/integrations/supabase/client';
+// import { createLogger } from '@/lib/logger';
 
 const log = createLogger('AuthContext');
 
