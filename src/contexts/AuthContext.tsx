@@ -360,17 +360,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session: currentSession } } = await supabase.auth.getSession();
 
         if (currentSession?.user && mounted) {
-          setSession(currentSession);
-          setUser(currentSession.user);
+          // Validate session by checking the user is real
+          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !validatedUser) {
+            // Session is invalid (e.g., bad JWT, expired token)
+            log.warn('Sessão inválida detectada, fazendo logout:', userError?.message);
+            await supabase.auth.signOut();
+            if (mounted) {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              setDbRole(null);
+            }
+          } else if (mounted) {
+            setSession(currentSession);
+            setUser(validatedUser);
 
-          const profileData = await fetchProfile(currentSession.user.id);
-          if (mounted) {
-            setProfile(profileData);
-            await fetchUserRole(currentSession.user.id);
+            const profileData = await fetchProfile(validatedUser.id);
+            if (mounted) {
+              setProfile(profileData);
+              await fetchUserRole(validatedUser.id);
+            }
           }
         }
       } catch (error) {
         log.error('Erro ao inicializar auth:', error);
+        // On any failure, ensure we're in a clean state
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setDbRole(null);
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
