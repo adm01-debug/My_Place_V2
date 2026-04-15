@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AnimatedPage } from "@/components/AnimatedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
+import PageErrorBoundary from "@/components/portal/PageErrorBoundary";
 
 // Route-level code splitting
 const Login = lazy(() => import("./pages/Login"));
@@ -52,40 +53,51 @@ function RouteLoader() {
   );
 }
 
+/** Wraps a page component with Suspense + ErrorBoundary */
+function Page({ children, name }: { children: React.ReactNode; name: string }) {
+  return (
+    <PageErrorBoundary pageName={name}>
+      <Suspense fallback={<RouteLoader />}>
+        {children}
+      </Suspense>
+    </PageErrorBoundary>
+  );
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/login" element={<AnimatedPage><Suspense fallback={<RouteLoader />}><Login /></Suspense></AnimatedPage>} />
-        <Route path="/reset-password" element={<AnimatedPage><Suspense fallback={<RouteLoader />}><ResetPassword /></Suspense></AnimatedPage>} />
-        <Route path="/onboarding" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Onboarding /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Dashboard /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/perfil" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Perfil /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/holerites" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Holerites /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/ponto" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Ponto /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/ferias" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Ferias /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/variavel" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><RemuneracaoVariavel /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/emprestimos" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Emprestimos /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/beneficios" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Beneficios /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/treinamentos" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Treinamentos /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/documentos" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Documentos /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/solicitacoes" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Solicitacoes /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/comunicados" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Comunicados /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/menu" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Menu /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedAdminRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Admin /></Suspense></AnimatedPage></ProtectedAdminRoute>} />
-        <Route path="/gestao" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><DashboardGestor /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/calculadora" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Calculadora /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/faq" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><FAQ /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/organograma" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Organograma /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/calendario" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Calendario /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/metas" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Metas /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/feedback" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Feedback360 /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/clima" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><PesquisasClima /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/kudos" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Kudos /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="/trilhas" element={<ProtectedRoute><AnimatedPage><Suspense fallback={<RouteLoader />}><Trilhas /></Suspense></AnimatedPage></ProtectedRoute>} />
-        <Route path="*" element={<AnimatedPage><Suspense fallback={<RouteLoader />}><NotFound /></Suspense></AnimatedPage>} />
+        <Route path="/login" element={<AnimatedPage><Page name="Login"><Login /></Page></AnimatedPage>} />
+        <Route path="/reset-password" element={<AnimatedPage><Page name="Redefinir Senha"><ResetPassword /></Page></AnimatedPage>} />
+        <Route path="/onboarding" element={<ProtectedRoute><AnimatedPage><Page name="Onboarding"><Onboarding /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><AnimatedPage><Page name="Dashboard"><Dashboard /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/perfil" element={<ProtectedRoute><AnimatedPage><Page name="Perfil"><Perfil /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/holerites" element={<ProtectedRoute><AnimatedPage><Page name="Holerites"><Holerites /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/ponto" element={<ProtectedRoute><AnimatedPage><Page name="Ponto"><Ponto /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/ferias" element={<ProtectedRoute><AnimatedPage><Page name="Férias"><Ferias /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/variavel" element={<ProtectedRoute><AnimatedPage><Page name="Remuneração Variável"><RemuneracaoVariavel /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/emprestimos" element={<ProtectedRoute><AnimatedPage><Page name="Empréstimos"><Emprestimos /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/beneficios" element={<ProtectedRoute><AnimatedPage><Page name="Benefícios"><Beneficios /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/treinamentos" element={<ProtectedRoute><AnimatedPage><Page name="Treinamentos"><Treinamentos /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/documentos" element={<ProtectedRoute><AnimatedPage><Page name="Documentos"><Documentos /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/solicitacoes" element={<ProtectedRoute><AnimatedPage><Page name="Solicitações"><Solicitacoes /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/comunicados" element={<ProtectedRoute><AnimatedPage><Page name="Comunicados"><Comunicados /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/menu" element={<ProtectedRoute><AnimatedPage><Page name="Menu"><Menu /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedAdminRoute><AnimatedPage><Page name="Admin"><Admin /></Page></AnimatedPage></ProtectedAdminRoute>} />
+        <Route path="/gestao" element={<ProtectedRoute><AnimatedPage><Page name="Gestão"><DashboardGestor /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/calculadora" element={<ProtectedRoute><AnimatedPage><Page name="Calculadora"><Calculadora /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/faq" element={<ProtectedRoute><AnimatedPage><Page name="FAQ"><FAQ /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/organograma" element={<ProtectedRoute><AnimatedPage><Page name="Organograma"><Organograma /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/calendario" element={<ProtectedRoute><AnimatedPage><Page name="Calendário"><Calendario /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/metas" element={<ProtectedRoute><AnimatedPage><Page name="Metas"><Metas /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><AnimatedPage><Page name="Feedback 360"><Feedback360 /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/clima" element={<ProtectedRoute><AnimatedPage><Page name="Pesquisas de Clima"><PesquisasClima /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/kudos" element={<ProtectedRoute><AnimatedPage><Page name="Kudos"><Kudos /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="/trilhas" element={<ProtectedRoute><AnimatedPage><Page name="Trilhas"><Trilhas /></Page></AnimatedPage></ProtectedRoute>} />
+        <Route path="*" element={<AnimatedPage><Page name="Página não encontrada"><NotFound /></Page></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
   );
