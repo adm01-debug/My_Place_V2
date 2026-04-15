@@ -56,7 +56,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -86,5 +86,29 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-recharts': ['recharts'],
+          'vendor-date': ['date-fns'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-select',
+          ],
+        },
+      },
+    },
+    target: 'es2020',
+    cssCodeSplit: true,
   },
 }));
