@@ -18,20 +18,30 @@ interface Beneficio {
   tipo: string;
   nome: string;
   ativo: boolean;
-  credito_mensal: number;
-  desconto: number;
-  saldo_cartao: number;
-  valor_empresa: number;
   valor_mensal: number;
   valor_desconto: number;
+  desconto: number;
   operadora: string | null;
-  plano: string | null;
   numero_cartao: string | null;
-  numero_carteirinha: string | null;
-  ultima_recarga: string | null;
   data_adesao: string | null;
-  detalhes: Record<string, unknown>;
+  descricao: string | null;
   dependentes?: Dependente[];
+}
+
+function mapDbToBeneficio(row: Record<string, unknown>): Beneficio {
+  return {
+    id: row.id as string,
+    tipo: row.tipo as string,
+    nome: row.nome as string,
+    ativo: row.ativo as boolean,
+    valor_mensal: Number(row.valor_mensal) || 0,
+    valor_desconto: Number(row.valor_desconto) || 0,
+    desconto: Number(row.valor_desconto) || 0,
+    operadora: (row.operadora as string) || null,
+    numero_cartao: (row.numero_cartao as string) || null,
+    data_adesao: (row.data_adesao as string) || null,
+    descricao: (row.descricao as string) || null,
+  };
 }
 
 interface ResumoDescontos {
