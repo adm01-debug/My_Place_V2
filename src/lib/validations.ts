@@ -47,7 +47,7 @@ export const signupSchema = z.object({
 // ============================================================================
 
 export const feriasSchema = z.object({
-  tipo: z.enum(['ferias', 'abono', 'licenca'] as const, { required_error: 'Selecione o tipo' }),
+  tipo: z.literal('ferias').or(z.literal('abono')).or(z.literal('licenca')),
   data_inicio: dateSchema,
   data_fim: dateSchema,
   dias_solicitados: z.number().int().min(1, 'Mínimo 1 dia').max(30, 'Máximo 30 dias'),
