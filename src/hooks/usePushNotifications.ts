@@ -33,11 +33,11 @@ export function usePushNotifications() {
       const registration = await navigator.serviceWorker.register('/sw-push.js', {
         scope: '/'
       });
-      console.log('[Push] Service Worker registrado:', registration);
+      log.info(' Service Worker registrado:', registration);
       setSwRegistration(registration);
       return registration;
     } catch (error) {
-      console.error('[Push] Erro ao registrar SW:', error);
+      log.error(' Erro ao registrar SW:', error);
       return null;
     }
   }, []);
@@ -108,7 +108,7 @@ export function usePushNotifications() {
       }
       return false;
     } catch (error) {
-      console.error('[Push] Erro ao solicitar permissão:', error);
+      log.error(' Erro ao solicitar permissão:', error);
       return false;
     }
   }, [isSupported, toast]);
@@ -169,7 +169,7 @@ export function usePushNotifications() {
         });
 
       if (dbError) {
-        console.error('[Push] Erro ao salvar subscription:', dbError);
+        log.error(' Erro ao salvar subscription:', dbError);
         throw dbError;
       }
 
@@ -187,7 +187,7 @@ export function usePushNotifications() {
       setIsLoading(false);
       return true;
     } catch (error: any) {
-      console.error('[Push] Erro ao inscrever:', error);
+      log.error(' Erro ao inscrever:', error);
       
       let message = 'Tente novamente mais tarde.';
       if (error.name === 'NotAllowedError') {
@@ -229,7 +229,7 @@ export function usePushNotifications() {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('[Push] Erro ao remover subscription:', error);
+        log.error(' Erro ao remover subscription:', error);
       }
 
       localStorage.removeItem('push_subscription');
@@ -244,7 +244,7 @@ export function usePushNotifications() {
       setIsLoading(false);
       return true;
     } catch (error: any) {
-      console.error('[Push] Erro ao cancelar inscrição:', error);
+      log.error(' Erro ao cancelar inscrição:', error);
       toast({
         title: 'Erro',
         description: error.message,
@@ -281,7 +281,7 @@ export function usePushNotifications() {
         new Notification(title, options);
       }
     } catch (error) {
-      console.error('[Push] Erro ao mostrar notificação:', error);
+      log.error(' Erro ao mostrar notificação:', error);
       toast({
         title,
         description: options?.body,
