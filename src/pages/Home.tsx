@@ -10,6 +10,7 @@ import {
   Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
   Receipt, FileText, type LucideIcon
 } from 'lucide-react';
+import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
