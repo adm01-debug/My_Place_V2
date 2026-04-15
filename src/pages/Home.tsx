@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   LogOut, User, Building2, Briefcase, Calendar, 
-  Hash, Shield, ChevronRight, Sun 
+  Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
+  Receipt, FileText, type LucideIcon
 } from 'lucide-react';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
@@ -21,6 +22,39 @@ function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType
         <p className="text-sm font-medium text-foreground truncate">{value}</p>
       </div>
     </div>
+  );
+}
+
+interface QuickAccessItem {
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  path: string;
+  color: string;
+}
+
+const quickAccessItems: QuickAccessItem[] = [
+  { icon: Clock, label: 'Ponto', description: 'Registrar entrada/saída', path: '/ponto', color: 'text-blue-500 bg-blue-500/10' },
+  { icon: Palmtree, label: 'Férias', description: 'Solicitar e consultar', path: '/ferias', color: 'text-emerald-500 bg-emerald-500/10' },
+  { icon: Receipt, label: 'Holerites', description: 'Consultar pagamentos', path: '/holerites', color: 'text-amber-500 bg-amber-500/10' },
+  { icon: FileText, label: 'Solicitações', description: 'Abrir e acompanhar', path: '/solicitacoes', color: 'text-purple-500 bg-purple-500/10' },
+];
+
+function QuickAccessCard({ item, onClick }: { item: QuickAccessItem; onClick: () => void }) {
+  const [iconColor, bgColor] = item.color.split(' ');
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border/50 bg-card hover:bg-accent/50 transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+    >
+      <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${bgColor}`}>
+        <item.icon className={`w-6 h-6 ${iconColor}`} />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-semibold text-foreground">{item.label}</p>
+        <p className="text-xs text-muted-foreground leading-tight">{item.description}</p>
+      </div>
+    </button>
   );
 }
 
@@ -103,7 +137,23 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Details Card */}
+        {/* Quick Access */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Acesso Rápido
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickAccessItems.map((item) => (
+              <QuickAccessCard
+                key={item.path}
+                item={item}
+                onClick={() => navigate(item.path)}
+              />
+            ))}
+          </div>
+        </div>
+
+
         <Card className="border-border/50 shadow-lg">
           <CardHeader className="pb-2">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
