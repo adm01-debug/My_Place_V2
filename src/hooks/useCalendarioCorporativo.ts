@@ -5,18 +5,18 @@ import { startOfMonth, endOfMonth, format, isSameDay, parseISO, isWithinInterval
 export interface EventoCalendario {
   id: string;
   titulo: string;
-  descricao?: string;
+  descricao?: string | null;
   data_inicio: string;
-  data_fim?: string;
-  hora_inicio?: string;
-  hora_fim?: string;
+  data_fim?: string | null;
+  hora_inicio?: string | null;
+  hora_fim?: string | null;
   tipo: 'evento' | 'feriado' | 'aniversario' | 'ferias' | 'confraternizacao' | 'treinamento';
   cor: string;
-  local?: string;
-  online?: boolean;
-  link_reuniao?: string;
+  local?: string | null;
+  online?: boolean | null;
+  link_reuniao?: string | null;
   colaborador_nome?: string;
-  colaborador_avatar?: string;
+  colaborador_avatar?: string | null;
 }
 
 export function useCalendarioCorporativo(mesAtual: Date) {

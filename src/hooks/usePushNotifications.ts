@@ -71,7 +71,7 @@ export function usePushNotifications() {
           // Verificar subscription local e no banco
           const subscription = await registration.pushManager.getSubscription();
           const dbSubscription = await checkDatabaseSubscription();
-          setIsSubscribed(!!subscription || dbSubscription);
+          setIsSubscribed(!!subscription || !!dbSubscription);
         }
       }
     };

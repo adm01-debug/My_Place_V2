@@ -80,7 +80,7 @@ export function useOffline() {
           setOfflineCount(count);
           resolve(count);
         };
-        navigator.serviceWorker.controller.postMessage(
+        navigator.serviceWorker.controller!.postMessage(
           { type: 'GET_OFFLINE_COUNT' },
           [messageChannel.port2]
         );
@@ -112,7 +112,7 @@ export function useOffline() {
           }
           resolve(event.data);
         };
-        navigator.serviceWorker.controller.postMessage(
+        navigator.serviceWorker.controller!.postMessage(
           { type: 'SAVE_PONTO_OFFLINE', payload: data },
           [messageChannel.port2]
         );
