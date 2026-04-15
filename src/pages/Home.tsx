@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   LogOut, User, Building2, Briefcase, Calendar, 
-  Hash, Shield, ChevronRight, Sun 
+  Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
+  Receipt, FileText, type LucideIcon
 } from 'lucide-react';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
