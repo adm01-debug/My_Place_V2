@@ -93,8 +93,8 @@ export default function Perfil() {
 
       <PerfilConquistas
         meusBadges={meusBadges}
-        meusPontos={meusPontos}
-        nivelAtual={nivelAtual}
+        meusPontos={meusPontos ?? undefined}
+        nivelAtual={String(nivelAtual)}
         trilhasEmAndamento={trilhasEmAndamento}
       />
 
