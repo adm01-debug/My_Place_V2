@@ -279,22 +279,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        log.error('Signup error details:', { message: error.message, status: (error as any).status, name: error.name });
-        console.error('Signup raw error:', JSON.stringify(error, null, 2));
         let errorMsg = 'Erro ao criar conta';
-        if (error.message?.includes('already registered')) {
-          errorMsg = 'Este email já está cadastrado';
-        } else if (
+        const reasons = (error as any)?.reasons as string[] | undefined;
+        const isPwned = reasons?.includes('pwned') || 
           error.message?.includes('breach') || 
           error.message?.includes('leaked') || 
           error.message?.includes('HIBP') ||
-          error.message?.includes('hibp') ||
-          error.message?.includes('pwned') ||
-          error.message?.includes('Password')
-        ) {
+          error.message?.includes('pwned');
+        
+        if (error.message?.includes('already registered')) {
+          errorMsg = 'Este email já está cadastrado';
+        } else if (isPwned) {
           errorMsg = 'Senha encontrada em vazamentos de dados. Por favor, escolha outra senha';
-        } else if (error.message?.includes('weak_password')) {
-          errorMsg = 'Senha muito fraca. Use pelo menos 8 caracteres';
+        } else if ((error as any)?.code === 'weak_password' || error.message?.includes('weak')) {
+          errorMsg = 'Senha muito fraca. Use pelo menos 8 caracteres com letras e números';
         }
         return { success: false, error: errorMsg };
       }
