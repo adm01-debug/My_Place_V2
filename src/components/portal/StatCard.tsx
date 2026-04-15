@@ -1,3 +1,4 @@
+import React from 'react';
 import { LucideIcon, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -50,7 +51,7 @@ const colorConfig = {
   },
 };
 
-export function StatCard({ icon: Icon, label, value, subValue, color = 'primary', onClick, className }: StatCardProps) {
+export const StatCard = React.memo(function StatCard({ icon: Icon, label, value, subValue, color = 'primary', onClick, className }: StatCardProps) {
   const config = colorConfig[color];
   
   return (
@@ -82,4 +83,4 @@ export function StatCard({ icon: Icon, label, value, subValue, color = 'primary'
       </div>
     </Card>
   );
-}
+});
