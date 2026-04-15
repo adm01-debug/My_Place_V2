@@ -7,7 +7,7 @@ export interface KeyResult {
   id: string;
   meta_id: string;
   titulo: string;
-  descricao?: string;
+  descricao?: string | null;
   valor_meta: number;
   valor_atual: number;
   unidade: string;
@@ -18,14 +18,14 @@ export interface Meta {
   id: string;
   user_id: string;
   titulo: string;
-  descricao?: string;
+  descricao?: string | null;
   tipo: string;
   status: string;
   data_inicio: string;
   data_fim: string;
   valor_meta: number;
   valor_atual: number;
-  unidade: string;
+  unidade: string | null;
   key_results?: KeyResult[];
   progresso?: number;
 }

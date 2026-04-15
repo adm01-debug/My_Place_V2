@@ -249,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const recordLoginAttempt = useCallback(async (email: string, success: boolean) => {
     try {
-      await supabase.rpc('record_login_attempt', { p_email: email, p_success: success, p_ip_address: null });
+      await supabase.rpc('record_login_attempt', { p_email: email, p_success: success, p_ip_address: undefined });
     } catch (error) {
       console.error('Erro ao registrar tentativa:', error);
     }

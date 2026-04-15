@@ -24,8 +24,8 @@ import { Loader2 } from 'lucide-react';
 import type { TipoRemuneracao, RemuneracaoVariavelInsert } from '@/hooks/useRemuneracaoVariavel';
 
 const schema = z.object({
-  tipo: z.enum(['comissao', 'bonificacao', 'premio', 'plr', 'outro'], {
-    required_error: 'Selecione o tipo',
+  tipo: z.enum({ comissao: 'comissao', bonificacao: 'bonificacao', premio: 'premio', plr: 'plr', outro: 'outro' }, {
+    message: 'Selecione o tipo',
   }),
   descricao: z.string().min(3, 'Descrição deve ter no mínimo 3 caracteres'),
   valor: z.coerce.number().positive('Valor deve ser maior que zero'),

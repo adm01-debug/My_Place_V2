@@ -153,80 +153,31 @@ export function useAdminData() {
     setIsLoading(true);
 
     try {
-      // Fetch comunicados
-      const { data: comunicadosData } = await supabase
-        .from('comunicados')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [
+        comunicadosResult,
+        treinamentosResult,
+        solicitacoesResult,
+        feriasResult,
+        emprestimosResult,
+        justificativasResult,
+        remuneracoesResult,
+      ] = await Promise.all([
+        supabase.from('comunicados').select('*').order('created_at', { ascending: false }),
+        supabase.from('treinamentos').select('*').order('created_at', { ascending: false }),
+        supabase.from('solicitacoes').select('*').eq('status', 'pendente').order('created_at', { ascending: false }),
+        supabase.from('ferias').select('*').eq('status', 'pendente').order('created_at', { ascending: false }),
+        supabase.from('emprestimos').select('*').eq('status', 'pendente').order('created_at', { ascending: false }),
+        supabase.from('justificativas_ponto').select('*').eq('status', 'pendente').order('created_at', { ascending: false }),
+        supabase.from('remuneracao_variavel').select('*').eq('status', 'pendente').order('created_at', { ascending: false }),
+      ]);
 
-      // Fetch treinamentos
-      const { data: treinamentosData } = await supabase
-        .from('treinamentos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Fetch solicitações pendentes
-      const { data: solicitacoesData } = await supabase
-        .from('solicitacoes')
-        .select('*')
-        .eq('status', 'pendente')
-        .order('created_at', { ascending: false });
-
-      // Fetch férias pendentes
-      const { data: feriasData } = await supabase
-        .from('ferias')
-        .select('*')
-        .eq('status', 'pendente')
-        .order('created_at', { ascending: false });
-
-      // Fetch empréstimos pendentes
-      const { data: emprestimosData } = await supabase
-        .from('emprestimos')
-        .select('*')
-        .eq('status', 'pendente')
-        .order('created_at', { ascending: false });
-
-      // Fetch justificativas pendentes
-      const { data: justificativasData } = await supabase
-        .from('justificativas_ponto')
-        .select('*')
-        .eq('status', 'pendente')
-        .order('created_at', { ascending: false });
-
-      // Fetch remunerações variáveis pendentes
-      const { data: remuneracoesData } = await supabase
-        .from('remuneracao_variavel')
-        .select('*')
-        .eq('status', 'pendente')
-        .order('created_at', { ascending: false });
-
-      const comunicados = (comunicadosData || []) as Comunicado[];
-      const treinamentos = (treinamentosData || []) as Treinamento[];
-      
-      const solicitacoes = (solicitacoesData || []).map((s: any) => ({
-        ...s,
-        profile: s.profiles,
-      })) as Solicitacao[];
-      
-      const ferias = (feriasData || []).map((f: any) => ({
-        ...f,
-        profile: f.profiles,
-      })) as Ferias[];
-      
-      const emprestimos = (emprestimosData || []).map((e: any) => ({
-        ...e,
-        profile: e.profiles,
-      })) as Emprestimo[];
-      
-      const justificativas = (justificativasData || []).map((j: any) => ({
-        ...j,
-        profile: j.profiles,
-      })) as JustificativaPonto[];
-
-      const remuneracoes = (remuneracoesData || []).map((r: any) => ({
-        ...r,
-        profile: r.profiles,
-      })) as RemuneracaoVariavel[];
+      const comunicados = (comunicadosResult.data || []) as Comunicado[];
+      const treinamentos = (treinamentosResult.data || []) as Treinamento[];
+      const solicitacoes = (solicitacoesResult.data || []) as Solicitacao[];
+      const ferias = (feriasResult.data || []) as Ferias[];
+      const emprestimos = (emprestimosResult.data || []) as Emprestimo[];
+      const justificativas = (justificativasResult.data || []) as JustificativaPonto[];
+      const remuneracoes = (remuneracoesResult.data || []) as RemuneracaoVariavel[];
 
       const stats = {
         solicitacoesPendentes: solicitacoes.length,
@@ -247,11 +198,12 @@ export function useAdminData() {
         remuneracoes,
         stats,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
       console.error('Error fetching admin data:', error);
       toast({
         title: 'Erro ao carregar dados',
-        description: error.message,
+        description: message,
         variant: 'destructive',
       });
     }
