@@ -154,6 +154,16 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Dashboard Charts */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Dashboard
+          </h2>
+          <HoursChart />
+          <SalaryChart />
+          <GoalsProgress />
+        </div>
+
 
         <Card className="border-border/50 shadow-lg">
           <CardHeader className="pb-2">
