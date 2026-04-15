@@ -101,7 +101,7 @@ export function useServerPagination<T extends Record<string, unknown>>(
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as T[];
+      return (data ?? []) as unknown as T[];
     },
     enabled: !!user || !userScoped,
   });
