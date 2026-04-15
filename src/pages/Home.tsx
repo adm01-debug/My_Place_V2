@@ -1,14 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
-  LogOut, User, Building2, Briefcase, Calendar, 
-  Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
-  Receipt, FileText, type LucideIcon
+  Building2, Briefcase, Calendar, Hash, Shield, 
+  Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 
