@@ -161,7 +161,7 @@ export default function ExportButton<T extends Record<string, any>>({
         description: `${data.length} registros exportados em ${option.label}.`,
       });
     } catch (error) {
-      console.error('Erro na exportação:', error);
+      import('@/lib/logger').then(({ createLogger }) => createLogger('Export').error('Erro na exportação:', error));
       toast({
         title: 'Erro na exportação',
         description: error instanceof Error ? error.message : 'Tente novamente.',

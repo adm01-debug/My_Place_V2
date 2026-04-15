@@ -40,8 +40,8 @@ export default class PageErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
     
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('PageErrorBoundary caught an error:', error, errorInfo);
+    if (import.meta.env.DEV) {
+      import('@/lib/logger').then(({ createLogger }) => createLogger('PageErrorBoundary').error('Caught error:', error));
     }
   }
 
@@ -70,7 +70,7 @@ User Agent: ${navigator.userAgent}
       this.setState({ copied: true });
       setTimeout(() => this.setState({ copied: false }), 2000);
     } catch (err) {
-      console.error('Failed to copy error:', err);
+      import('@/lib/logger').then(({ createLogger }) => createLogger('PageErrorBoundary').error('Failed to copy:', err));
     }
   };
 
@@ -249,7 +249,7 @@ export function withErrorBoundary<P extends object>(
 // Hook para reportar erros manualmente
 export function useErrorReporter() {
   const reportError = React.useCallback((error: Error, context?: string) => {
-    console.error(`[Error Reporter] ${context || 'Unknown context'}:`, error);
+    import('@/lib/logger').then(({ createLogger }) => createLogger('ErrorReporter').error(`${context || 'Unknown'}:`, error));
     
     // Aqui você pode adicionar integração com Sentry, LogRocket, etc.
     // if (typeof window !== 'undefined' && window.Sentry) {
