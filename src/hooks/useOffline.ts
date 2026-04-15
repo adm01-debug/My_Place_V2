@@ -147,9 +147,9 @@ export function useOffline() {
     
     try {
       // Trigger background sync via Service Worker
-      if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as any)) {
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const registration = await navigator.serviceWorker.ready;
-        await (registration as any).sync.register('sync-ponto');
+        await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register('sync-ponto');
       }
       
       // Fallback: sync localStorage data via edge function

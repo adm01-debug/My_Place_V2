@@ -188,7 +188,7 @@ export function useComunicados() {
           // Novo comunicado publicado
           toast({
             title: 'Novo comunicado',
-            description: (payload.new as any).titulo,
+            description: (payload.new as Record<string, string>)?.titulo || 'Novo comunicado disponível',
           });
           fetchComunicados();
         }

@@ -89,7 +89,7 @@ export function useFAQ() {
 
   return {
     faqs: faqsFiltradas, faqsDestaque, categorias, totalFaqs: faqs.length,
-    isLoading, error: null, searchTerm, categoriaAtiva,
+    isLoading, error: null as string | null, searchTerm, categoriaAtiva,
     setSearchTerm, setCategoriaAtiva, refetch,
     incrementarVisualizacao, registrarUtilidade, getFAQById, getFAQsRelacionadas,
   };

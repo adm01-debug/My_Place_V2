@@ -1239,6 +1239,13 @@ export type Database = {
             foreignKeyName: "profiles_gestor_id_fkey"
             columns: ["gestor_id"]
             isOneToOne: false
+            referencedRelation: "organograma_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1608,7 +1615,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      organograma_public_view: {
+        Row: {
+          avatar_url: string | null
+          cargo: string | null
+          departamento: string | null
+          gestor_id: string | null
+          id: string | null
+          nome: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo?: string | null
+          departamento?: string | null
+          gestor_id?: string | null
+          id?: string | null
+          nome?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo?: string | null
+          departamento?: string | null
+          gestor_id?: string | null
+          id?: string | null
+          nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "organograma_public_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_2fa_enabled: { Args: { p_user_id: string }; Returns: boolean }

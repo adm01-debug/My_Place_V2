@@ -8,23 +8,25 @@ interface Treinamento {
   titulo: string;
   descricao: string | null;
   carga_horaria: number;
-  tipo: 'obrigatorio' | 'recomendado' | 'opcional';
   categoria: string;
-  url_treinamento: string | null;
-  url_material: string | null;
+  obrigatorio: boolean;
+  conteudo_url: string | null;
+  thumbnail_url: string | null;
+  instrutor: string | null;
+  ativo: boolean;
 }
 
 interface TreinamentoColaborador {
   id: string;
   treinamento_id: string;
-  status: 'pendente' | 'em_andamento' | 'concluido' | 'expirado';
+  user_id: string;
+  status: string;
   progresso: number;
   data_inicio: string | null;
   data_conclusao: string | null;
+  data_limite: string | null;
   nota: number | null;
   certificado_url: string | null;
-  validade: string | null;
-  prazo: string | null;
   treinamento: Treinamento;
 }
 
@@ -67,13 +69,13 @@ export function useTreinamentos() {
 
     // Fetch treinamentos do colaborador com dados do treinamento
     const { data: treinamentosData, error: treinamentosError } = await supabase
-      .from('treinamentos_colaborador' as any)
+      .from('treinamentos_colaborador')
       .select(`
         *,
         treinamento:treinamentos(*)
       `)
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
+      .order('created_at', { ascending: false });
 
     if (treinamentosError) {
       console.error('Error fetching treinamentos:', treinamentosError);
@@ -86,12 +88,8 @@ export function useTreinamentos() {
       return;
     }
 
-    // Fetch trilha de desenvolvimento
-    const { data: trilhaData } = await supabase
-      .from('trilha_desenvolvimento' as any)
-      .select('*')
-      .eq('user_id', user.id)
-      .single() as { data: any };
+    // Trilha de desenvolvimento não existe na DB - ignorar
+    const trilhaData: TrilhaDesenvolvimento | null = null;
 
     // Organizar por status
     const pendentes = (treinamentosData || [])
@@ -126,12 +124,12 @@ export function useTreinamentos() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('treinamentos_colaborador' as any)
+      .from('treinamentos_colaborador')
       .update({
         status: 'em_andamento',
         data_inicio: new Date().toISOString(),
         progresso: 0,
-      } as any)
+      })
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 
@@ -156,8 +154,8 @@ export function useTreinamentos() {
     }
 
     const { error } = await supabase
-      .from('treinamentos_colaborador' as any)
-      .update(updates as any)
+      .from('treinamentos_colaborador')
+      .update(updates)
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 
@@ -173,13 +171,13 @@ export function useTreinamentos() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('treinamentos_colaborador' as any)
+      .from('treinamentos_colaborador')
       .update({
         status: 'concluido',
         progresso: 100,
         data_conclusao: new Date().toISOString(),
         nota: nota || null,
-      } as any)
+      })
       .eq('id', treinamentoColaboradorId)
       .eq('user_id', user.id);
 

@@ -6,29 +6,41 @@ import { useToast } from '@/hooks/use-toast';
 interface Dependente {
   id: string;
   nome: string;
-  parentesco: 'conjuge' | 'filho' | 'filha' | 'pai' | 'mae' | 'outro';
+  parentesco: string;
   data_nascimento: string | null;
   cpf: string | null;
-  numero_carteirinha: string | null;
   ativo: boolean;
 }
 
 interface Beneficio {
   id: string;
-  tipo: 'vale_transporte' | 'vale_refeicao' | 'vale_alimentacao' | 'plano_saude' | 'plano_odonto' | 'seguro_vida' | 'auxilio_creche' | 'gympass' | 'outros';
+  tipo: string;
+  nome: string;
   ativo: boolean;
-  credito_mensal: number;
+  valor_mensal: number;
+  valor_desconto: number;
   desconto: number;
-  saldo_cartao: number;
-  valor_empresa: number;
   operadora: string | null;
-  plano: string | null;
   numero_cartao: string | null;
-  numero_carteirinha: string | null;
-  ultima_recarga: string | null;
   data_adesao: string | null;
-  detalhes: Record<string, unknown>;
+  descricao: string | null;
   dependentes?: Dependente[];
+}
+
+function mapDbToBeneficio(row: Record<string, unknown>): Beneficio {
+  return {
+    id: row.id as string,
+    tipo: row.tipo as string,
+    nome: row.nome as string,
+    ativo: row.ativo as boolean,
+    valor_mensal: Number(row.valor_mensal) || 0,
+    valor_desconto: Number(row.valor_desconto) || 0,
+    desconto: Number(row.valor_desconto) || 0,
+    operadora: (row.operadora as string) || null,
+    numero_cartao: (row.numero_cartao as string) || null,
+    data_adesao: (row.data_adesao as string) || null,
+    descricao: (row.descricao as string) || null,
+  };
 }
 
 interface ResumoDescontos {
@@ -72,11 +84,11 @@ export function useBeneficios() {
 
     // Fetch benefícios
     const { data: beneficiosData, error: beneficiosError } = await supabase
-      .from('beneficios' as any)
+      .from('beneficios')
       .select('*')
       .eq('user_id', user.id)
       .eq('ativo', true)
-      .order('tipo') as { data: any[] | null; error: any };
+      .order('tipo');
 
     if (beneficiosError) {
       console.error('Error fetching beneficios:', beneficiosError);
@@ -90,21 +102,22 @@ export function useBeneficios() {
     }
 
     // Fetch dependentes para cada benefício de saúde/odonto
-    const beneficiosWithDependentes = await Promise.all(
-      (beneficiosData || []).map(async (beneficio: any) => {
+    const beneficiosWithDependentes: Beneficio[] = await Promise.all(
+      (beneficiosData || []).map(async (beneficio) => {
+        const mapped = mapDbToBeneficio(beneficio as unknown as Record<string, unknown>);
         if (['plano_saude', 'plano_odonto'].includes(beneficio.tipo)) {
           const { data: dependentesData } = await supabase
-            .from('beneficios_dependentes' as any)
+            .from('dependentes_beneficio')
             .select('*')
             .eq('beneficio_id', beneficio.id)
-            .eq('ativo', true) as { data: any[] | null; error: any };
+            .eq('ativo', true);
           
           return {
-            ...beneficio,
+            ...mapped,
             dependentes: dependentesData || [],
-          } as Beneficio;
+          };
         }
-        return beneficio as Beneficio;
+        return mapped;
       })
     );
 
@@ -150,11 +163,12 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { data, error } = await supabase
-      .from('beneficios_dependentes' as any)
+      .from('dependentes_beneficio')
       .insert({
         beneficio_id: beneficioId,
+        user_id: user.id,
         ...dependente,
-      } as any)
+      })
       .select()
       .single();
 
@@ -170,8 +184,8 @@ export function useBeneficios() {
     if (!user) return { success: false, error: 'Usuário não autenticado' };
 
     const { error } = await supabase
-      .from('beneficios_dependentes' as any)
-      .update({ ativo: false } as any)
+      .from('dependentes_beneficio')
+      .update({ ativo: false })
       .eq('id', dependenteId);
 
     if (error) {

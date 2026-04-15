@@ -261,9 +261,14 @@ export function useAdminData() {
 
   // CRUD Comunicados
   const criarComunicado = async (comunicado: Partial<Comunicado>) => {
+    const insertData = {
+      titulo: comunicado.titulo!,
+      conteudo: comunicado.conteudo!,
+      ...comunicado,
+    };
     const { error } = await supabase
       .from('comunicados')
-      .insert([comunicado as any]);
+      .insert([insertData]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();
@@ -294,9 +299,13 @@ export function useAdminData() {
 
   // CRUD Treinamentos
   const criarTreinamento = async (treinamento: Partial<Treinamento>) => {
+    const insertData = {
+      titulo: treinamento.titulo!,
+      ...treinamento,
+    };
     const { error } = await supabase
       .from('treinamentos')
-      .insert([treinamento as any]);
+      .insert([insertData]);
 
     if (error) return { success: false, error: error.message };
     await fetchData();

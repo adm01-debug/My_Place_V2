@@ -182,11 +182,11 @@ export default function Treinamentos() {
                   <p className="font-semibold text-foreground">{tr.treinamento?.titulo}</p>
                   <Progress value={tr.progresso} className="h-2 mt-2" />
                   <p className="text-xs text-muted-foreground mt-1">{tr.progresso}% concluído</p>
-                  {tr.treinamento?.url_treinamento && (
+                  {tr.treinamento?.conteudo_url && (
                     <Button 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={() => window.open(tr.treinamento?.url_treinamento!, '_blank')}
+                      onClick={() => window.open(tr.treinamento?.conteudo_url!, '_blank')}
                     >
                       <ExternalLink className="w-4 h-4 mr-1" /> Continuar
                     </Button>
@@ -207,8 +207,8 @@ export default function Treinamentos() {
               {pendentes.map((tr) => (
                 <Card key={tr.id} className="p-4 border-l-4 border-l-projects">
                   <div className="flex justify-between mb-2">
-                    <Badge variant={tr.treinamento?.tipo === 'obrigatorio' ? 'destructive' : 'secondary'}>
-                      {tr.treinamento?.tipo === 'obrigatorio' ? '🔴 Obrigatório' : '🟡 Recomendado'}
+                    <Badge variant={tr.treinamento?.obrigatorio ? 'destructive' : 'secondary'}>
+                      {tr.treinamento?.obrigatorio ? '🔴 Obrigatório' : '🟡 Recomendado'}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       {tr.treinamento?.carga_horaria}h
@@ -218,15 +218,15 @@ export default function Treinamentos() {
                   {tr.treinamento?.descricao && (
                     <p className="text-xs text-muted-foreground mt-1">{tr.treinamento.descricao}</p>
                   )}
-                  {tr.prazo && (
+                  {tr.data_limite && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Prazo: {format(new Date(tr.prazo), 'dd/MM/yyyy')}
+                      Prazo: {format(new Date(tr.data_limite), 'dd/MM/yyyy')}
                     </p>
                   )}
                   <Button 
                     size="sm" 
                     className="w-full mt-3"
-                    onClick={() => handleIniciar(tr.id, tr.treinamento?.url_treinamento)}
+                    onClick={() => handleIniciar(tr.id, tr.treinamento?.conteudo_url)}
                   >
                     <Play className="w-4 h-4 mr-1" /> Iniciar
                   </Button>
@@ -253,9 +253,9 @@ export default function Treinamentos() {
                         {' | '}{tr.treinamento?.carga_horaria}h
                         {tr.nota && ` | Nota: ${tr.nota}`}
                       </p>
-                      {tr.validade && (
+                      {tr.data_limite && (
                         <p className="text-xs text-muted-foreground">
-                          Válido até: {format(new Date(tr.validade), 'dd/MM/yyyy')}
+                          Válido até: {format(new Date(tr.data_limite), 'dd/MM/yyyy')}
                         </p>
                       )}
                     </div>
