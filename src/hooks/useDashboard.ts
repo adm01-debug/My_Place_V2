@@ -84,15 +84,114 @@ export function useDashboard() {
       const fimMes = endOfMonth(new Date());
       const hoje = format(new Date(), 'yyyy-MM-dd');
 
-      // 1. Último holerite
-      const { data: holerite } = await supabase
-        .from('holerites')
-        .select('mes, ano, salario_liquido')
-        .eq('user_id', user.id)
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false })
-        .limit(1)
-        .single();
+      // Parallel fetch all data
+      const [
+        holeriteResult,
+        registrosMesResult,
+        registrosHojeResult,
+        feriasAprovadasResult,
+        feriasUsadasResult,
+        remuneracaoResult,
+        emprestimoResult,
+        comunicadosResult,
+        notificacoesResult,
+        solicitacoesResult,
+        treinamentosResult,
+      ] = await Promise.all([
+        // 1. Último holerite
+        supabase
+          .from('holerites')
+          .select('mes, ano, salario_liquido')
+          .eq('user_id', user.id)
+          .order('ano', { ascending: false })
+          .order('mes', { ascending: false })
+          .limit(1)
+          .single(),
+        // 2. Registros de ponto do mês
+        supabase
+          .from('registros_ponto')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('data_hora', inicioMes.toISOString())
+          .lte('data_hora', fimMes.toISOString())
+          .order('data_hora', { ascending: true }),
+        // 3. Registros de ponto de hoje
+        supabase
+          .from('registros_ponto')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('data_hora', `${hoje}T00:00:00`)
+          .lte('data_hora', `${hoje}T23:59:59`)
+          .order('data_hora', { ascending: true }),
+        // 4. Férias aprovadas
+        supabase
+          .from('ferias')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'aprovado')
+          .gte('data_inicio', hoje)
+          .order('data_inicio', { ascending: true })
+          .limit(1),
+        // 5. Saldo de férias
+        supabase
+          .from('ferias')
+          .select('dias_solicitados')
+          .eq('user_id', user.id)
+          .in('status', ['aprovado', 'concluido']),
+        // 6. Remuneração variável do mês
+        supabase
+          .from('remuneracao_variavel')
+          .select('valor')
+          .eq('user_id', user.id)
+          .eq('mes', mesAtual)
+          .eq('ano', anoAtual)
+          .in('status', ['aprovado', 'pago']),
+        // 7. Empréstimo ativo
+        supabase
+          .from('emprestimos')
+          .select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela')
+          .eq('user_id', user.id)
+          .eq('status', 'ativo')
+          .limit(1)
+          .single(),
+        // 8. Comunicados recentes
+        supabase
+          .from('comunicados')
+          .select(`id, titulo, resumo, categoria, data_publicacao, importante, comunicados_lidos!left(id)`)
+          .eq('ativo', true)
+          .order('data_publicacao', { ascending: false })
+          .limit(3),
+        // 9. Notificações não lidas
+        supabase
+          .from('notificacoes')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('lida', false),
+        // 10. Solicitações pendentes
+        supabase
+          .from('solicitacoes')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('status', ['pendente', 'em_analise']),
+        // 11. Treinamentos pendentes
+        supabase
+          .from('treinamentos_colaborador')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'pendente'),
+      ]);
+
+      const holerite = holeriteResult.data;
+      const registrosMes = registrosMesResult.data;
+      const registrosHoje = registrosHojeResult.data;
+      const feriasAprovadas = feriasAprovadasResult.data;
+      const feriasUsadas = feriasUsadasResult.data;
+      const remuneracaoVariavel = remuneracaoResult.data;
+      const emprestimo = emprestimoResult.data;
+      const comunicados = comunicadosResult.data;
+      const notificacoesCount = notificacoesResult.count;
+      const solicitacoesCount = solicitacoesResult.count;
+      const treinamentosCount = treinamentosResult.count;
 
       // 2. Registros de ponto do mês
       const { data: registrosMes } = await supabase
