@@ -41,28 +41,42 @@ class ErrorTracker {
   }
 
   captureException(error: Error, context?: Partial<ErrorContext>): void {
-    if (!this.enabled) {
-      console.error('[ErrorTracker] Not enabled:', error);
-      return;
-    }
-
     const payload = {
       timestamp: new Date().toISOString(),
       error: {
         name: error.name,
         message: error.message,
-        stack: error.stack,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n'),
       },
       context: { ...this.context, ...context },
       url: window.location.href,
       userAgent: navigator.userAgent,
     };
 
-    // In production, send to error tracking service
-    console.error('[ErrorTracker] Captured:', payload);
-    
-    // Example: Send to endpoint
-    // fetch('/api/errors', { method: 'POST', body: JSON.stringify(payload) });
+    // Always log locally
+    console.error('[ErrorTracker] Captured:', payload.error.name, payload.error.message);
+
+    if (!this.enabled) return;
+
+    // Store in localStorage for debugging
+    try {
+      const errors = JSON.parse(localStorage.getItem('error_log') || '[]');
+      errors.push(payload);
+      // Keep only last 50 errors
+      if (errors.length > 50) errors.splice(0, errors.length - 50);
+      localStorage.setItem('error_log', JSON.stringify(errors));
+    } catch {
+      // Ignore storage errors
+    }
+
+    // Send to backend if DSN configured
+    if (this.dsn) {
+      fetch(this.dsn, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => { /* silent fail for error reporting */ });
+    }
   }
 
   captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
