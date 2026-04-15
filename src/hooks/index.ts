@@ -71,3 +71,13 @@ export type { Trilha, TrilhaEtapa, TrilhaProgresso, TrilhaComProgresso } from '.
 
 // Download de Documentos
 export { useDocumentosDownload } from './useDocumentosDownload';
+
+// ====== HOOKS DE QUALIDADE ======
+export { useIdempotentMutation, useDebouncedMutation, useThrottledFn } from './useIdempotentMutation';
+export { useServerPagination } from './useServerPagination';
+export { useHorasCalculator } from './useHorasCalculator';
+export { useValidation } from './useValidation';
+export { useNavigateBack } from './useNavigateBack';
+export { useNavigationDirection } from './useNavigationDirection';
+export { useSwipeBack } from './useSwipeBack';
+export { useUnsavedChanges } from './useUnsavedChanges';
