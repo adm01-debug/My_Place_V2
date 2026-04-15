@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { 
 import { createLogger } from '@/lib/logger';
-
-const log = createLogger('AuthContext');
+import { 
   type UserRole, 
   type PermissionAction, 
   type ResourceType, 
   ROLE_PERMISSIONS, 
   ROUTE_ACCESS 
 } from './auth-permissions';
+
+const log = createLogger('AuthContext');
 
 // Re-export types for consumers
 export type { UserRole, PermissionAction, ResourceType };

@@ -114,10 +114,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Callback opcional para logging (Sentry, etc)
     this.props.onError?.(error, errorInfo);
     
-    // Log para console em desenvolvimento
+    // Structured logging
     if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error);
-      console.error('Component stack:', errorInfo.componentStack);
+      import('@/lib/logger').then(({ createLogger }) => {
+        const log = createLogger('ErrorBoundary');
+        log.error('ErrorBoundary caught an error:', error);
+        log.error('Component stack:', errorInfo.componentStack);
+      });
     }
   }
 
@@ -200,7 +203,9 @@ export const PageErrorBoundary: React.FC<PageErrorBoundaryProps> = ({
 }) => {
   const handleError = React.useCallback((error: Error, errorInfo: ErrorInfo) => {
     // Em produção, enviar para serviço de monitoramento
-    console.error(`Error in page ${pageName || 'unknown'}:`, error);
+    import('@/lib/logger').then(({ createLogger }) => {
+      createLogger('PageError').error(`Error in page ${pageName || 'unknown'}:`, error);
+    });
     
     // Aqui você pode integrar com Sentry, LogRocket, etc
     // if (typeof Sentry !== 'undefined') {
