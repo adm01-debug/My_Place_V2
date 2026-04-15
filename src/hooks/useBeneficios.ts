@@ -103,8 +103,9 @@ export function useBeneficios() {
     }
 
     // Fetch dependentes para cada benefício de saúde/odonto
-    const beneficiosWithDependentes = await Promise.all(
+    const beneficiosWithDependentes: Beneficio[] = await Promise.all(
       (beneficiosData || []).map(async (beneficio) => {
+        const mapped = mapDbToBeneficio(beneficio as unknown as Record<string, unknown>);
         if (['plano_saude', 'plano_odonto'].includes(beneficio.tipo)) {
           const { data: dependentesData } = await supabase
             .from('dependentes_beneficio')
@@ -113,11 +114,11 @@ export function useBeneficios() {
             .eq('ativo', true);
           
           return {
-            ...beneficio,
+            ...mapped,
             dependentes: dependentesData || [],
-          } as Beneficio;
+          };
         }
-        return beneficio as Beneficio;
+        return mapped;
       })
     );
 
