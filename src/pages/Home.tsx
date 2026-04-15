@@ -10,6 +10,7 @@ import {
   Hash, Shield, ChevronRight, Sun, Clock, Palmtree,
   Receipt, FileText, type LucideIcon
 } from 'lucide-react';
+import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
@@ -151,6 +152,16 @@ export default function Home() {
               />
             ))}
           </div>
+        </div>
+
+        {/* Dashboard Charts */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Dashboard
+          </h2>
+          <HoursChart />
+          <SalaryChart />
+          <GoalsProgress />
         </div>
 
 
