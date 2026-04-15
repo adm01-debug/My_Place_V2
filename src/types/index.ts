@@ -1,7 +1,3 @@
-// Barrel export de todos os tipos
-export * from './portal';
-
-// Tipos comuns
 export interface PaginationParams {
   page: number;
   pageSize: number;
