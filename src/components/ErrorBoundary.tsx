@@ -116,10 +116,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     
     // Structured logging
     if (import.meta.env.DEV) {
-      const { createLogger } = await import('@/lib/logger');
-      const log = createLogger('ErrorBoundary');
-      log.error('ErrorBoundary caught an error:', error);
-      log.error('Component stack:', errorInfo.componentStack);
+      import('@/lib/logger').then(({ createLogger }) => {
+        const log = createLogger('ErrorBoundary');
+        log.error('ErrorBoundary caught an error:', error);
+        log.error('Component stack:', errorInfo.componentStack);
+      });
     }
   }
 
