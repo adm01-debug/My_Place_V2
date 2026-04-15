@@ -356,22 +356,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
 
     const initAuth = async () => {
+      // Timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (mounted) {
+          log.warn('Auth init timeout — resetting to unauthenticated');
+          setIsLoading(false);
+        }
+      }, 8000);
+
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
 
         if (currentSession?.user && mounted) {
-          setSession(currentSession);
-          setUser(currentSession.user);
+          // Validate session by checking the user is real
+          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !validatedUser) {
+            // Session is invalid (e.g., bad JWT, expired token)
+            log.warn('Sessão inválida detectada, fazendo logout:', userError?.message);
+            // Don't await signOut — it may also fail with invalid token
+            supabase.auth.signOut().catch(() => {});
+            if (mounted) {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              setDbRole(null);
+            }
+          } else if (mounted) {
+            setSession(currentSession);
+            setUser(validatedUser);
 
-          const profileData = await fetchProfile(currentSession.user.id);
-          if (mounted) {
-            setProfile(profileData);
-            await fetchUserRole(currentSession.user.id);
+            const profileData = await fetchProfile(validatedUser.id);
+            if (mounted) {
+              setProfile(profileData);
+              await fetchUserRole(validatedUser.id);
+            }
           }
         }
       } catch (error) {
         log.error('Erro ao inicializar auth:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setDbRole(null);
+        }
       } finally {
+        clearTimeout(timeout);
         if (mounted) setIsLoading(false);
       }
     };
