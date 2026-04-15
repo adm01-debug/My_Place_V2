@@ -72,6 +72,7 @@ export default function Dashboard() {
     }
   }, [isSubscribed, permission, subscribe]);
 
+  if (isLoading) {
     return (
       <PageLayout title="Dashboard">
         <div className="space-y-6">
