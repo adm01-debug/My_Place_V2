@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageLayout } from '@/components/portal/PageLayout';
 import { StatCardSkeleton, ListItemSkeleton } from '@/components/portal/Skeletons';
+import { SalaryChart } from '@/components/holerites/SalaryChart';
 import { useHolerites } from '@/hooks/useHolerites';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -107,6 +108,9 @@ export default function Holerites() {
             </div>
           </div>
         </Card>
+
+        {/* Gráfico de Evolução Salarial */}
+        <SalaryChart holerites={holerites} />
 
         {/* Lista de Holerites */}
         <div className="space-y-3">

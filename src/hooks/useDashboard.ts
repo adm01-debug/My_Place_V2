@@ -84,110 +84,124 @@ export function useDashboard() {
       const fimMes = endOfMonth(new Date());
       const hoje = format(new Date(), 'yyyy-MM-dd');
 
-      // 1. Último holerite
-      const { data: holerite } = await supabase
-        .from('holerites')
-        .select('mes, ano, salario_liquido')
-        .eq('user_id', user.id)
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false })
-        .limit(1)
-        .single();
+      // Parallel fetch all data
+      const [
+        holeriteResult,
+        registrosMesResult,
+        registrosHojeResult,
+        feriasAprovadasResult,
+        feriasUsadasResult,
+        remuneracaoResult,
+        emprestimoResult,
+        comunicadosResult,
+        notificacoesResult,
+        solicitacoesResult,
+        treinamentosResult,
+      ] = await Promise.all([
+        // 1. Último holerite
+        supabase
+          .from('holerites')
+          .select('mes, ano, salario_liquido')
+          .eq('user_id', user.id)
+          .order('ano', { ascending: false })
+          .order('mes', { ascending: false })
+          .limit(1)
+          .single(),
+        // 2. Registros de ponto do mês
+        supabase
+          .from('registros_ponto')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('data_hora', inicioMes.toISOString())
+          .lte('data_hora', fimMes.toISOString())
+          .order('data_hora', { ascending: true }),
+        // 3. Registros de ponto de hoje
+        supabase
+          .from('registros_ponto')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('data_hora', `${hoje}T00:00:00`)
+          .lte('data_hora', `${hoje}T23:59:59`)
+          .order('data_hora', { ascending: true }),
+        // 4. Férias aprovadas
+        supabase
+          .from('ferias')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'aprovado')
+          .gte('data_inicio', hoje)
+          .order('data_inicio', { ascending: true })
+          .limit(1),
+        // 5. Saldo de férias
+        supabase
+          .from('ferias')
+          .select('dias_solicitados')
+          .eq('user_id', user.id)
+          .in('status', ['aprovado', 'concluido']),
+        // 6. Remuneração variável do mês
+        supabase
+          .from('remuneracao_variavel')
+          .select('valor')
+          .eq('user_id', user.id)
+          .eq('mes', mesAtual)
+          .eq('ano', anoAtual)
+          .in('status', ['aprovado', 'pago']),
+        // 7. Empréstimo ativo
+        supabase
+          .from('emprestimos')
+          .select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela')
+          .eq('user_id', user.id)
+          .eq('status', 'ativo')
+          .limit(1)
+          .single(),
+        // 8. Comunicados recentes
+        supabase
+          .from('comunicados')
+          .select(`id, titulo, resumo, categoria, data_publicacao, importante, comunicados_lidos!left(id)`)
+          .eq('ativo', true)
+          .order('data_publicacao', { ascending: false })
+          .limit(3),
+        // 9. Notificações não lidas
+        supabase
+          .from('notificacoes')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('lida', false),
+        // 10. Solicitações pendentes
+        supabase
+          .from('solicitacoes')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('status', ['pendente', 'em_analise']),
+        // 11. Treinamentos pendentes
+        supabase
+          .from('treinamentos_colaborador')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'pendente'),
+      ]);
 
-      // 2. Registros de ponto do mês
-      const { data: registrosMes } = await supabase
-        .from('registros_ponto')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('data_hora', inicioMes.toISOString())
-        .lte('data_hora', fimMes.toISOString())
-        .order('data_hora', { ascending: true });
+      const holerite = holeriteResult.data;
+      const registrosMes = registrosMesResult.data;
+      const registrosHoje = registrosHojeResult.data;
+      const feriasAprovadas = feriasAprovadasResult.data;
+      const feriasUsadas = feriasUsadasResult.data;
+      const remuneracaoVariavel = remuneracaoResult.data;
+      const emprestimo = emprestimoResult.data;
+      const comunicados = comunicadosResult.data;
+      const notificacoesCount = notificacoesResult.count;
+      const solicitacoesCount = solicitacoesResult.count;
+      const treinamentosCount = treinamentosResult.count;
 
-      // 3. Registros de ponto de hoje
-      const { data: registrosHoje } = await supabase
-        .from('registros_ponto')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('data_hora', `${hoje}T00:00:00`)
-        .lte('data_hora', `${hoje}T23:59:59`)
-        .order('data_hora', { ascending: true });
-
-      // 4. Férias aprovadas
-      const { data: feriasAprovadas } = await supabase
-        .from('ferias')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'aprovado')
-        .gte('data_inicio', hoje)
-        .order('data_inicio', { ascending: true })
-        .limit(1);
-
-      // 5. Saldo de férias (simplificado - 30 dias por ano)
-      const { data: feriasUsadas } = await supabase
-        .from('ferias')
-        .select('dias_solicitados')
-        .eq('user_id', user.id)
-        .in('status', ['aprovado', 'concluido']);
-
-      // 6. Remuneração variável do mês (usando tabela consolidada)
-      const { data: remuneracaoVariavel } = await supabase
-        .from('remuneracao_variavel')
-        .select('valor')
-        .eq('user_id', user.id)
-        .eq('mes', mesAtual)
-        .eq('ano', anoAtual)
-        .in('status', ['aprovado', 'pago']);
-
-      const comissaoTotal = (remuneracaoVariavel || []).reduce((acc, r) => acc + Number(r.valor), 0);
-
-      // 7. Empréstimo ativo
-      const { data: emprestimo } = await supabase
-        .from('emprestimos')
-        .select('saldo_devedor, quantidade_parcelas, parcelas_pagas, valor_parcela')
-        .eq('user_id', user.id)
-        .eq('status', 'ativo')
-        .limit(1)
-        .single();
-
-      // 8. Comunicados recentes
-      const { data: comunicados } = await supabase
-        .from('comunicados')
-        .select(`
-          id, titulo, resumo, categoria, data_publicacao, importante,
-          comunicados_lidos!left(id)
-        `)
-        .eq('ativo', true)
-        .order('data_publicacao', { ascending: false })
-        .limit(3);
-
-      // 9. Notificações não lidas
-      const { count: notificacoesCount } = await supabase
-        .from('notificacoes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('lida', false);
-
-      // 10. Solicitações pendentes
-      const { count: solicitacoesCount } = await supabase
-        .from('solicitacoes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .in('status', ['pendente', 'em_analise']);
-
-      // 11. Treinamentos pendentes
-      const { count: treinamentosCount } = await supabase
-        .from('treinamentos_colaborador')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'pendente');
+      const comissaoTotal = (remuneracaoVariavel || []).reduce((acc: number, r: any) => acc + Number(r.valor), 0);
 
       // Calcular horas trabalhadas
       const calcularHoras = (registros: any[] | null): string => {
         if (!registros || registros.length === 0) return '0:00';
         
         let totalMinutos = 0;
-        const entradas = registros.filter(r => r.tipo === 'entrada');
-        const saidas = registros.filter(r => r.tipo === 'saida');
+        const entradas = registros.filter((r: any) => r.tipo === 'entrada');
+        const saidas = registros.filter((r: any) => r.tipo === 'saida');
 
         for (let i = 0; i < entradas.length; i++) {
           const entrada = new Date(entradas[i].data_hora);
@@ -200,8 +214,47 @@ export function useDashboard() {
         return `${horas}:${String(minutos).padStart(2, '0')}`;
       };
 
+      // Calcular banco de horas real
+      const calcularBancoHoras = (registros: any[] | null): string => {
+        if (!registros || registros.length === 0) return '0:00';
+        
+        const JORNADA_DIARIA = 8 * 60; // 8h em minutos
+        const registrosPorDia: Record<string, any[]> = {};
+        
+        registros.forEach((r: any) => {
+          const dateKey = format(new Date(r.data_hora), 'yyyy-MM-dd');
+          if (!registrosPorDia[dateKey]) registrosPorDia[dateKey] = [];
+          registrosPorDia[dateKey].push(r);
+        });
+
+        let saldoMinutos = 0;
+        Object.values(registrosPorDia).forEach(dayRegs => {
+          const entradas = dayRegs.filter((r: any) => r.tipo === 'entrada' || r.tipo === 'intervalo_fim')
+            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+          const saidas = dayRegs.filter((r: any) => r.tipo === 'saida' || r.tipo === 'intervalo_inicio')
+            .sort((a: any, b: any) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+          
+          let minutesDia = 0;
+          for (let i = 0; i < entradas.length; i++) {
+            const entrada = new Date(entradas[i].data_hora);
+            const saida = saidas[i] ? new Date(saidas[i].data_hora) : null;
+            if (saida) minutesDia += differenceInMinutes(saida, entrada);
+          }
+          
+          // Só contabiliza se teve pelo menos uma saída (dia completo)
+          if (saidas.length > 0) {
+            saldoMinutos += minutesDia - JORNADA_DIARIA;
+          }
+        });
+
+        const horas = Math.floor(Math.abs(saldoMinutos) / 60);
+        const mins = Math.abs(saldoMinutos) % 60;
+        const sinal = saldoMinutos >= 0 ? '+' : '-';
+        return `${sinal}${horas}:${String(mins).padStart(2, '0')}`;
+      };
+
       // Calcular saldo de férias
-      const diasUsados = (feriasUsadas || []).reduce((acc, f) => acc + f.dias_solicitados, 0);
+      const diasUsados = (feriasUsadas || []).reduce((acc: number, f: any) => acc + f.dias_solicitados, 0);
       const saldoFerias = Math.max(0, 30 - diasUsados);
 
       // Gerar alertas baseados em dados reais
@@ -257,7 +310,7 @@ export function useDashboard() {
         } : null,
         horasTrabalhadas: calcularHoras(registrosMes),
         horasHoje: calcularHoras(registrosHoje),
-        bancoHoras: '+0:00', // TODO: Implementar cálculo real
+        bancoHoras: calcularBancoHoras(registrosMes),
         saldoFerias,
         proximasFerias: feriasAprovadas?.[0] ? {
           data_inicio: feriasAprovadas[0].data_inicio,

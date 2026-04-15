@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Clock, Umbrella, TrendingUp, Bell, 
@@ -19,6 +20,7 @@ import { StatCardWithTrend } from '@/components/portal/StatCardWithTrend';
 import { SectionHeader } from '@/components/portal/SectionHeader';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -43,6 +45,7 @@ export default function Dashboard() {
     salarioEstimado, 
     horasTrabalhadas, 
     horasHoje,
+    bancoHoras,
     saldoFerias, 
     comissaoMes, 
     emprestimoAtivo,
@@ -55,6 +58,19 @@ export default function Dashboard() {
   } = useDashboard();
 
   const { unreadCount } = useNotificacoes();
+  const { isSubscribed, permission, subscribe } = usePushNotifications();
+
+  // Auto-prompt push notifications on first visit
+  useEffect(() => {
+    const prompted = localStorage.getItem('push_prompted');
+    if (!prompted && !isSubscribed && permission === 'default') {
+      const timer = setTimeout(() => {
+        subscribe();
+        localStorage.setItem('push_prompted', 'true');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSubscribed, permission, subscribe]);
 
   if (isLoading) {
     return (
@@ -129,7 +145,7 @@ export default function Dashboard() {
             iconBg="bg-primary/10"
             label="Horas Mês"
             value={horasTrabalhadas}
-            subtitle={`Hoje: ${horasHoje}`}
+            subtitle={`Hoje: ${horasHoje} | BH: ${bancoHoras}`}
             onClick={() => navigate('/ponto')}
           />
           <StatCardWithTrend
