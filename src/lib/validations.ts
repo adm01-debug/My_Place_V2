@@ -47,7 +47,7 @@ export const signupSchema = z.object({
 // ============================================================================
 
 export const feriasSchema = z.object({
-  tipo: z.literal('ferias').or(z.literal('abono')).or(z.literal('licenca')),
+  tipo: z.enum({ ferias: 'ferias', abono: 'abono', licenca: 'licenca' }),
   data_inicio: dateSchema,
   data_fim: dateSchema,
   dias_solicitados: z.number().int().min(1, 'Mínimo 1 dia').max(30, 'Máximo 30 dias'),
@@ -65,7 +65,7 @@ export const solicitacaoSchema = z.object({
   tipo: z.string().min(1, 'Selecione o tipo de solicitação'),
   titulo: z.string().min(3, 'Título deve ter no mínimo 3 caracteres').max(200, 'Título muito longo'),
   descricao: z.string().max(2000, 'Descrição muito longa').optional(),
-  prioridade: z.enum(['baixa', 'normal', 'alta', 'urgente']).default('normal'),
+  prioridade: z.enum({ baixa: 'baixa', normal: 'normal', alta: 'alta', urgente: 'urgente' }).default('normal'),
 });
 
 // ============================================================================
