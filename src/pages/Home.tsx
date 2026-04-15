@@ -95,22 +95,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="w-full max-w-lg mx-auto p-4 pt-8 pb-12 space-y-6">
-        {/* Header with greeting */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sun className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm text-muted-foreground">{getGreeting()}</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={signOut}
-            className="text-muted-foreground hover:text-destructive"
-            aria-label="Sair"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+      <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-12 space-y-6">
+        {/* Greeting */}
+        <div className="flex items-center gap-2">
+          <Sun className="w-5 h-5 text-yellow-500" />
+          <span className="text-sm text-muted-foreground">{getGreeting()}, <span className="font-medium text-foreground">{firstName}</span></span>
         </div>
 
         {/* Profile Card */}
