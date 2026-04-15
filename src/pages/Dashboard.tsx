@@ -55,10 +55,12 @@ export default function Dashboard() {
     comunicados,
     notificacoesNaoLidas,
     solicitacoesPendentes,
+    treinamentosPendentes,
     isLoading,
     refetch
   } = useDashboard();
 
+  const { isGestor, isAdmin } = useAuth();
   const { unreadCount } = useNotificacoes();
   const { isSubscribed, permission, subscribe } = usePushNotifications();
 
