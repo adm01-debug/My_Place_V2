@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import {
   ChartContainer,
@@ -52,7 +53,7 @@ const chartConfig = {
   },
 };
 
-export function SalaryEvolutionChart() {
+export const SalaryEvolutionChart = React.memo(function SalaryEvolutionChart() {
   return (
     <Card className="p-4 border-0 shadow-card">
       <div className="mb-3">
@@ -92,9 +93,9 @@ export function SalaryEvolutionChart() {
       </ChartContainer>
     </Card>
   );
-}
+});
 
-export function HoursDistributionChart() {
+export const HoursDistributionChart = React.memo(function HoursDistributionChart() {
   return (
     <Card className="p-4 border-0 shadow-card">
       <div className="mb-3">
@@ -128,9 +129,9 @@ export function HoursDistributionChart() {
       </ChartContainer>
     </Card>
   );
-}
+});
 
-export function GoalProgressChart() {
+export const GoalProgressChart = React.memo(function GoalProgressChart() {
   return (
     <Card className="p-4 border-0 shadow-card">
       <div className="mb-2">
@@ -165,4 +166,4 @@ export function GoalProgressChart() {
       </div>
     </Card>
   );
-}
+});
