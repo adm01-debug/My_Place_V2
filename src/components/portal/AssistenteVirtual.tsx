@@ -14,10 +14,10 @@ interface AssistenteVirtualProps {
 }
 
 const sugestoes = [
-  'Como solicitar férias?',
-  'Quando sai o holerite?',
-  'Como justificar falta?',
-  'Quais são meus benefícios?',
+  'Quantos dias de férias eu tenho?',
+  'Qual meu saldo de banco de horas?',
+  'Quando sai meu próximo holerite?',
+  'Como justificar uma falta?',
 ];
 
 export function AssistenteVirtual({ isOpen, onClose }: AssistenteVirtualProps) {
