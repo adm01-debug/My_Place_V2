@@ -1,16 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-// import { User, Session } from '@supabase/supabase-js';
-// import { supabase } from '@/integrations/supabase/client';
-// import { createLogger } from '@/lib/logger';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { createLogger } from '@/lib/logger';
+import { UserRole, PermissionAction, ResourceType, ROLE_PERMISSIONS, ROUTE_ACCESS } from './auth-permissions';
 
 const log = createLogger('AuthContext');
 
-// Re-export types for consumers
 export type { UserRole, PermissionAction, ResourceType };
-
-// ============================================================================
-// TIPOS E INTERFACES
-// ============================================================================
 
 export interface Profile {
   id: string;
@@ -61,20 +57,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ============================================================================
-// PROVIDER
-// ============================================================================
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dbRole, setDbRole] = useState<'admin' | 'gestor' | 'user' | null>(null);
-
-  // ============================================================================
-  // ROLE DETECTION
-  // ============================================================================
 
   const fetchUserRole = useCallback(async (userId: string) => {
     try {
@@ -89,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const roles = (data ?? []).map(r => r.role);
+      const roles = (data ?? []).map((r: { role: string }) => r.role);
       if (roles.includes('admin')) {
         setDbRole('admin');
       } else if (roles.includes('gestor')) {
@@ -117,14 +105,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isRH = role === 'rh' || role === 'admin';
   const isDiretor = role === 'diretor';
 
-  // ============================================================================
-  // PERMISSIONS
-  // ============================================================================
-
   const hasPermission = useCallback((action: PermissionAction, resource: ResourceType): boolean => {
     const permissions = ROLE_PERMISSIONS[role];
     if (!permissions) return false;
-    const resourcePermission = permissions.find(p => p.resource === resource);
+    const resourcePermission = permissions.find((p: { resource: ResourceType }) => p.resource === resource);
     if (!resourcePermission) return false;
     return resourcePermission.actions.includes(action);
   }, [role]);
@@ -138,10 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasAnyRole = useCallback((...roles: UserRole[]): boolean => {
     return roles.includes(role);
   }, [role]);
-
-  // ============================================================================
-  // SESSION MANAGEMENT
-  // ============================================================================
 
   const sessionExpiresAt = useMemo((): Date | null => {
     if (!session?.expires_at) return null;
@@ -188,10 +168,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearTimeout(timeout);
   }, [session?.expires_at, refreshSession]);
 
-  // ============================================================================
-  // PROFILE
-  // ============================================================================
-
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
@@ -217,10 +193,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(data);
     }
   }, [user, fetchProfile]);
-
-  // ============================================================================
-  // AUTHENTICATION
-  // ============================================================================
 
   const MAX_ATTEMPTS = 5;
 
@@ -341,15 +313,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // ============================================================================
-  // INITIALIZATION
-  // ============================================================================
-
   useEffect(() => {
     let mounted = true;
 
     const initAuth = async () => {
-      // Timeout to prevent infinite loading
       const timeout = setTimeout(() => {
         if (mounted) {
           log.warn('Auth init timeout — resetting to unauthenticated');
@@ -361,13 +328,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session: currentSession } } = await supabase.auth.getSession();
 
         if (currentSession?.user && mounted) {
-          // Validate session by checking the user is real
           const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
           
           if (userError || !validatedUser) {
-            // Session is invalid (e.g., bad JWT, expired token)
             log.warn('Sessão inválida detectada, fazendo logout:', userError?.message);
-            // Don't await signOut — it may also fail with invalid token
             supabase.auth.signOut().catch(() => {});
             if (mounted) {
               setSession(null);
@@ -419,7 +383,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (event === 'TOKEN_REFRESHED' && newSession?.user) {
-          // Silently update session without reloading profile
           log.info('Token refreshed successfully');
         }
 
