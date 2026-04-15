@@ -64,7 +64,7 @@ function getGreeting(): string {
 }
 
 export default function Home() {
-  const { user, profile, role, signOut } = useAuth();
+  const { user, profile, role } = useAuth();
   const navigate = useNavigate();
 
   const initials = profile?.nome
