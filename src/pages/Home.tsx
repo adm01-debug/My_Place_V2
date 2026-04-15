@@ -137,7 +137,23 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Details Card */}
+        {/* Quick Access */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Acesso Rápido
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickAccessItems.map((item) => (
+              <QuickAccessCard
+                key={item.path}
+                item={item}
+                onClick={() => navigate(item.path)}
+              />
+            ))}
+          </div>
+        </div>
+
+
         <Card className="border-border/50 shadow-lg">
           <CardHeader className="pb-2">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
