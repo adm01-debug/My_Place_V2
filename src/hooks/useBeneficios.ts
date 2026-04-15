@@ -6,10 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 interface Dependente {
   id: string;
   nome: string;
-  parentesco: 'conjuge' | 'filho' | 'filha' | 'pai' | 'mae' | 'outro';
+  parentesco: string;
   data_nascimento: string | null;
   cpf: string | null;
-  numero_carteirinha: string | null;
   ativo: boolean;
 }
 

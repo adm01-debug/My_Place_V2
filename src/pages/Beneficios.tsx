@@ -92,10 +92,10 @@ export default function Beneficios() {
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm">
-                {beneficio.credito_mensal > 0 && (
+                {beneficio.valor_mensal > 0 && (
                   <div>
-                    <p className="text-muted-foreground">Crédito Mensal</p>
-                    <p className="font-medium">{formatCurrency(beneficio.credito_mensal)}</p>
+                    <p className="text-muted-foreground">Valor Mensal</p>
+                    <p className="font-medium">{formatCurrency(beneficio.valor_mensal)}</p>
                   </div>
                 )}
                 
@@ -103,13 +103,6 @@ export default function Beneficios() {
                   <div>
                     <p className="text-muted-foreground">Desconto</p>
                     <p className="font-medium">{formatCurrency(beneficio.desconto)}</p>
-                  </div>
-                )}
-                
-                {beneficio.saldo_cartao !== null && beneficio.saldo_cartao > 0 && (
-                  <div>
-                    <p className="text-muted-foreground">Saldo Cartão</p>
-                    <p className="font-medium">{formatCurrency(beneficio.saldo_cartao)}</p>
                   </div>
                 )}
                 
@@ -123,25 +116,15 @@ export default function Beneficios() {
                 {beneficio.operadora && (
                   <div>
                     <p className="text-muted-foreground">Operadora</p>
-                    <p className="font-medium">
-                      {beneficio.operadora}
-                      {beneficio.plano && ` - ${beneficio.plano}`}
-                    </p>
+                    <p className="font-medium">{beneficio.operadora}</p>
                   </div>
                 )}
                 
-                {beneficio.numero_carteirinha && (
+                {beneficio.data_adesao && (
                   <div>
-                    <p className="text-muted-foreground">Carteirinha</p>
-                    <p className="font-medium">{beneficio.numero_carteirinha}</p>
-                  </div>
-                )}
-                
-                {beneficio.ultima_recarga && (
-                  <div>
-                    <p className="text-muted-foreground">Última Recarga</p>
+                    <p className="text-muted-foreground">Adesão</p>
                     <p className="font-medium">
-                      {format(new Date(beneficio.ultima_recarga), 'dd/MM/yyyy')}
+                      {format(new Date(beneficio.data_adesao), 'dd/MM/yyyy')}
                     </p>
                   </div>
                 )}
