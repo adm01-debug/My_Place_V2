@@ -356,6 +356,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
 
     const initAuth = async () => {
+      // Timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (mounted) {
+          log.warn('Auth init timeout — resetting to unauthenticated');
+          setIsLoading(false);
+        }
+      }, 8000);
+
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
 
@@ -366,7 +374,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (userError || !validatedUser) {
             // Session is invalid (e.g., bad JWT, expired token)
             log.warn('Sessão inválida detectada, fazendo logout:', userError?.message);
-            await supabase.auth.signOut();
+            // Don't await signOut — it may also fail with invalid token
+            supabase.auth.signOut().catch(() => {});
             if (mounted) {
               setSession(null);
               setUser(null);
@@ -386,7 +395,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         log.error('Erro ao inicializar auth:', error);
-        // On any failure, ensure we're in a clean state
         if (mounted) {
           setSession(null);
           setUser(null);
@@ -394,6 +402,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setDbRole(null);
         }
       } finally {
+        clearTimeout(timeout);
         if (mounted) setIsLoading(false);
       }
     };
