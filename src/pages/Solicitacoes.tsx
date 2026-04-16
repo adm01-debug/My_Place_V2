@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon } from 'lucide-react';
 import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -210,6 +211,7 @@ export default function Solicitacoes() {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
 
   return (
+    <PullToRefresh onRefresh={fetchData}>
     <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -544,5 +546,6 @@ export default function Solicitacoes() {
         </DialogContent>
       </Dialog>
     </div>
+    </PullToRefresh>
   );
 }

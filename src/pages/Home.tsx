@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { supabase } from '@/integrations/supabase/client';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
