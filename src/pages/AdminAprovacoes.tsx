@@ -60,9 +60,7 @@ const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('
 
 export default function AdminAprovacoes() {
   const { user } = useAuth();
-  const { roles } = useUserRoles();
-  const isAdmin = roles.includes('admin');
-  const isGestor = roles.includes('gestor');
+  const { isAdmin, isGestor } = useUserRoles();
   const hasAccess = isAdmin || isGestor;
 
   const [ferias, setFerias] = useState<FeriasRequest[]>([]);
