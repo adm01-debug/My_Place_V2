@@ -58,6 +58,7 @@ export default function AdminLocais() {
   const [form, setForm] = useState<FormData>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchLocais = useCallback(async () => {
     const { data, error } = await supabase
@@ -132,10 +133,11 @@ export default function AdminLocais() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setDeleting(id);
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeleting(deleteConfirmId);
     try {
-      const { error } = await supabase.from('locais_permitidos').delete().eq('id', id);
+      const { error } = await supabase.from('locais_permitidos').delete().eq('id', deleteConfirmId);
       if (error) throw error;
       toast.success('Local removido!');
       await fetchLocais();
@@ -144,6 +146,7 @@ export default function AdminLocais() {
       toast.error('Erro ao remover local.');
     } finally {
       setDeleting(null);
+      setDeleteConfirmId(null);
     }
   };
 
