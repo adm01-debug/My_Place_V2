@@ -280,6 +280,51 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitacoes_ferias: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          id: string
+          observacao: string | null
+          status: Database["public"]["Enums"]["status_ferias"]
+          tipo: Database["public"]["Enums"]["tipo_ferias"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          id?: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["status_ferias"]
+          tipo?: Database["public"]["Enums"]["tipo_ferias"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias?: number
+          id?: string
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["status_ferias"]
+          tipo?: Database["public"]["Enums"]["tipo_ferias"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_2fa: {
         Row: {
           backup_codes: string[] | null
@@ -349,6 +394,18 @@ export type Database = {
         }[]
       }
       cleanup_old_login_attempts: { Args: never; Returns: number }
+      fn_calcular_saldo_ferias: {
+        Args: { p_user_id: string }
+        Returns: {
+          dias_direito: number
+          dias_disponiveis: number
+          dias_pendentes: number
+          dias_usados: number
+          periodo_aquisitivo_fim: string
+          periodo_aquisitivo_inicio: string
+          proximo_vencimento: string
+        }[]
+      }
       fn_haversine_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -377,6 +434,8 @@ export type Database = {
     Enums: {
       app_role: "admin" | "gestor" | "user"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
+      status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
+      tipo_ferias: "regular" | "abono_pecuniario" | "fracionada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -506,6 +565,8 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "gestor", "user"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
+      status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
+      tipo_ferias: ["regular", "abono_pecuniario", "fracionada"],
     },
   },
 } as const
