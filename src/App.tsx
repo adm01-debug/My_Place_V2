@@ -14,6 +14,10 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
+const Ponto = lazy(() => import("./pages/Ponto"));
+const Ferias = lazy(() => import("./pages/Ferias"));
+const Holerites = lazy(() => import("./pages/Holerites"));
+const Solicitacoes = lazy(() => import("./pages/Solicitacoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
