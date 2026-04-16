@@ -324,40 +324,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let initDone = false;
+
+    const loadProfileAndRole = async (userId: string) => {
+      const [profileData] = await Promise.all([
+        fetchProfile(userId),
+        fetchUserRole(userId),
+      ]);
+      if (mounted) {
+        setProfile(profileData);
+      }
+    };
 
     const initAuth = async () => {
-      const timeout = setTimeout(() => {
-        if (mounted) {
-          log.warn('Auth init timeout — resetting to unauthenticated');
-          setIsLoading(false);
-        }
-      }, 8000);
-
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
 
         if (currentSession?.user && mounted) {
-          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
-          
-          if (userError || !validatedUser) {
-            log.warn('Sessão inválida detectada, fazendo logout:', userError?.message);
-            supabase.auth.signOut().catch(() => {});
-            if (mounted) {
-              setSession(null);
-              setUser(null);
-              setProfile(null);
-              setDbRole(null);
-            }
-          } else if (mounted) {
-            setSession(currentSession);
-            setUser(validatedUser);
-
-            const profileData = await fetchProfile(validatedUser.id);
-            if (mounted) {
-              setProfile(profileData);
-              await fetchUserRole(validatedUser.id);
-            }
-          }
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await loadProfileAndRole(currentSession.user.id);
         }
       } catch (error) {
         log.error('Erro ao inicializar auth:', error);
@@ -368,7 +354,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setDbRole(null);
         }
       } finally {
-        clearTimeout(timeout);
+        initDone = true;
         if (mounted) setIsLoading(false);
       }
     };
@@ -384,11 +370,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(newSession?.user ?? null);
 
         if (event === 'SIGNED_IN' && newSession?.user) {
-          const profileData = await fetchProfile(newSession.user.id);
-          if (mounted) {
-            setProfile(profileData);
-            await fetchUserRole(newSession.user.id);
-          }
+          if (!initDone) return; // skip duplicate fetch during init
+          await loadProfileAndRole(newSession.user.id);
         }
 
         if (event === 'TOKEN_REFRESHED' && newSession?.user) {
