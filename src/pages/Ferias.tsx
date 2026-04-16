@@ -124,7 +124,7 @@ export default function Ferias() {
         data_inicio: form.data_inicio,
         data_fim: form.data_fim,
         dias,
-        tipo: form.tipo,
+        tipo: form.tipo as 'regular' | 'abono_pecuniario' | 'fracionada',
         observacao: form.observacao || null,
       });
       if (error) throw error;
