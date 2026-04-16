@@ -19,6 +19,7 @@ const Ferias = lazy(() => import("./pages/Ferias"));
 const Holerites = lazy(() => import("./pages/Holerites"));
 const Solicitacoes = lazy(() => import("./pages/Solicitacoes"));
 const AdminLocais = lazy(() => import("./pages/AdminLocais"));
+const AdminAprovacoes = lazy(() => import("./pages/AdminAprovacoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
