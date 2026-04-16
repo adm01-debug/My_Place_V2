@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Palmtree, CalendarDays, Plus, Clock, Loader2 } from 'lucide-react';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -190,7 +192,12 @@ export default function Ferias() {
     },
   ];
 
+  const usagePercent = saldo && saldo.dias_direito > 0
+    ? Math.round(((saldo.dias_usados + saldo.dias_pendentes) / saldo.dias_direito) * 100)
+    : 0;
+
   return (
+    <PullToRefresh onRefresh={fetchData}>
     <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -203,26 +210,57 @@ export default function Ferias() {
         </Button>
       </div>
 
-      <div className="grid gap-3">
-        {stats.map(({ label, value, icon: Icon, color }) => {
-          const [iconColor, bgColor] = color.split(' ');
-          return (
-            <Card key={label} className="border-border/50 shadow-md">
-              <CardContent className="flex items-center gap-4 py-4">
-                <div className={`flex items-center justify-center w-11 h-11 rounded-xl ${bgColor}`}>
-                  <Icon className={`w-5 h-5 ${iconColor}`} />
+      {/* Balance Card */}
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-muted/60" />
+              <div className="space-y-1 flex-1">
+                <div className="h-3 w-24 rounded bg-muted/40" />
+                <div className="h-5 w-16 rounded bg-muted/60" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-3">
+            {stats.map(({ label, value, icon: Icon, color }) => {
+              const [iconColor, bgColor] = color.split(' ');
+              return (
+                <Card key={label} className="border-border/50 shadow-md">
+                  <CardContent className="flex items-center gap-4 py-4">
+                    <div className={`flex items-center justify-center w-11 h-11 rounded-xl ${bgColor}`}>
+                      <Icon className={`w-5 h-5 ${iconColor}`} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="text-lg font-semibold text-foreground">{value}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {saldo && saldo.dias_direito > 0 && (
+            <Card className="border-border/50 shadow-md">
+              <CardContent className="py-4 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Utilização do período</span>
+                  <span className="font-medium text-foreground">{usagePercent}%</span>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : value}
-                  </p>
+                <Progress value={usagePercent} className="h-2" />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>{saldo.dias_usados} usados + {saldo.dias_pendentes} pendentes</span>
+                  <span>{saldo.dias_disponiveis} disponíveis</span>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          )}
+        </>
+      )}
 
       <Card className="border-border/50 shadow-lg">
         <CardHeader className="pb-2">
@@ -232,8 +270,16 @@ export default function Ferias() {
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 animate-pulse flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="h-4 w-36 rounded bg-muted/60" />
+                    <div className="h-3 w-24 rounded bg-muted/40" />
+                  </div>
+                  <div className="h-5 w-16 rounded-full bg-muted/60" />
+                </div>
+              ))}
             </div>
           ) : solicitacoes.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
@@ -317,5 +363,6 @@ export default function Ferias() {
         </DialogContent>
       </Dialog>
     </div>
+    </PullToRefresh>
   );
 }
