@@ -14,6 +14,10 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
+const Ponto = lazy(() => import("./pages/Ponto"));
+const Ferias = lazy(() => import("./pages/Ferias"));
+const Holerites = lazy(() => import("./pages/Holerites"));
+const Solicitacoes = lazy(() => import("./pages/Solicitacoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +75,10 @@ const App = () => (
               <Route element={<AuthenticatedLayout />}>
                 <Route path="/" element={<Page name="Home"><Home /></Page>} />
                 <Route path="/perfil" element={<Page name="Perfil"><Perfil /></Page>} />
+                <Route path="/ponto" element={<Page name="Ponto"><Ponto /></Page>} />
+                <Route path="/ferias" element={<Page name="Férias"><Ferias /></Page>} />
+                <Route path="/holerites" element={<Page name="Holerites"><Holerites /></Page>} />
+                <Route path="/solicitacoes" element={<Page name="Solicitações"><Solicitacoes /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
