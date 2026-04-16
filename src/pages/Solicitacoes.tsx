@@ -70,6 +70,7 @@ export default function Solicitacoes() {
   const [anexo, setAnexo] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   // Form state
   const [tipo, setTipo] = useState<TipoSolicitacao>('declaracao_vinculo');
