@@ -96,6 +96,7 @@ export default defineConfig(({ mode }) => ({
       'framer-motion',
       '@tanstack/react-query',
       'react-router-dom',
+      'cmdk',
     ],
   },
   resolve: {
