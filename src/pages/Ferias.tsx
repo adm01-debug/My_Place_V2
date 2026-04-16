@@ -355,5 +355,6 @@ export default function Ferias() {
         </DialogContent>
       </Dialog>
     </div>
+    </PullToRefresh>
   );
 }
