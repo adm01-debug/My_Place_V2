@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, Palmtree, FileText, CheckCircle2, XCircle, Loader2, Clock, User } from 'lucide-react';
+import { ShieldCheck, Palmtree, FileText, CheckCircle2, XCircle, Loader2, Clock, User, Paperclip, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -38,6 +38,7 @@ interface SolicitacaoRequest {
   descricao: string;
   status: string;
   prioridade: string;
+  anexo_url: string | null;
   created_at: string;
   profile?: ProfileInfo;
 }
@@ -89,7 +90,7 @@ export default function AdminAprovacoes() {
         .limit(50),
       supabase
         .from('solicitacoes')
-        .select('id, user_id, tipo, descricao, status, prioridade, created_at')
+        .select('id, user_id, tipo, descricao, status, prioridade, anexo_url, created_at')
         .in('status', ['pendente', 'em_analise', 'aprovada', 'recusada'])
         .order('created_at', { ascending: false })
         .limit(50),
@@ -285,6 +286,12 @@ export default function AdminAprovacoes() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground mb-1">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
                     <p className="text-sm text-foreground line-clamp-2">{s.descricao}</p>
+                    {s.anexo_url && (
+                      <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                        <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString('pt-BR')}</span>
