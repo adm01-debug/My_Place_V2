@@ -182,11 +182,12 @@ export default function Solicitacoes() {
     setSubmitting(false);
   };
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = async () => {
+    if (!cancelId) return;
     const { error } = await supabase
       .from('solicitacoes')
       .update({ status: 'cancelada' as StatusSolicitacao })
-      .eq('id', id);
+      .eq('id', cancelId);
 
     if (error) {
       toast.error('Erro ao cancelar: ' + error.message);
@@ -194,6 +195,7 @@ export default function Solicitacoes() {
       toast.success('Solicitação cancelada.');
       fetchData();
     }
+    setCancelId(null);
   };
 
   const openNewWithType = (t: TipoSolicitacao) => {
