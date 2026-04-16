@@ -12,6 +12,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 
+interface ProfileInfo {
+  nome: string;
+  cargo: string | null;
+  departamento: string | null;
+}
+
 interface FeriasRequest {
   id: string;
   user_id: string;
@@ -22,7 +28,7 @@ interface FeriasRequest {
   status: string;
   observacao: string | null;
   created_at: string;
-  profiles: { nome: string; cargo: string | null; departamento: string | null } | null;
+  profile?: ProfileInfo;
 }
 
 interface SolicitacaoRequest {
@@ -33,7 +39,7 @@ interface SolicitacaoRequest {
   status: string;
   prioridade: string;
   created_at: string;
-  profiles: { nome: string; cargo: string | null; departamento: string | null } | null;
+  profile?: ProfileInfo;
 }
 
 const tipoFeriasLabels: Record<string, string> = {
