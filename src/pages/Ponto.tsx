@@ -185,8 +185,8 @@ export default function Ponto() {
             <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>Localização será capturada ao registrar</span>
+            <ShieldCheck className="w-4 h-4" />
+            <span>Validação de localização por GPS ativa</span>
           </div>
         </CardContent>
       </Card>
