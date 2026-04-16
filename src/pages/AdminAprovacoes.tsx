@@ -214,8 +214,8 @@ export default function AdminAprovacoes() {
                         <User className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{f.profiles?.nome || 'Colaborador'}</p>
-                        <p className="text-xs text-muted-foreground">{f.profiles?.cargo} · {f.profiles?.departamento}</p>
+                        <p className="text-sm font-medium text-foreground">{f.profile?.nome || 'Colaborador'}</p>
+                        <p className="text-xs text-muted-foreground">{f.profile?.cargo} · {f.profile?.departamento}</p>
                       </div>
                     </div>
                     <StatusBadge status={f.status} />
@@ -271,8 +271,8 @@ export default function AdminAprovacoes() {
                         <User className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{s.profiles?.nome || 'Colaborador'}</p>
-                        <p className="text-xs text-muted-foreground">{s.profiles?.cargo} · {s.profiles?.departamento}</p>
+                        <p className="text-sm font-medium text-foreground">{s.profile?.nome || 'Colaborador'}</p>
+                        <p className="text-xs text-muted-foreground">{s.profile?.cargo} · {s.profile?.departamento}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
