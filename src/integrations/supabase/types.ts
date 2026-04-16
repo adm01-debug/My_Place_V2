@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      holerites: {
+        Row: {
+          arquivo_url: string | null
+          competencia: string
+          created_at: string
+          id: string
+          inss: number
+          irrf: number
+          outros_descontos: number
+          salario_bruto: number
+          salario_liquido: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          competencia: string
+          created_at?: string
+          id?: string
+          inss?: number
+          irrf?: number
+          outros_descontos?: number
+          salario_bruto?: number
+          salario_liquido?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          competencia?: string
+          created_at?: string
+          id?: string
+          inss?: number
+          irrf?: number
+          outros_descontos?: number
+          salario_bruto?: number
+          salario_liquido?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       login_attempts: {
         Row: {
           attempted_at: string
@@ -71,6 +113,42 @@ export type Database = {
           id?: string
           ip_address?: string | null
           success?: boolean
+        }
+        Relationships: []
+      }
+      metas_colaborador: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: string
+          progresso: number
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          progresso?: number
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          progresso?: number
+          titulo?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
