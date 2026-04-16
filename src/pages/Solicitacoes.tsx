@@ -74,7 +74,7 @@ export default function Solicitacoes() {
     setLoading(true);
     const { data, error } = await supabase
       .from('solicitacoes')
-      .select('id, tipo, descricao, status, prioridade, resposta, created_at')
+      .select('id, tipo, descricao, status, prioridade, resposta, anexo_url, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
