@@ -479,7 +479,15 @@ export default function Solicitacoes() {
                 type="file"
                 className="hidden"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-                onChange={(e) => setAnexo(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    toast.error('O arquivo excede o limite de 5MB. Escolha um arquivo menor.');
+                    e.target.value = '';
+                    return;
+                  }
+                  setAnexo(file);
+                }}
               />
               {anexo ? (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
