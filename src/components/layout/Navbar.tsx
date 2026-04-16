@@ -25,6 +25,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, signOut } = useAuth();
+  const { isAdmin, isGestor } = useUserRoles();
+  const hasAdminAccess = isAdmin || isGestor;
 
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
