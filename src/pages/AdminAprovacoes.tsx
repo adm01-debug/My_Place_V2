@@ -77,6 +77,8 @@ export default function AdminAprovacoes() {
   const [actionDialog, setActionDialog] = useState<{ type: 'ferias' | 'solicitacao'; id: string; action: 'aprovar' | 'recusar' } | null>(null);
   const [resposta, setResposta] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [feriasStatusFilter, setFeriasStatusFilter] = useState<string>('pendente');
+  const [solicitacoesStatusFilter, setSolicitacoesStatusFilter] = useState<string>('pendente');
 
   const fetchData = useCallback(async () => {
     if (!user || !hasAccess) return;
