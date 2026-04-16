@@ -90,7 +90,7 @@ export default function AdminAprovacoes() {
         .limit(50),
       supabase
         .from('solicitacoes')
-        .select('id, user_id, tipo, descricao, status, prioridade, created_at')
+        .select('id, user_id, tipo, descricao, status, prioridade, anexo_url, created_at')
         .in('status', ['pendente', 'em_analise', 'aprovada', 'recusada'])
         .order('created_at', { ascending: false })
         .limit(50),
