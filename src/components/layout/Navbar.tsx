@@ -94,14 +94,19 @@ export default function Navbar() {
                 <User className="w-4 h-4" />
                 Meu Perfil
               </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer">
-              <ClipboardCheck className="w-4 h-4" />
-              Aprovações
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
-              <MapPin className="w-4 h-4" />
-              Locais Permitidos
-            </DropdownMenuItem>
+              {hasAdminAccess && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer">
+                    <ClipboardCheck className="w-4 h-4" />
+                    Aprovações
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
+                    <MapPin className="w-4 h-4" />
+                    Locais Permitidos
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="w-4 h-4" />
