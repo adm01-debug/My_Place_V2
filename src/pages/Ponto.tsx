@@ -242,6 +242,9 @@ export default function Ponto() {
           )}
         </CardContent>
       </Card>
+
+      {/* History */}
+      <PontoHistory />
     </div>
   );
 }
