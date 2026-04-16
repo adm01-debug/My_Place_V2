@@ -518,6 +518,22 @@ export default function Solicitacoes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de confirmação de cancelamento */}
+      <Dialog open={!!cancelId} onOpenChange={(open) => { if (!open) setCancelId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cancelar Solicitação</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja cancelar esta solicitação? Esta ação não pode ser desfeita.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelId(null)}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancel}>Confirmar Cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
