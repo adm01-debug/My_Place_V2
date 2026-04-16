@@ -507,6 +507,9 @@ export default function Solicitacoes() {
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
                   <Paperclip className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-xs text-foreground truncate flex-1">{anexo.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    {anexo.size < 1024 ? `${anexo.size} B` : anexo.size < 1048576 ? `${(anexo.size / 1024).toFixed(1)} KB` : `${(anexo.size / 1048576).toFixed(1)} MB`}
+                  </span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setAnexo(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
                     <X className="w-3.5 h-3.5" />
                   </Button>
