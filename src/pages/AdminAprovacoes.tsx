@@ -123,15 +123,27 @@ export default function AdminAprovacoes() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const feriasPendentes = ferias.filter(f => f.status === 'pendente');
+  const solicitacoesPendentes = solicitacoes.filter(s => s.status === 'pendente' || s.status === 'em_analise');
+  const totalPendentes = feriasPendentes.length + solicitacoesPendentes.length;
+
+  const filteredFerias = useMemo(() =>
+    feriasStatusFilter === 'todos' ? ferias : ferias.filter(f => f.status === feriasStatusFilter),
+    [ferias, feriasStatusFilter]
+  );
+
+  const filteredSolicitacoes = useMemo(() =>
+    solicitacoesStatusFilter === 'todos' ? solicitacoes : solicitacoes.filter(s => s.status === solicitacoesStatusFilter),
+    [solicitacoes, solicitacoesStatusFilter]
+  );
+
   const handleAction = async () => {
     if (!actionDialog || !user) return;
     setSubmitting(true);
 
     const isAprovar = actionDialog.action === 'aprovar';
     const table = actionDialog.type === 'ferias' ? 'solicitacoes_ferias' : 'solicitacoes';
-    const newStatus = isAprovar
-      ? 'aprovada'
-      : 'recusada';
+    const newStatus = isAprovar ? 'aprovada' : 'recusada';
 
     const updateData: Record<string, unknown> = {
       status: newStatus,
@@ -168,20 +180,6 @@ export default function AdminAprovacoes() {
       </div>
     );
   }
-
-  const feriasPendentes = ferias.filter(f => f.status === 'pendente');
-  const solicitacoesPendentes = solicitacoes.filter(s => s.status === 'pendente' || s.status === 'em_analise');
-  const totalPendentes = feriasPendentes.length + solicitacoesPendentes.length;
-
-  const filteredFerias = useMemo(() =>
-    feriasStatusFilter === 'todos' ? ferias : ferias.filter(f => f.status === feriasStatusFilter),
-    [ferias, feriasStatusFilter]
-  );
-
-  const filteredSolicitacoes = useMemo(() =>
-    solicitacoesStatusFilter === 'todos' ? solicitacoes : solicitacoes.filter(s => s.status === solicitacoesStatusFilter),
-    [solicitacoes, solicitacoesStatusFilter]
-  );
 
   const StatusFilter = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
     <Select value={value} onValueChange={onChange}>
