@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,64 +6,59 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldCheck, Palmtree, FileText, CheckCircle2, XCircle, Loader2, Clock, User, Paperclip, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Palmtree, FileText, Loader2, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
+import { AprovacaoFeriasCard, type FeriasRequest, type ProfileInfo } from '@/components/admin/AprovacaoFeriasCard';
+import { AprovacaoSolicitacaoCard, type SolicitacaoRequest } from '@/components/admin/AprovacaoSolicitacaoCard';
 
-interface ProfileInfo {
-  nome: string;
-  cargo: string | null;
-  departamento: string | null;
+function SkeletonCards() {
+  return (
+    <div className="space-y-3">
+      {[1, 2].map(i => (
+        <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-muted/60" />
+            <div className="space-y-1 flex-1">
+              <div className="h-4 w-28 rounded bg-muted/60" />
+              <div className="h-3 w-40 rounded bg-muted/40" />
+            </div>
+            <div className="h-5 w-16 rounded-full bg-muted/60" />
+          </div>
+          <div className="h-3 w-full rounded bg-muted/40" />
+          <div className="h-3 w-2/3 rounded bg-muted/40" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
-interface FeriasRequest {
-  id: string;
-  user_id: string;
-  data_inicio: string;
-  data_fim: string;
-  dias: number;
-  tipo: string;
-  status: string;
-  observacao: string | null;
-  created_at: string;
-  profile?: ProfileInfo;
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center py-8 text-muted-foreground">
+      <Clock className="w-8 h-8 mb-2 opacity-40" />
+      <p className="text-sm">{text}</p>
+    </div>
+  );
 }
 
-interface SolicitacaoRequest {
-  id: string;
-  user_id: string;
-  tipo: string;
-  descricao: string;
-  status: string;
-  prioridade: string;
-  anexo_url: string | null;
-  created_at: string;
-  profile?: ProfileInfo;
+function StatusFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-8 w-36 text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todos">Todos</SelectItem>
+        <SelectItem value="pendente">Pendentes</SelectItem>
+        <SelectItem value="aprovada">Aprovadas</SelectItem>
+        <SelectItem value="recusada">Recusadas</SelectItem>
+      </SelectContent>
+    </Select>
+  );
 }
-
-const tipoFeriasLabels: Record<string, string> = {
-  regular: 'Regular',
-  abono_pecuniario: 'Abono Pecuniário',
-  fracionada: 'Fracionada',
-};
-
-const tipoSolicitacaoLabels: Record<string, string> = {
-  declaracao_vinculo: 'Declaração de Vínculo',
-  alteracao_dados: 'Alteração de Dados',
-  adiantamento_salarial: 'Adiantamento Salarial',
-  carta_recomendacao: 'Carta de Recomendação',
-  outros: 'Outros',
-};
-
-const prioridadeColors: Record<string, string> = {
-  baixa: 'bg-muted text-muted-foreground',
-  normal: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  alta: 'bg-red-500/20 text-red-400 border-red-500/30',
-};
-
-const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
 
 export default function AdminAprovacoes() {
   const { user } = useAuth();
@@ -99,7 +93,6 @@ export default function AdminAprovacoes() {
         .limit(50),
     ]);
 
-    // Collect unique user_ids and fetch profiles
     const allUserIds = [
       ...(fRes.data || []).map(r => r.user_id),
       ...(sRes.data || []).map(r => r.user_id),
@@ -181,20 +174,6 @@ export default function AdminAprovacoes() {
     );
   }
 
-  const StatusFilter = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-8 w-36 text-xs">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="todos">Todos</SelectItem>
-        <SelectItem value="pendente">Pendentes</SelectItem>
-        <SelectItem value="aprovada">Aprovadas</SelectItem>
-        <SelectItem value="recusada">Recusadas</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-
   return (
     <div className="w-full max-w-3xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
@@ -230,73 +209,11 @@ export default function AdminAprovacoes() {
             <p className="text-xs text-muted-foreground">{filteredFerias.length} resultado(s)</p>
             <StatusFilter value={feriasStatusFilter} onChange={setFeriasStatusFilter} />
           </div>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2].map(i => (
-                <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-muted/60" />
-                    <div className="space-y-1 flex-1">
-                      <div className="h-4 w-28 rounded bg-muted/60" />
-                      <div className="h-3 w-40 rounded bg-muted/40" />
-                    </div>
-                    <div className="h-5 w-16 rounded-full bg-muted/60" />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map(j => <div key={j} className="h-12 rounded-lg bg-muted/30" />)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredFerias.length === 0 ? (
+          {loading ? <SkeletonCards /> : filteredFerias.length === 0 ? (
             <EmptyState text="Nenhuma solicitação de férias encontrada." />
           ) : (
-            filteredFerias.map((f) => (
-              <Card key={f.id} className={`border-border/50 shadow-md ${f.status === 'pendente' ? 'ring-1 ring-amber-500/30' : ''}`}>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <User className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{f.profile?.nome || 'Colaborador'}</p>
-                        <p className="text-xs text-muted-foreground">{f.profile?.cargo} · {f.profile?.departamento}</p>
-                      </div>
-                    </div>
-                    <StatusBadge status={f.status} />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2 rounded-lg bg-muted/30">
-                      <p className="text-xs text-muted-foreground">Início</p>
-                      <p className="text-sm font-semibold text-foreground">{formatDate(f.data_inicio)}</p>
-                    </div>
-                    <div className="p-2 rounded-lg bg-muted/30">
-                      <p className="text-xs text-muted-foreground">Fim</p>
-                      <p className="text-sm font-semibold text-foreground">{formatDate(f.data_fim)}</p>
-                    </div>
-                    <div className="p-2 rounded-lg bg-muted/30">
-                      <p className="text-xs text-muted-foreground">Dias</p>
-                      <p className="text-sm font-semibold text-foreground">{f.dias}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{tipoFeriasLabels[f.tipo] || f.tipo}</span>
-                    {f.status === 'pendente' && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-red-400 hover:text-red-300 border-red-500/30"
-                          onClick={() => setActionDialog({ type: 'ferias', id: f.id, action: 'recusar' })}>
-                          <XCircle className="w-3.5 h-3.5" /> Recusar
-                        </Button>
-                        <Button size="sm" className="h-8 text-xs gap-1"
-                          onClick={() => setActionDialog({ type: 'ferias', id: f.id, action: 'aprovar' })}>
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Aprovar
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            filteredFerias.map(f => (
+              <AprovacaoFeriasCard key={f.id} ferias={f} onAction={setActionDialog} />
             ))
           )}
         </TabsContent>
@@ -307,72 +224,11 @@ export default function AdminAprovacoes() {
             <p className="text-xs text-muted-foreground">{filteredSolicitacoes.length} resultado(s)</p>
             <StatusFilter value={solicitacoesStatusFilter} onChange={setSolicitacoesStatusFilter} />
           </div>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2].map(i => (
-                <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-muted/60" />
-                    <div className="space-y-1 flex-1">
-                      <div className="h-4 w-28 rounded bg-muted/60" />
-                      <div className="h-3 w-40 rounded bg-muted/40" />
-                    </div>
-                  </div>
-                  <div className="h-3 w-full rounded bg-muted/40" />
-                  <div className="h-3 w-2/3 rounded bg-muted/40" />
-                </div>
-              ))}
-            </div>
-          ) : filteredSolicitacoes.length === 0 ? (
+          {loading ? <SkeletonCards /> : filteredSolicitacoes.length === 0 ? (
             <EmptyState text="Nenhuma solicitação geral encontrada." />
           ) : (
-            filteredSolicitacoes.map((s) => (
-              <Card key={s.id} className={`border-border/50 shadow-md ${s.status === 'pendente' ? 'ring-1 ring-amber-500/30' : ''}`}>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <User className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{s.profile?.nome || 'Colaborador'}</p>
-                        <p className="text-xs text-muted-foreground">{s.profile?.cargo} · {s.profile?.departamento}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={prioridadeColors[s.prioridade] || ''}>
-                        {s.prioridade}
-                      </Badge>
-                      <StatusBadge status={s.status} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
-                    <p className="text-sm text-foreground line-clamp-2">{s.descricao}</p>
-                    {s.anexo_url && (
-                      <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
-                        <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString('pt-BR')}</span>
-                    {(s.status === 'pendente' || s.status === 'em_analise') && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-red-400 hover:text-red-300 border-red-500/30"
-                          onClick={() => setActionDialog({ type: 'solicitacao', id: s.id, action: 'recusar' })}>
-                          <XCircle className="w-3.5 h-3.5" /> Recusar
-                        </Button>
-                        <Button size="sm" className="h-8 text-xs gap-1"
-                          onClick={() => setActionDialog({ type: 'solicitacao', id: s.id, action: 'aprovar' })}>
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Aprovar
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            filteredSolicitacoes.map(s => (
+              <AprovacaoSolicitacaoCard key={s.id} solicitacao={s} onAction={setActionDialog} />
             ))
           )}
         </TabsContent>
@@ -417,29 +273,6 @@ export default function AdminAprovacoes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pendente: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    em_analise: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    aprovada: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    recusada: 'bg-red-500/20 text-red-400 border-red-500/30',
-    cancelada: 'bg-muted text-muted-foreground border-border',
-  };
-  const labels: Record<string, string> = {
-    pendente: 'Pendente', em_analise: 'Em Análise', aprovada: 'Aprovada', recusada: 'Recusada', cancelada: 'Cancelada',
-  };
-  return <Badge variant="outline" className={colors[status] || ''}>{labels[status] || status}</Badge>;
-}
-
-function EmptyState({ text }: { text: string }) {
-  return (
-    <div className="flex flex-col items-center py-8 text-muted-foreground">
-      <Clock className="w-8 h-8 mb-2 opacity-40" />
-      <p className="text-sm">{text}</p>
     </div>
   );
 }
