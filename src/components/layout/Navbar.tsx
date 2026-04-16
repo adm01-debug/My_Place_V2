@@ -130,6 +130,8 @@ export default function Navbar() {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
                   isActive
                     ? 'text-primary'
