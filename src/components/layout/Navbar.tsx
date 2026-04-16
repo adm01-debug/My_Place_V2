@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { GlobalSearch } from './GlobalSearch';
 
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
@@ -70,7 +71,8 @@ export default function Navbar() {
         </nav>
 
         {/* Notification Bell + User Menu */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <GlobalSearch />
           <NotificationBell />
 
           <DropdownMenu>
