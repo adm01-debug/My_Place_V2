@@ -38,6 +38,7 @@ interface SolicitacaoRequest {
   descricao: string;
   status: string;
   prioridade: string;
+  anexo_url: string | null;
   created_at: string;
   profile?: ProfileInfo;
 }
