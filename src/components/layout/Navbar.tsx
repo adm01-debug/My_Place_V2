@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText } from 'lucide-react';
+import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, Settings } from 'lucide-react';
 
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
@@ -86,6 +86,10 @@ export default function Navbar() {
             <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2 cursor-pointer">
               <User className="w-4 h-4" />
               Meu Perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
+              <MapPin className="w-4 h-4" />
+              Locais Permitidos
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
