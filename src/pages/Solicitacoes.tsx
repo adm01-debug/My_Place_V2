@@ -316,6 +316,31 @@ export default function Solicitacoes() {
                 rows={3}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>Anexo (opcional)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                onChange={(e) => setAnexo(e.target.files?.[0] || null)}
+              />
+              {anexo ? (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
+                  <Paperclip className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs text-foreground truncate flex-1">{anexo.name}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setAnexo(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => fileInputRef.current?.click()}>
+                  <Paperclip className="w-4 h-4" />
+                  Anexar arquivo
+                </Button>
+              )}
+              <p className="text-[10px] text-muted-foreground">PDF, imagens ou documentos (máx. 5MB)</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
