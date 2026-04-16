@@ -303,12 +303,30 @@ export default function AdminAprovacoes() {
 
         {/* Solicitações Tab */}
         <TabsContent value="solicitacoes" className="space-y-3 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">{filteredSolicitacoes.length} resultado(s)</p>
+            <StatusFilter value={solicitacoesStatusFilter} onChange={setSolicitacoesStatusFilter} />
+          </div>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-          ) : solicitacoes.length === 0 ? (
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-muted/60" />
+                    <div className="space-y-1 flex-1">
+                      <div className="h-4 w-28 rounded bg-muted/60" />
+                      <div className="h-3 w-40 rounded bg-muted/40" />
+                    </div>
+                  </div>
+                  <div className="h-3 w-full rounded bg-muted/40" />
+                  <div className="h-3 w-2/3 rounded bg-muted/40" />
+                </div>
+              ))}
+            </div>
+          ) : filteredSolicitacoes.length === 0 ? (
             <EmptyState text="Nenhuma solicitação geral encontrada." />
           ) : (
-            solicitacoes.map((s) => (
+            filteredSolicitacoes.map((s) => (
               <Card key={s.id} className={`border-border/50 shadow-md ${s.status === 'pendente' ? 'ring-1 ring-amber-500/30' : ''}`}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
