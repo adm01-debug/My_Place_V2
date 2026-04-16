@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -73,18 +73,17 @@ export default function Home() {
 
   const [pendingCount, setPendingCount] = useState({ ferias: 0, solicitacoes: 0, notificacoes: 0 });
 
-  useEffect(() => {
+  const fetchCounts = useCallback(async () => {
     if (!user) return;
-    const fetchCounts = async () => {
-      const [f, s, n] = await Promise.all([
-        supabase.from('solicitacoes_ferias').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
-        supabase.from('solicitacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
-        supabase.from('notificacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('lida', false),
-      ]);
-      setPendingCount({ ferias: f.count || 0, solicitacoes: s.count || 0, notificacoes: n.count || 0 });
-    };
-    fetchCounts();
+    const [f, s, n] = await Promise.all([
+      supabase.from('solicitacoes_ferias').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('solicitacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('notificacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('lida', false),
+    ]);
+    setPendingCount({ ferias: f.count || 0, solicitacoes: s.count || 0, notificacoes: n.count || 0 });
   }, [user]);
+
+  useEffect(() => { fetchCounts(); }, [fetchCounts]);
 
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -110,6 +109,7 @@ export default function Home() {
   };
 
   return (
+    <PullToRefresh onRefresh={fetchCounts}>
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-12 space-y-6">
         {/* Greeting */}
