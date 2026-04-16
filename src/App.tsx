@@ -60,10 +60,10 @@ function Page({ children, name }: { children: React.ReactNode; name: string }) {
 function AuthenticatedLayout() {
   return (
     <ProtectedRoute>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg">
+        Pular para o conteúdo
+      </a>
       <Navbar />
-      <main className="pb-16 md:pb-0">
-        <Outlet />
-      </main>
     </ProtectedRoute>
   );
 }
