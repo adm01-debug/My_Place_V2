@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, ExternalLink, Filter, CalendarIcon } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, X, Filter, CalendarIcon } from 'lucide-react';
+import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -424,12 +425,7 @@ export default function Solicitacoes() {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</p>
-                {s.anexo_url && (
-                  <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                    <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+                {s.anexo_url && <AttachmentPreview url={s.anexo_url} />}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
                   {s.status === 'pendente' && (
