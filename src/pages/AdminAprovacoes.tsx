@@ -6,14 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldCheck, Palmtree, FileText, Loader2, Clock } from 'lucide-react';
+import { ShieldCheck, Palmtree, FileText, Loader2, Clock, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 import { AprovacaoFeriasCard, type FeriasRequest, type ProfileInfo } from '@/components/admin/AprovacaoFeriasCard';
 import { AprovacaoSolicitacaoCard, type SolicitacaoRequest } from '@/components/admin/AprovacaoSolicitacaoCard';
-
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 function SkeletonCards() {
   return (
     <div className="space-y-3">
@@ -175,104 +175,108 @@ export default function AdminAprovacoes() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Painel de Aprovações</h1>
-        <p className="text-sm text-muted-foreground">
-          {totalPendentes > 0
-            ? `${totalPendentes} solicitação(ões) pendente(s) aguardando análise`
-            : 'Nenhuma solicitação pendente'}
-        </p>
-      </div>
-
-      <Tabs defaultValue="ferias" className="w-full">
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="ferias" className="gap-1.5">
-            <Palmtree className="w-4 h-4" />
-            Férias
-            {feriasPendentes.length > 0 && (
-              <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{feriasPendentes.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="solicitacoes" className="gap-1.5">
-            <FileText className="w-4 h-4" />
-            Solicitações
-            {solicitacoesPendentes.length > 0 && (
-              <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{solicitacoesPendentes.length}</Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Férias Tab */}
-        <TabsContent value="ferias" className="space-y-3 mt-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">{filteredFerias.length} resultado(s)</p>
-            <StatusFilter value={feriasStatusFilter} onChange={setFeriasStatusFilter} />
-          </div>
-          {loading ? <SkeletonCards /> : filteredFerias.length === 0 ? (
-            <EmptyState text="Nenhuma solicitação de férias encontrada." />
-          ) : (
-            filteredFerias.map(f => (
-              <AprovacaoFeriasCard key={f.id} ferias={f} onAction={setActionDialog} />
-            ))
-          )}
-        </TabsContent>
-
-        {/* Solicitações Tab */}
-        <TabsContent value="solicitacoes" className="space-y-3 mt-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">{filteredSolicitacoes.length} resultado(s)</p>
-            <StatusFilter value={solicitacoesStatusFilter} onChange={setSolicitacoesStatusFilter} />
-          </div>
-          {loading ? <SkeletonCards /> : filteredSolicitacoes.length === 0 ? (
-            <EmptyState text="Nenhuma solicitação geral encontrada." />
-          ) : (
-            filteredSolicitacoes.map(s => (
-              <AprovacaoSolicitacaoCard key={s.id} solicitacao={s} onAction={setActionDialog} />
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog de confirmação */}
-      <Dialog open={!!actionDialog} onOpenChange={(open) => { if (!open) { setActionDialog(null); setResposta(''); } }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {actionDialog?.action === 'aprovar' ? '✅ Confirmar Aprovação' : '❌ Confirmar Recusa'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
+    <PullToRefresh onRefresh={fetchData}>
+      <div className="w-full max-w-3xl mx-auto p-4 pt-6 pb-20 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Painel de Aprovações</h1>
             <p className="text-sm text-muted-foreground">
-              {actionDialog?.action === 'aprovar'
-                ? 'Tem certeza que deseja aprovar esta solicitação?'
-                : 'Tem certeza que deseja recusar esta solicitação?'}
+              {totalPendentes > 0
+                ? `${totalPendentes} solicitação(ões) pendente(s) aguardando análise`
+                : 'Nenhuma solicitação pendente'}
             </p>
-            {actionDialog?.type === 'solicitacao' && (
-              <div className="space-y-1.5">
-                <Label>Resposta (opcional)</Label>
-                <Textarea
-                  placeholder="Adicione uma resposta ou motivo..."
-                  value={resposta}
-                  onChange={(e) => setResposta(e.target.value)}
-                  rows={2}
-                />
-              </div>
-            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setActionDialog(null); setResposta(''); }}>Cancelar</Button>
-            <Button
-              variant={actionDialog?.action === 'recusar' ? 'destructive' : 'default'}
-              onClick={handleAction}
-              disabled={submitting}
-            >
-              {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              {actionDialog?.action === 'aprovar' ? 'Aprovar' : 'Recusar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => fetchData()}>
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <Tabs defaultValue="ferias" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="ferias" className="gap-1.5">
+              <Palmtree className="w-4 h-4" />
+              Férias
+              {feriasPendentes.length > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{feriasPendentes.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="solicitacoes" className="gap-1.5">
+              <FileText className="w-4 h-4" />
+              Solicitações
+              {solicitacoesPendentes.length > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{solicitacoesPendentes.length}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ferias" className="space-y-3 mt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{filteredFerias.length} resultado(s)</p>
+              <StatusFilter value={feriasStatusFilter} onChange={setFeriasStatusFilter} />
+            </div>
+            {loading ? <SkeletonCards /> : filteredFerias.length === 0 ? (
+              <EmptyState text="Nenhuma solicitação de férias encontrada." />
+            ) : (
+              filteredFerias.map(f => (
+                <AprovacaoFeriasCard key={f.id} ferias={f} onAction={setActionDialog} />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="solicitacoes" className="space-y-3 mt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{filteredSolicitacoes.length} resultado(s)</p>
+              <StatusFilter value={solicitacoesStatusFilter} onChange={setSolicitacoesStatusFilter} />
+            </div>
+            {loading ? <SkeletonCards /> : filteredSolicitacoes.length === 0 ? (
+              <EmptyState text="Nenhuma solicitação geral encontrada." />
+            ) : (
+              filteredSolicitacoes.map(s => (
+                <AprovacaoSolicitacaoCard key={s.id} solicitacao={s} onAction={setActionDialog} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+
+        <Dialog open={!!actionDialog} onOpenChange={(open) => { if (!open) { setActionDialog(null); setResposta(''); } }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {actionDialog?.action === 'aprovar' ? '✅ Confirmar Aprovação' : '❌ Confirmar Recusa'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {actionDialog?.action === 'aprovar'
+                  ? 'Tem certeza que deseja aprovar esta solicitação?'
+                  : 'Tem certeza que deseja recusar esta solicitação?'}
+              </p>
+              {actionDialog?.type === 'solicitacao' && (
+                <div className="space-y-1.5">
+                  <Label>Resposta (opcional)</Label>
+                  <Textarea
+                    placeholder="Adicione uma resposta ou motivo..."
+                    value={resposta}
+                    onChange={(e) => setResposta(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setActionDialog(null); setResposta(''); }}>Cancelar</Button>
+              <Button
+                variant={actionDialog?.action === 'recusar' ? 'destructive' : 'default'}
+                onClick={handleAction}
+                disabled={submitting}
+              >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                {actionDialog?.action === 'aprovar' ? 'Aprovar' : 'Recusar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </PullToRefresh>
   );
 }

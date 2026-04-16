@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
+import { motion } from 'framer-motion';
 
 interface LockoutState {
   isLocked: boolean;
@@ -99,19 +100,33 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="w-full max-w-md space-y-8 relative z-10">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
+      {/* Decorative blurred orbs */}
+      <div className="absolute top-[-120px] left-[-80px] w-72 h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-100px] right-[-60px] w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' as const }}
+        className="w-full max-w-md space-y-8 relative z-10"
+      >
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25"
+          >
             <Building2 className="w-10 h-10 text-primary-foreground" />
-          </div>
+          </motion.div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Portal do Colaborador</h1>
             <p className="text-muted-foreground mt-2">Acesse sua conta para continuar</p>
           </div>
         </div>
 
-        <Card className="border-border/50 shadow-xl">
+        <Card className="border-border/30 shadow-xl backdrop-blur-xl bg-card/80 supports-[backdrop-filter]:bg-card/60">
           {showForgotPassword ? (
             <CardContent className="pt-6">
               <ForgotPasswordForm
@@ -164,7 +179,11 @@ const Login: React.FC = () => {
             </>
           )}
         </Card>
-      </div>
+
+        <p className="text-center text-xs text-muted-foreground/60">
+          © {new Date().getFullYear()} Portal do Colaborador — Todos os direitos reservados
+        </p>
+      </motion.div>
     </div>
   );
 };
