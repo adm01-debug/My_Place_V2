@@ -144,7 +144,7 @@ export default function Ferias() {
     try {
       const { error } = await supabase
         .from('solicitacoes_ferias')
-        .update({ status: 'cancelada' })
+        .update({ status: 'cancelada' as const })
         .eq('id', id);
       if (error) throw error;
       toast.success('Solicitação cancelada.');
