@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, Search } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, Search, Paperclip, X, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ interface Solicitacao {
   status: StatusSolicitacao;
   prioridade: Prioridade;
   resposta: string | null;
+  anexo_url: string | null;
   created_at: string;
 }
 
@@ -61,6 +62,8 @@ export default function Solicitacoes() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [anexo, setAnexo] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [tipo, setTipo] = useState<TipoSolicitacao>('declaracao_vinculo');
   const [descricao, setDescricao] = useState('');
@@ -71,7 +74,7 @@ export default function Solicitacoes() {
     setLoading(true);
     const { data, error } = await supabase
       .from('solicitacoes')
-      .select('id, tipo, descricao, status, prioridade, resposta, created_at')
+      .select('id, tipo, descricao, status, prioridade, resposta, anexo_url, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -94,11 +97,35 @@ export default function Solicitacoes() {
       return;
     }
     setSubmitting(true);
+
+    let anexoUrl: string | null = null;
+
+    // Upload anexo if present
+    if (anexo) {
+      const ext = anexo.name.split('.').pop() || 'bin';
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('anexos')
+        .upload(filePath, anexo, { upsert: false });
+
+      if (uploadError) {
+        toast.error('Erro ao enviar anexo: ' + uploadError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('anexos')
+        .getPublicUrl(filePath);
+      anexoUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase.from('solicitacoes').insert({
       user_id: user.id,
       tipo,
       descricao: descricao.trim(),
       prioridade,
+      anexo_url: anexoUrl,
     });
 
     if (error) {
@@ -109,6 +136,7 @@ export default function Solicitacoes() {
       setDescricao('');
       setTipo('declaracao_vinculo');
       setPrioridade('normal');
+      setAnexo(null);
       fetchData();
     }
     setSubmitting(false);
@@ -132,6 +160,7 @@ export default function Solicitacoes() {
     setTipo(t);
     setDescricao('');
     setPrioridade('normal');
+    setAnexo(null);
     setDialogOpen(true);
   };
 
@@ -229,6 +258,12 @@ export default function Solicitacoes() {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</p>
+                {s.anexo_url && (
+                  <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                    <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
                   {s.status === 'pendente' && (
@@ -286,6 +321,31 @@ export default function Solicitacoes() {
                 onChange={(e) => setDescricao(e.target.value)}
                 rows={3}
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Anexo (opcional)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                onChange={(e) => setAnexo(e.target.files?.[0] || null)}
+              />
+              {anexo ? (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
+                  <Paperclip className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs text-foreground truncate flex-1">{anexo.name}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setAnexo(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => fileInputRef.current?.click()}>
+                  <Paperclip className="w-4 h-4" />
+                  Anexar arquivo
+                </Button>
+              )}
+              <p className="text-[10px] text-muted-foreground">PDF, imagens ou documentos (máx. 5MB)</p>
             </div>
           </div>
           <DialogFooter>
