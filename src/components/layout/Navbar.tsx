@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck } from 'lucide-react';
 import NotificationBell from './NotificationBell';
-import { GlobalSearch } from './GlobalSearch';
 import { ThemeToggle } from './ThemeToggle';
+import { GlobalSearch } from './GlobalSearch';
 
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
