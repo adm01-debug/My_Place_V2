@@ -420,7 +420,7 @@ export default function Solicitacoes() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
                   {s.status === 'pendente' && (
-                    <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => handleCancel(s.id)}>
+                    <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => setCancelId(s.id)}>
                       Cancelar
                     </Button>
                   )}
