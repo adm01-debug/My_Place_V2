@@ -190,182 +190,187 @@ export default function AdminLocais() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Locais Permitidos</h1>
-          <p className="text-sm text-muted-foreground">Gerencie os locais de registro de ponto</p>
-        </div>
-        <Button size="sm" className="gap-1.5" onClick={openCreate}>
-          <Plus className="w-4 h-4" />
-          Novo Local
-        </Button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : locais.length === 0 ? (
-        <Card className="border-border/50 shadow-lg">
-          <CardContent className="flex flex-col items-center py-8 gap-3">
-            <MapPinOff className="w-10 h-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Nenhum local cadastrado.</p>
-            <Button size="sm" onClick={openCreate} className="gap-1.5">
-              <Plus className="w-4 h-4" />
-              Cadastrar Primeiro Local
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {locais.map((local) => (
-            <Card key={local.id} className="border-border/50 shadow-md">
-              <CardContent className="py-4">
-                <div className="flex items-start gap-3">
-                  {/* Map thumbnail via OpenStreetMap static */}
-                  <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-border/50 bg-muted">
-                    <img
-                      src={`https://static-maps.yandex.ru/v1?ll=${local.longitude},${local.latitude}&z=15&size=160,160&l=map&pt=${local.longitude},${local.latitude},pm2rdm`}
-                      alt={`Mapa de ${local.nome}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-semibold text-foreground truncate">{local.nome}</h3>
-                      <Badge
-                        variant={local.ativo ? 'default' : 'secondary'}
-                        className="text-[10px] px-1.5"
-                      >
-                        {local.ativo ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-                      <MapPin className="w-3 h-3" />
-                      <span>{local.latitude.toFixed(4)}, {local.longitude.toFixed(4)}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Navigation className="w-3 h-3" />
-                      <span>Raio: {local.raio_metros}m</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(local)}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(local.id)}
-                      disabled={deleting === local.id}
-                    >
-                      {deleting === local.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Visual map link */}
-                <a
-                  href={`https://www.google.com/maps?q=${local.latitude},${local.longitude}&z=17`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 flex items-center gap-1.5 text-xs text-primary hover:underline"
-                >
-                  <MapPin className="w-3 h-3" />
-                  Ver no Google Maps
-                </a>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingId ? 'Editar Local' : 'Novo Local'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="nome">Nome do Local</Label>
-              <Input
-                id="nome"
-                value={form.nome}
-                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-                placeholder="Ex: Escritório Principal"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  type="number"
-                  step="any"
-                  value={form.latitude}
-                  onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
-                  placeholder="-23.5505"
-                />
-              </div>
-              <div>
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  type="number"
-                  step="any"
-                  value={form.longitude}
-                  onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
-                  placeholder="-46.6333"
-                />
-              </div>
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={useMyLocation}>
-              <Navigation className="w-4 h-4" />
-              Usar Minha Localização Atual
-            </Button>
-            <div>
-              <Label htmlFor="raio">Raio Permitido (metros)</Label>
-              <Input
-                id="raio"
-                type="number"
-                min={10}
-                value={form.raio_metros}
-                onChange={(e) => setForm((f) => ({ ...f, raio_metros: e.target.value }))}
-                placeholder="200"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Distância máxima para registro de ponto (mín. 10m)
-              </p>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="ativo">Local ativo</Label>
-              <Switch
-                id="ativo"
-                checked={form.ativo}
-                onCheckedChange={(checked) => setForm((f) => ({ ...f, ativo: checked }))}
-              />
-            </div>
+    <PullToRefresh onRefresh={async () => { setLoading(true); await fetchLocais(); }}>
+      <div className="w-full max-w-2xl mx-auto p-4 pt-6 pb-20 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Locais Permitidos</h1>
+            <p className="text-sm text-muted-foreground">Gerencie os locais de registro de ponto</p>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving} className="gap-1.5">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {editingId ? 'Salvar' : 'Criar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <Button size="sm" className="gap-1.5" onClick={openCreate}>
+            <Plus className="w-4 h-4" />
+            Novo Local
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-border/50">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3 animate-pulse">
+                    <div className="w-20 h-20 rounded-lg bg-muted/60" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-32 rounded bg-muted/60" />
+                      <div className="h-3 w-48 rounded bg-muted/40" />
+                      <div className="h-3 w-24 rounded bg-muted/40" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : locais.length === 0 ? (
+          <Card className="border-border/50 shadow-lg">
+            <CardContent className="flex flex-col items-center py-8 gap-3">
+              <MapPinOff className="w-10 h-10 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Nenhum local cadastrado.</p>
+              <Button size="sm" onClick={openCreate} className="gap-1.5">
+                <Plus className="w-4 h-4" />
+                Cadastrar Primeiro Local
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {locais.map((local) => (
+              <Card key={local.id} className="border-border/50 shadow-md">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-border/50 bg-muted">
+                      <img
+                        src={`https://static-maps.yandex.ru/v1?ll=${local.longitude},${local.latitude}&z=15&size=160,160&l=map&pt=${local.longitude},${local.latitude},pm2rdm`}
+                        alt={`Mapa de ${local.nome}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-semibold text-foreground truncate">{local.nome}</h3>
+                        <Badge variant={local.ativo ? 'default' : 'secondary'} className="text-[10px] px-1.5">
+                          {local.ativo ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <MapPin className="w-3 h-3" />
+                        <span>{local.latitude.toFixed(4)}, {local.longitude.toFixed(4)}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Navigation className="w-3 h-3" />
+                        <span>Raio: {local.raio_metros}m</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(local)}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => setDeleteConfirmId(local.id)}
+                        disabled={deleting === local.id}
+                      >
+                        {deleting === local.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps?q=${local.latitude},${local.longitude}&z=17`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <MapPin className="w-3 h-3" />
+                    Ver no Google Maps
+                  </a>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Create/Edit Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{editingId ? 'Editar Local' : 'Novo Local'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="nome">Nome do Local</Label>
+                <Input
+                  id="nome"
+                  value={form.nome}
+                  onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                  placeholder="Ex: Escritório Principal"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="latitude">Latitude</Label>
+                  <Input id="latitude" type="number" step="any" value={form.latitude}
+                    onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} placeholder="-23.5505" />
+                </div>
+                <div>
+                  <Label htmlFor="longitude">Longitude</Label>
+                  <Input id="longitude" type="number" step="any" value={form.longitude}
+                    onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} placeholder="-46.6333" />
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={useMyLocation}>
+                <Navigation className="w-4 h-4" />
+                Usar Minha Localização Atual
+              </Button>
+              <div>
+                <Label htmlFor="raio">Raio Permitido (metros)</Label>
+                <Input id="raio" type="number" min={10} value={form.raio_metros}
+                  onChange={(e) => setForm((f) => ({ ...f, raio_metros: e.target.value }))} placeholder="200" />
+                <p className="text-xs text-muted-foreground mt-1">Distância máxima para registro de ponto (mín. 10m)</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="ativo">Local ativo</Label>
+                <Switch id="ativo" checked={form.ativo} onCheckedChange={(checked) => setForm((f) => ({ ...f, ativo: checked }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {editingId ? 'Salvar' : 'Criar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                Confirmar Exclusão
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja remover este local? Essa ação não pode ser desfeita.
+            </p>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={confirmDelete} disabled={!!deleting}>
+                {deleting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Remover
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </PullToRefresh>
   );
 }
