@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PontoHistory from '@/components/ponto/PontoHistory';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2 } from 'lucide-react';
+import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -92,10 +92,28 @@ export default function Ponto() {
     });
   };
 
+  const validateLocation = async (lat: number, lng: number): Promise<{ allowed: boolean; name?: string; distance?: number }> => {
+    const { data, error } = await supabase.rpc('fn_validar_ponto_no_raio', {
+      p_latitude: lat,
+      p_longitude: lng,
+    });
+
+    if (error) {
+      console.error('Erro na validação de localização:', error);
+      // If validation fails, allow punch but warn
+      return { allowed: true };
+    }
+
+    if (data && data.length > 0) {
+      return { allowed: true, name: data[0].local_nome, distance: Math.round(data[0].distancia_metros) };
+    }
+
+    return { allowed: false };
+  };
+
   const handlePunch = async (tipo: PunchType) => {
     if (!user || punching) return;
 
-    // Check if already punched this type today
     if (todayPunches.some((p) => p.tipo === tipo)) {
       toast.error(`Você já registrou "${punchLabelMap[tipo]}" hoje.`);
       return;
@@ -105,16 +123,39 @@ export default function Ponto() {
     try {
       const location = await getLocation();
 
+      if (!location) {
+        toast.error('Não foi possível obter sua localização. Ative o GPS e tente novamente.', {
+          icon: <ShieldAlert className="w-4 h-4" />,
+        });
+        setPunching(null);
+        return;
+      }
+
+      // Validate geolocation against allowed locations
+      const validation = await validateLocation(location.lat, location.lng);
+
+      if (!validation.allowed) {
+        toast.error('Você está fora da área permitida para registro de ponto. Aproxime-se de um local autorizado.', {
+          icon: <ShieldAlert className="w-4 h-4" />,
+          duration: 5000,
+        });
+        setPunching(null);
+        return;
+      }
+
       const { error } = await supabase.from('registros_ponto').insert({
         user_id: user.id,
         tipo,
-        latitude: location?.lat ?? null,
-        longitude: location?.lng ?? null,
+        latitude: location.lat,
+        longitude: location.lng,
       });
 
       if (error) throw error;
 
-      toast.success(`${punchLabelMap[tipo]} registrada com sucesso!`);
+      const distText = validation.distance ? ` (${validation.distance}m do ${validation.name})` : '';
+      toast.success(`${punchLabelMap[tipo]} registrada com sucesso!${distText}`, {
+        icon: <ShieldCheck className="w-4 h-4" />,
+      });
       await fetchTodayPunches();
     } catch (error) {
       console.error('Erro ao registrar ponto:', error);
@@ -144,8 +185,8 @@ export default function Ponto() {
             <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>Localização será capturada ao registrar</span>
+            <ShieldCheck className="w-4 h-4" />
+            <span>Validação de localização por GPS ativa</span>
           </div>
         </CardContent>
       </Card>

@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      locais_permitidos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          nome: string
+          raio_metros: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          nome: string
+          raio_metros?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          nome?: string
+          raio_metros?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       login_attempts: {
         Row: {
           attempted_at: string
@@ -316,6 +349,18 @@ export type Database = {
         }[]
       }
       cleanup_old_login_attempts: { Args: never; Returns: number }
+      fn_haversine_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
+      fn_validar_ponto_no_raio: {
+        Args: { p_latitude: number; p_longitude: number }
+        Returns: {
+          distancia_metros: number
+          local_nome: string
+          permitido: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
