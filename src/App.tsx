@@ -75,6 +75,10 @@ const App = () => (
               <Route element={<AuthenticatedLayout />}>
                 <Route path="/" element={<Page name="Home"><Home /></Page>} />
                 <Route path="/perfil" element={<Page name="Perfil"><Perfil /></Page>} />
+                <Route path="/ponto" element={<Page name="Ponto"><Ponto /></Page>} />
+                <Route path="/ferias" element={<Page name="Férias"><Ferias /></Page>} />
+                <Route path="/holerites" element={<Page name="Holerites"><Holerites /></Page>} />
+                <Route path="/solicitacoes" element={<Page name="Solicitações"><Solicitacoes /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
