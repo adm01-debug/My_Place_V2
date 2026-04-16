@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, X, Filter, CalendarIcon } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon } from 'lucide-react';
 import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
