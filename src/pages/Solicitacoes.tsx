@@ -97,11 +97,35 @@ export default function Solicitacoes() {
       return;
     }
     setSubmitting(true);
+
+    let anexoUrl: string | null = null;
+
+    // Upload anexo if present
+    if (anexo) {
+      const ext = anexo.name.split('.').pop() || 'bin';
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('anexos')
+        .upload(filePath, anexo, { upsert: false });
+
+      if (uploadError) {
+        toast.error('Erro ao enviar anexo: ' + uploadError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('anexos')
+        .getPublicUrl(filePath);
+      anexoUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase.from('solicitacoes').insert({
       user_id: user.id,
       tipo,
       descricao: descricao.trim(),
       prioridade,
+      anexo_url: anexoUrl,
     });
 
     if (error) {
@@ -112,6 +136,7 @@ export default function Solicitacoes() {
       setDescricao('');
       setTipo('declaracao_vinculo');
       setPrioridade('normal');
+      setAnexo(null);
       fetchData();
     }
     setSubmitting(false);
