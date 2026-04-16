@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PontoHistory from '@/components/ponto/PontoHistory';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
