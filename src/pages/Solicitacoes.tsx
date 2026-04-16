@@ -22,6 +22,7 @@ interface Solicitacao {
   status: StatusSolicitacao;
   prioridade: Prioridade;
   resposta: string | null;
+  anexo_url: string | null;
   created_at: string;
 }
 
