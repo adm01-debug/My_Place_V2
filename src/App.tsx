@@ -49,7 +49,9 @@ function Page({ children, name }: { children: React.ReactNode; name: string }) {
   return (
     <PageErrorBoundary pageName={name}>
       <Suspense fallback={<RouteLoader />}>
-        {children}
+        <AnimatedPage>
+          {children}
+        </AnimatedPage>
       </Suspense>
     </PageErrorBoundary>
   );
