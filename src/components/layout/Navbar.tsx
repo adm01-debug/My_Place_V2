@@ -9,7 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, Settings } from 'lucide-react';
+import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
@@ -65,39 +66,43 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
-                <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <div className="px-2 py-1.5">
-              <p className="text-sm font-medium text-foreground truncate">{profile?.nome || 'Colaborador'}</p>
-              <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2 cursor-pointer">
-              <User className="w-4 h-4" />
-              Meu Perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
-              <MapPin className="w-4 h-4" />
-              Locais Permitidos
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
-              <LogOut className="w-4 h-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Notification Bell + User Menu */}
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
+                  <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium text-foreground truncate">{profile?.nome || 'Colaborador'}</p>
+                <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2 cursor-pointer">
+                <User className="w-4 h-4" />
+                Meu Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
+                <MapPin className="w-4 h-4" />
+                Locais Permitidos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="w-4 h-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Mobile Bottom Nav */}
