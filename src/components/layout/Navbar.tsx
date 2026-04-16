@@ -72,8 +72,9 @@ export default function Navbar() {
         </nav>
 
         {/* Notification Bell + User Menu */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <GlobalSearch />
+          <ThemeToggle />
           <NotificationBell />
 
           <DropdownMenu>
