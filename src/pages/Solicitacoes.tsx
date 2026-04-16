@@ -386,8 +386,21 @@ export default function Solicitacoes() {
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2 animate-pulse">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 w-32 rounded bg-muted/60" />
+                    <div className="h-5 w-16 rounded-full bg-muted/60" />
+                  </div>
+                  <div className="h-3 w-full rounded bg-muted/40" />
+                  <div className="h-3 w-2/3 rounded bg-muted/40" />
+                  <div className="flex items-center justify-between">
+                    <div className="h-3 w-24 rounded bg-muted/40" />
+                    <div className="h-6 w-16 rounded bg-muted/40" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredSolicitacoes.length === 0 ? (
             <div className="text-center py-6 space-y-2">
