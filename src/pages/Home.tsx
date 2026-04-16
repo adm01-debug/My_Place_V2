@@ -99,13 +99,13 @@ export default function Home() {
   const roleLabel: Record<string, string> = {
     admin: 'Administrador',
     gestor: 'Gestor',
-    colaborador: 'Colaborador',
+    user: 'Colaborador',
   };
 
   const roleBadgeVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
     admin: 'default',
     gestor: 'secondary',
-    colaborador: 'outline',
+    user: 'outline',
   };
 
   return (
