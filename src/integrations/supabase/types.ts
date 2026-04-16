@@ -133,6 +133,42 @@ export type Database = {
           },
         ]
       }
+      registros_ponto: {
+        Row: {
+          created_at: string
+          data_hora: string
+          endereco: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          observacao: string | null
+          tipo: Database["public"]["Enums"]["punch_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_hora?: string
+          endereco?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          tipo: Database["public"]["Enums"]["punch_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string
+          endereco?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          observacao?: string | null
+          tipo?: Database["public"]["Enums"]["punch_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_2fa: {
         Row: {
           backup_codes: string[] | null
@@ -217,6 +253,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -345,6 +382,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
     },
   },
 } as const
