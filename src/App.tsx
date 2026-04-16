@@ -2,12 +2,14 @@ import { Suspense, lazy } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageErrorBoundary from "@/components/portal/PageErrorBoundary";
 import Navbar from "@/components/layout/Navbar";
+import { AnimatePresence } from 'framer-motion';
+import { AnimatedPage } from "@/components/AnimatedPage";
 
 const Login = lazy(() => import("./pages/Login"));
 const Perfil = lazy(() => import("./pages/Perfil"));
