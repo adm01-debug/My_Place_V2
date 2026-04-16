@@ -185,6 +185,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          link: string | null
+          mensagem: string
+          tipo: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          mensagem: string
+          tipo?: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link?: string | null
+          mensagem?: string
+          tipo?: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -488,6 +521,7 @@ export type Database = {
         | "recusada"
         | "cancelada"
       tipo_ferias: "regular" | "abono_pecuniario" | "fracionada"
+      tipo_notificacao: "info" | "sucesso" | "alerta" | "erro"
       tipo_solicitacao:
         | "declaracao_vinculo"
         | "alteracao_dados"
@@ -633,6 +667,7 @@ export const Constants = {
         "cancelada",
       ],
       tipo_ferias: ["regular", "abono_pecuniario", "fracionada"],
+      tipo_notificacao: ["info", "sucesso", "alerta", "erro"],
       tipo_solicitacao: [
         "declaracao_vinculo",
         "alteracao_dados",
