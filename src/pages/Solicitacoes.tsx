@@ -160,6 +160,7 @@ export default function Solicitacoes() {
     setTipo(t);
     setDescricao('');
     setPrioridade('normal');
+    setAnexo(null);
     setDialogOpen(true);
   };
 
