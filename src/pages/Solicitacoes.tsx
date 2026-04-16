@@ -62,6 +62,8 @@ export default function Solicitacoes() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [anexo, setAnexo] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [tipo, setTipo] = useState<TipoSolicitacao>('declaracao_vinculo');
   const [descricao, setDescricao] = useState('');
