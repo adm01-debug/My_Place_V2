@@ -286,6 +286,12 @@ export default function AdminAprovacoes() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground mb-1">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
                     <p className="text-sm text-foreground line-clamp-2">{s.descricao}</p>
+                    {s.anexo_url && (
+                      <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                        <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString('pt-BR')}</span>
