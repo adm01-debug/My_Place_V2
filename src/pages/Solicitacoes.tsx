@@ -1,12 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, Search, Paperclip, X, ExternalLink } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, ExternalLink, Filter, CalendarIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -64,10 +69,18 @@ export default function Solicitacoes() {
   const [submitting, setSubmitting] = useState(false);
   const [anexo, setAnexo] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
+  // Form state
   const [tipo, setTipo] = useState<TipoSolicitacao>('declaracao_vinculo');
   const [descricao, setDescricao] = useState('');
   const [prioridade, setPrioridade] = useState<Prioridade>('normal');
+
+  // Filter state
+  const [filterStatus, setFilterStatus] = useState<string>('todos');
+  const [filterTipo, setFilterTipo] = useState<string>('todos');
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -85,6 +98,33 @@ export default function Solicitacoes() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const filteredSolicitacoes = useMemo(() => {
+    return solicitacoes.filter((s) => {
+      if (filterStatus !== 'todos' && s.status !== filterStatus) return false;
+      if (filterTipo !== 'todos' && s.tipo !== filterTipo) return false;
+      if (filterDateFrom) {
+        const created = new Date(s.created_at);
+        if (created < filterDateFrom) return false;
+      }
+      if (filterDateTo) {
+        const created = new Date(s.created_at);
+        const endOfDay = new Date(filterDateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (created > endOfDay) return false;
+      }
+      return true;
+    });
+  }, [solicitacoes, filterStatus, filterTipo, filterDateFrom, filterDateTo]);
+
+  const hasActiveFilters = filterStatus !== 'todos' || filterTipo !== 'todos' || !!filterDateFrom || !!filterDateTo;
+
+  const clearFilters = () => {
+    setFilterStatus('todos');
+    setFilterTipo('todos');
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+  };
+
   const counts = {
     pendente: solicitacoes.filter(s => s.status === 'pendente' || s.status === 'em_analise').length,
     aprovada: solicitacoes.filter(s => s.status === 'aprovada').length,
@@ -100,7 +140,6 @@ export default function Solicitacoes() {
 
     let anexoUrl: string | null = null;
 
-    // Upload anexo if present
     if (anexo) {
       const ext = anexo.name.split('.').pop() || 'bin';
       const filePath = `${user.id}/${Date.now()}.${ext}`;
@@ -173,15 +212,30 @@ export default function Solicitacoes() {
           <h1 className="text-2xl font-bold text-foreground">Solicitações</h1>
           <p className="text-sm text-muted-foreground">Abra e acompanhe seus pedidos</p>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => openNewWithType('declaracao_vinculo')}>
-          <Plus className="w-4 h-4" />
-          Nova
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={showFilters ? 'default' : 'outline'}
+            className="gap-1.5 relative"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4" />
+            Filtros
+            {hasActiveFilters && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" />
+            )}
+          </Button>
+          <Button size="sm" className="gap-1.5" onClick={() => openNewWithType('declaracao_vinculo')}>
+            <Plus className="w-4 h-4" />
+            Nova
+          </Button>
+        </div>
       </div>
 
       {/* Contadores */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="border-border/50 shadow-md">
+        <Card className="border-border/50 shadow-md cursor-pointer transition-all hover:ring-1 hover:ring-primary/30"
+          onClick={() => { setFilterStatus(filterStatus === 'pendente' ? 'todos' : 'pendente'); setShowFilters(true); }}>
           <CardContent className="flex flex-col items-center py-3 gap-1">
             <Clock className="w-5 h-5 text-amber-500" />
             <p className="text-2xl font-bold text-foreground">
@@ -190,7 +244,8 @@ export default function Solicitacoes() {
             <p className="text-xs text-muted-foreground">Pendentes</p>
           </CardContent>
         </Card>
-        <Card className="border-border/50 shadow-md">
+        <Card className="border-border/50 shadow-md cursor-pointer transition-all hover:ring-1 hover:ring-primary/30"
+          onClick={() => { setFilterStatus(filterStatus === 'aprovada' ? 'todos' : 'aprovada'); setShowFilters(true); }}>
           <CardContent className="flex flex-col items-center py-3 gap-1">
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             <p className="text-2xl font-bold text-foreground">
@@ -199,7 +254,8 @@ export default function Solicitacoes() {
             <p className="text-xs text-muted-foreground">Aprovadas</p>
           </CardContent>
         </Card>
-        <Card className="border-border/50 shadow-md">
+        <Card className="border-border/50 shadow-md cursor-pointer transition-all hover:ring-1 hover:ring-primary/30"
+          onClick={() => { setFilterStatus(filterStatus === 'recusada' ? 'todos' : 'recusada'); setShowFilters(true); }}>
           <CardContent className="flex flex-col items-center py-3 gap-1">
             <XCircle className="w-5 h-5 text-red-500" />
             <p className="text-2xl font-bold text-foreground">
@@ -209,6 +265,87 @@ export default function Solicitacoes() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Filtros avançados */}
+      {showFilters && (
+        <Card className="border-border/50 shadow-lg animate-in slide-in-from-top-2 duration-200">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">Filtros</p>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" className="text-xs h-7 text-muted-foreground" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {(Object.entries(statusLabels) as [StatusSolicitacao, string][]).map(([k, l]) => (
+                      <SelectItem key={k} value={k}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Tipo</Label>
+                <Select value={filterTipo} onValueChange={setFilterTipo}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {(Object.entries(tipoLabels) as [TipoSolicitacao, string][]).map(([k, l]) => (
+                      <SelectItem key={k} value={k}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Data início</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("h-9 w-full justify-start text-xs font-normal", !filterDateFrom && "text-muted-foreground")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateFrom ? format(filterDateFrom, 'dd/MM/yyyy') : 'De'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={filterDateFrom} onSelect={setFilterDateFrom} locale={ptBR} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Data fim</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("h-9 w-full justify-start text-xs font-normal", !filterDateTo && "text-muted-foreground")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateTo ? format(filterDateTo, 'dd/MM/yyyy') : 'Até'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={filterDateTo} onSelect={setFilterDateTo} locale={ptBR} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <p className="text-xs text-muted-foreground">
+                {filteredSolicitacoes.length} de {solicitacoes.length} solicitação(ões)
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tipos de solicitação */}
       <Card className="border-border/50 shadow-lg">
@@ -237,6 +374,11 @@ export default function Solicitacoes() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Minhas Solicitações
+            {hasActiveFilters && (
+              <Badge variant="outline" className="ml-2 text-[10px] font-normal">
+                {filteredSolicitacoes.length} resultado(s)
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -244,12 +386,20 @@ export default function Solicitacoes() {
             <div className="flex justify-center py-4">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>
-          ) : solicitacoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nenhuma solicitação registrada.
-            </p>
+          ) : filteredSolicitacoes.length === 0 ? (
+            <div className="text-center py-6 space-y-2">
+              <FileText className="w-8 h-8 mx-auto text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">
+                {hasActiveFilters ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação registrada.'}
+              </p>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" className="text-xs" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
           ) : (
-            solicitacoes.map((s) => (
+            filteredSolicitacoes.map((s) => (
               <div key={s.id} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-foreground">{tipoLabels[s.tipo]}</p>
