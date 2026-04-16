@@ -280,6 +280,51 @@ export type Database = {
         }
         Relationships: []
       }
+      solicitacoes: {
+        Row: {
+          anexo_url: string | null
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          descricao: string
+          id: string
+          prioridade: Database["public"]["Enums"]["prioridade_solicitacao"]
+          resposta: string | null
+          status: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anexo_url?: string | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade_solicitacao"]
+          resposta?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anexo_url?: string | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade_solicitacao"]
+          resposta?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo?: Database["public"]["Enums"]["tipo_solicitacao"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       solicitacoes_ferias: {
         Row: {
           aprovado_em: string | null
@@ -433,9 +478,22 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      prioridade_solicitacao: "baixa" | "normal" | "alta"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
       status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
+      status_solicitacao:
+        | "pendente"
+        | "em_analise"
+        | "aprovada"
+        | "recusada"
+        | "cancelada"
       tipo_ferias: "regular" | "abono_pecuniario" | "fracionada"
+      tipo_solicitacao:
+        | "declaracao_vinculo"
+        | "alteracao_dados"
+        | "adiantamento_salarial"
+        | "carta_recomendacao"
+        | "outros"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -564,9 +622,24 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      prioridade_solicitacao: ["baixa", "normal", "alta"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
       status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
+      status_solicitacao: [
+        "pendente",
+        "em_analise",
+        "aprovada",
+        "recusada",
+        "cancelada",
+      ],
       tipo_ferias: ["regular", "abono_pecuniario", "fracionada"],
+      tipo_solicitacao: [
+        "declaracao_vinculo",
+        "alteracao_dados",
+        "adiantamento_salarial",
+        "carta_recomendacao",
+        "outros",
+      ],
     },
   },
 } as const
