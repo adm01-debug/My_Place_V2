@@ -57,6 +57,7 @@ export default function Navbar() {
                 key={item.path}
                 variant="ghost"
                 size="sm"
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => navigate(item.path)}
                 className={`gap-1.5 text-xs font-medium ${
                   isActive
