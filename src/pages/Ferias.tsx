@@ -270,8 +270,16 @@ export default function Ferias() {
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 animate-pulse flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="h-4 w-36 rounded bg-muted/60" />
+                    <div className="h-3 w-24 rounded bg-muted/40" />
+                  </div>
+                  <div className="h-5 w-16 rounded-full bg-muted/60" />
+                </div>
+              ))}
             </div>
           ) : solicitacoes.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
