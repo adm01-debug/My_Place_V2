@@ -173,6 +173,30 @@ export default function AdminAprovacoes() {
   const solicitacoesPendentes = solicitacoes.filter(s => s.status === 'pendente' || s.status === 'em_analise');
   const totalPendentes = feriasPendentes.length + solicitacoesPendentes.length;
 
+  const filteredFerias = useMemo(() =>
+    feriasStatusFilter === 'todos' ? ferias : ferias.filter(f => f.status === feriasStatusFilter),
+    [ferias, feriasStatusFilter]
+  );
+
+  const filteredSolicitacoes = useMemo(() =>
+    solicitacoesStatusFilter === 'todos' ? solicitacoes : solicitacoes.filter(s => s.status === solicitacoesStatusFilter),
+    [solicitacoes, solicitacoesStatusFilter]
+  );
+
+  const StatusFilter = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-8 w-36 text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todos">Todos</SelectItem>
+        <SelectItem value="pendente">Pendentes</SelectItem>
+        <SelectItem value="aprovada">Aprovadas</SelectItem>
+        <SelectItem value="recusada">Recusadas</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <div className="w-full max-w-3xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
@@ -204,12 +228,32 @@ export default function AdminAprovacoes() {
 
         {/* Férias Tab */}
         <TabsContent value="ferias" className="space-y-3 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">{filteredFerias.length} resultado(s)</p>
+            <StatusFilter value={feriasStatusFilter} onChange={setFeriasStatusFilter} />
+          </div>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-          ) : ferias.length === 0 ? (
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-muted/60" />
+                    <div className="space-y-1 flex-1">
+                      <div className="h-4 w-28 rounded bg-muted/60" />
+                      <div className="h-3 w-40 rounded bg-muted/40" />
+                    </div>
+                    <div className="h-5 w-16 rounded-full bg-muted/60" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3].map(j => <div key={j} className="h-12 rounded-lg bg-muted/30" />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredFerias.length === 0 ? (
             <EmptyState text="Nenhuma solicitação de férias encontrada." />
           ) : (
-            ferias.map((f) => (
+            filteredFerias.map((f) => (
               <Card key={f.id} className={`border-border/50 shadow-md ${f.status === 'pendente' ? 'ring-1 ring-amber-500/30' : ''}`}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
