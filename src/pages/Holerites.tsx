@@ -90,6 +90,7 @@ export default function Holerites() {
   const latest = holerites[0];
 
   return (
+    <PullToRefresh onRefresh={fetchHolerites}>
     <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Holerites</h1>
@@ -97,9 +98,17 @@ export default function Holerites() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-2">
+              <div className="h-5 w-32 rounded bg-muted/60" />
+              <div className="h-4 w-24 rounded bg-muted/40" />
+              <div className="h-3 w-full rounded bg-muted/30" />
+            </div>
+          ))}
         </div>
+      ) : holerites.length === 0 ? (
+        <EmptyState icon={Receipt} title="Nenhum holerite cadastrado" description="Seus contracheques aparecerão aqui quando disponíveis." />
       ) : (
         <>
           {/* Summary Cards */}
@@ -220,5 +229,6 @@ export default function Holerites() {
         </>
       )}
     </div>
+    </PullToRefresh>
   );
 }
