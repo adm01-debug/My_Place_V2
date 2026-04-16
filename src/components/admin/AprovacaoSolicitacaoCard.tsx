@@ -1,8 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, CheckCircle2, XCircle, Paperclip, ExternalLink } from 'lucide-react';
+import { User, CheckCircle2, XCircle } from 'lucide-react';
 import { StatusBadge, type ProfileInfo } from './AprovacaoFeriasCard';
+import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
 
 interface SolicitacaoRequest {
   id: string;
@@ -59,12 +60,7 @@ export function AprovacaoSolicitacaoCard({ solicitacao: s, onAction }: Props) {
         <div>
           <p className="text-xs font-medium text-muted-foreground mb-1">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
           <p className="text-sm text-foreground line-clamp-2">{s.descricao}</p>
-          {s.anexo_url && (
-            <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
-              <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+          {s.anexo_url && <AttachmentPreview url={s.anexo_url} className="mt-1" />}
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString('pt-BR')}</span>

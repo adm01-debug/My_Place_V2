@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, ExternalLink, Filter, CalendarIcon } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon } from 'lucide-react';
+import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -209,6 +211,7 @@ export default function Solicitacoes() {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
 
   return (
+    <PullToRefresh onRefresh={fetchData}>
     <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -424,12 +427,7 @@ export default function Solicitacoes() {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</p>
-                {s.anexo_url && (
-                  <a href={s.anexo_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                    <Paperclip className="w-3 h-3" /> Anexo <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+                {s.anexo_url && <AttachmentPreview url={s.anexo_url} />}
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
                   {s.status === 'pendente' && (
@@ -509,6 +507,9 @@ export default function Solicitacoes() {
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
                   <Paperclip className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-xs text-foreground truncate flex-1">{anexo.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    {anexo.size < 1024 ? `${anexo.size} B` : anexo.size < 1048576 ? `${(anexo.size / 1024).toFixed(1)} KB` : `${(anexo.size / 1048576).toFixed(1)} MB`}
+                  </span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setAnexo(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
                     <X className="w-3.5 h-3.5" />
                   </Button>
@@ -548,5 +549,6 @@ export default function Solicitacoes() {
         </DialogContent>
       </Dialog>
     </div>
+    </PullToRefresh>
   );
 }

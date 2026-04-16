@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -5,9 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building2, Briefcase, Calendar, Hash, Shield, 
-  Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon
+  Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon,
+  Bell
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
+import { supabase } from '@/integrations/supabase/client';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
@@ -67,6 +71,20 @@ export default function Home() {
   const { user, profile, role } = useAuth();
   const navigate = useNavigate();
 
+  const [pendingCount, setPendingCount] = useState({ ferias: 0, solicitacoes: 0, notificacoes: 0 });
+
+  const fetchCounts = useCallback(async () => {
+    if (!user) return;
+    const [f, s, n] = await Promise.all([
+      supabase.from('solicitacoes_ferias').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('solicitacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('notificacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('lida', false),
+    ]);
+    setPendingCount({ ferias: f.count || 0, solicitacoes: s.count || 0, notificacoes: n.count || 0 });
+  }, [user]);
+
+  useEffect(() => { fetchCounts(); }, [fetchCounts]);
+
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U';
@@ -91,6 +109,7 @@ export default function Home() {
   };
 
   return (
+    <PullToRefresh onRefresh={fetchCounts}>
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-12 space-y-6">
         {/* Greeting */}
@@ -98,6 +117,30 @@ export default function Home() {
           <Sun className="w-5 h-5 text-yellow-500" />
           <span className="text-sm text-muted-foreground">{getGreeting()}, <span className="font-medium text-foreground">{firstName}</span></span>
         </div>
+
+        {/* Pending Summary */}
+        {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {pendingCount.notificacoes > 0 && (
+              <button onClick={() => {}} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
+                <Bell className="w-3.5 h-3.5" />
+                {pendingCount.notificacoes} notificação(ões)
+              </button>
+            )}
+            {pendingCount.ferias > 0 && (
+              <button onClick={() => navigate('/ferias')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Palmtree className="w-3.5 h-3.5" />
+                {pendingCount.ferias} férias pendente(s)
+              </button>
+            )}
+            {pendingCount.solicitacoes > 0 && (
+              <button onClick={() => navigate('/solicitacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-xs font-medium text-purple-600 dark:text-purple-400 shrink-0">
+                <FileText className="w-3.5 h-3.5" />
+                {pendingCount.solicitacoes} solicitação(ões)
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Profile Card */}
         <Card className="border-border/50 shadow-xl overflow-hidden">
@@ -180,5 +223,6 @@ export default function Home() {
 
       </div>
     </div>
+    </PullToRefresh>
   );
 }
