@@ -117,6 +117,30 @@ export default function Home() {
           <span className="text-sm text-muted-foreground">{getGreeting()}, <span className="font-medium text-foreground">{firstName}</span></span>
         </div>
 
+        {/* Pending Summary */}
+        {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {pendingCount.notificacoes > 0 && (
+              <button onClick={() => {}} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
+                <Bell className="w-3.5 h-3.5" />
+                {pendingCount.notificacoes} notificação(ões)
+              </button>
+            )}
+            {pendingCount.ferias > 0 && (
+              <button onClick={() => navigate('/ferias')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Palmtree className="w-3.5 h-3.5" />
+                {pendingCount.ferias} férias pendente(s)
+              </button>
+            )}
+            {pendingCount.solicitacoes > 0 && (
+              <button onClick={() => navigate('/solicitacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-xs font-medium text-purple-600 dark:text-purple-400 shrink-0">
+                <FileText className="w-3.5 h-3.5" />
+                {pendingCount.solicitacoes} solicitação(ões)
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Profile Card */}
         <Card className="border-border/50 shadow-xl overflow-hidden">
           <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
