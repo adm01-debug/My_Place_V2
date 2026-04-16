@@ -83,20 +83,37 @@ export default function AdminAprovacoes() {
     const [fRes, sRes] = await Promise.all([
       supabase
         .from('solicitacoes_ferias')
-        .select('id, user_id, data_inicio, data_fim, dias, tipo, status, observacao, created_at, profiles!solicitacoes_ferias_user_id_fkey(nome, cargo, departamento)')
+        .select('id, user_id, data_inicio, data_fim, dias, tipo, status, observacao, created_at')
         .in('status', ['pendente', 'aprovada', 'recusada'])
         .order('created_at', { ascending: false })
         .limit(50),
       supabase
         .from('solicitacoes')
-        .select('id, user_id, tipo, descricao, status, prioridade, created_at, profiles!solicitacoes_user_id_fkey(nome, cargo, departamento)')
+        .select('id, user_id, tipo, descricao, status, prioridade, created_at')
         .in('status', ['pendente', 'em_analise', 'aprovada', 'recusada'])
         .order('created_at', { ascending: false })
         .limit(50),
     ]);
 
-    if (fRes.data) setFerias(fRes.data as unknown as FeriasRequest[]);
-    if (sRes.data) setSolicitacoes(sRes.data as unknown as SolicitacaoRequest[]);
+    // Collect unique user_ids and fetch profiles
+    const allUserIds = [
+      ...(fRes.data || []).map(r => r.user_id),
+      ...(sRes.data || []).map(r => r.user_id),
+    ].filter((v, i, a) => a.indexOf(v) === i);
+
+    const profileMap: Record<string, ProfileInfo> = {};
+    if (allUserIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, nome, cargo, departamento')
+        .in('id', allUserIds);
+      if (profiles) {
+        profiles.forEach(p => { profileMap[p.id] = { nome: p.nome, cargo: p.cargo, departamento: p.departamento }; });
+      }
+    }
+
+    if (fRes.data) setFerias(fRes.data.map(r => ({ ...r, profile: profileMap[r.user_id] } as FeriasRequest)));
+    if (sRes.data) setSolicitacoes(sRes.data.map(r => ({ ...r, profile: profileMap[r.user_id] } as SolicitacaoRequest)));
     setLoading(false);
   }, [user, hasAccess]);
 
