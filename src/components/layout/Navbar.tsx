@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -24,6 +25,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, signOut } = useAuth();
+  const { isAdmin, isGestor } = useUserRoles();
+  const hasAdminAccess = isAdmin || isGestor;
 
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -91,14 +94,19 @@ export default function Navbar() {
                 <User className="w-4 h-4" />
                 Meu Perfil
               </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer">
-              <ClipboardCheck className="w-4 h-4" />
-              Aprovações
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
-              <MapPin className="w-4 h-4" />
-              Locais Permitidos
-            </DropdownMenuItem>
+              {hasAdminAccess && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer">
+                    <ClipboardCheck className="w-4 h-4" />
+                    Aprovações
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
+                    <MapPin className="w-4 h-4" />
+                    Locais Permitidos
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="w-4 h-4" />

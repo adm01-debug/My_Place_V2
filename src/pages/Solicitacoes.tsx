@@ -70,6 +70,7 @@ export default function Solicitacoes() {
   const [anexo, setAnexo] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   // Form state
   const [tipo, setTipo] = useState<TipoSolicitacao>('declaracao_vinculo');
@@ -181,11 +182,12 @@ export default function Solicitacoes() {
     setSubmitting(false);
   };
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = async () => {
+    if (!cancelId) return;
     const { error } = await supabase
       .from('solicitacoes')
       .update({ status: 'cancelada' as StatusSolicitacao })
-      .eq('id', id);
+      .eq('id', cancelId);
 
     if (error) {
       toast.error('Erro ao cancelar: ' + error.message);
@@ -193,6 +195,7 @@ export default function Solicitacoes() {
       toast.success('Solicitação cancelada.');
       fetchData();
     }
+    setCancelId(null);
   };
 
   const openNewWithType = (t: TipoSolicitacao) => {
@@ -383,8 +386,21 @@ export default function Solicitacoes() {
         </CardHeader>
         <CardContent className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2 animate-pulse">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 w-32 rounded bg-muted/60" />
+                    <div className="h-5 w-16 rounded-full bg-muted/60" />
+                  </div>
+                  <div className="h-3 w-full rounded bg-muted/40" />
+                  <div className="h-3 w-2/3 rounded bg-muted/40" />
+                  <div className="flex items-center justify-between">
+                    <div className="h-3 w-24 rounded bg-muted/40" />
+                    <div className="h-6 w-16 rounded bg-muted/40" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredSolicitacoes.length === 0 ? (
             <div className="text-center py-6 space-y-2">
@@ -417,7 +433,7 @@ export default function Solicitacoes() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
                   {s.status === 'pendente' && (
-                    <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => handleCancel(s.id)}>
+                    <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => setCancelId(s.id)}>
                       Cancelar
                     </Button>
                   )}
@@ -512,6 +528,22 @@ export default function Solicitacoes() {
               {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Enviar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmação de cancelamento */}
+      <Dialog open={!!cancelId} onOpenChange={(open) => { if (!open) setCancelId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cancelar Solicitação</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja cancelar esta solicitação? Esta ação não pode ser desfeita.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelId(null)}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancel}>Confirmar Cancelamento</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
