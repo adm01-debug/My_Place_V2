@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PontoHistory from '@/components/ponto/PontoHistory';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -171,6 +172,7 @@ export default function Ponto() {
   const nextPunchIndex = punchConfig.findIndex((p) => !isPunched(p.tipo));
 
   return (
+    <PullToRefresh onRefresh={fetchTodayPunches}>
     <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
@@ -244,8 +246,17 @@ export default function Ponto() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
+                  <div className="w-8 h-8 rounded-lg bg-muted/60" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 w-24 rounded bg-muted/60" />
+                    <div className="h-3 w-32 rounded bg-muted/40" />
+                  </div>
+                  <div className="h-4 w-16 rounded bg-muted/60" />
+                </div>
+              ))}
             </div>
           ) : todayPunches.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
@@ -287,5 +298,6 @@ export default function Ponto() {
       {/* History */}
       <PontoHistory />
     </div>
+    </PullToRefresh>
   );
 }
