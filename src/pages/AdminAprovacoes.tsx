@@ -176,7 +176,7 @@ export default function AdminAprovacoes() {
 
   return (
     <PullToRefresh onRefresh={fetchData}>
-      <div className="w-full max-w-3xl mx-auto p-4 pt-6 pb-20 space-y-6">
+      <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Painel de Aprovações</h1>
@@ -209,7 +209,7 @@ export default function AdminAprovacoes() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="ferias" className="space-y-3 mt-4">
+          <TabsContent value="ferias" className="space-y-3 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">{filteredFerias.length} resultado(s)</p>
               <StatusFilter value={feriasStatusFilter} onChange={setFeriasStatusFilter} />
@@ -223,7 +223,7 @@ export default function AdminAprovacoes() {
             )}
           </TabsContent>
 
-          <TabsContent value="solicitacoes" className="space-y-3 mt-4">
+          <TabsContent value="solicitacoes" className="space-y-3 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">{filteredSolicitacoes.length} resultado(s)</p>
               <StatusFilter value={solicitacoesStatusFilter} onChange={setSolicitacoesStatusFilter} />
