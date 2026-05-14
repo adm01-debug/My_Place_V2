@@ -5,7 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight, MapPin, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,7 @@ interface PunchRecord {
   data_hora: string;
   latitude: number | null;
   longitude: number | null;
+  endereco?: string | null;
 }
 
 const punchMeta: Record<PunchType, { label: string; icon: typeof LogIn; iconColor: string; bgColor: string }> = {
@@ -88,7 +89,7 @@ export default function PontoHistory() {
       const { start, end } = getRange();
       const { data, error } = await supabase
         .from('registros_ponto')
-        .select('id, tipo, data_hora, latitude, longitude')
+        .select('id, tipo, data_hora, latitude, longitude, endereco')
         .eq('user_id', user.id)
         .gte('data_hora', start.toISOString())
         .lte('data_hora', end.toISOString())
@@ -230,9 +231,34 @@ export default function PontoHistory() {
                               <span className="text-xs font-medium text-foreground tabular-nums">
                                 {new Date(punch.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              {punch.latitude && punch.longitude && (
-                                <div className="absolute left-0 -top-8 hidden group-hover/item:block z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border shadow-sm">
-                                  📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
+                              {(punch.latitude && punch.longitude) || punch.endereco ? (
+                                <div className="absolute left-0 -top-12 hidden group-hover/item:flex flex-col z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1.5 rounded border shadow-md min-w-[120px]">
+                                  {punch.endereco ? (
+                                    <p className="flex items-center gap-1 font-medium border-b border-border/50 pb-1 mb-1">
+                                      <MapPin className="w-2.5 h-2.5" />
+                                      {punch.endereco}
+                                    </p>
+                                  ) : (
+                                    <p className="flex items-center gap-1">
+                                      <MapPin className="w-2.5 h-2.5" />
+                                      {punch.latitude?.toFixed(4)}, {punch.longitude?.toFixed(4)}
+                                    </p>
+                                  )}
+                                  <a 
+                                    href={`https://www.google.com/maps?q=${punch.latitude},${punch.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline mt-1"
+                                  >
+                                    Ver no mapa
+                                  </a>
+                                </div>
+                              ) : (
+                                <div className="absolute left-0 -top-8 hidden group-hover/item:block z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border shadow-md">
+                                  <p className="flex items-center gap-1">
+                                    <AlertCircle className="w-2.5 h-2.5 text-amber-500" />
+                                    Sem localização registrada
+                                  </p>
                                 </div>
                               )}
                             </div>
