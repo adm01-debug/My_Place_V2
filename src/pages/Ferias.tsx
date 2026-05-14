@@ -312,6 +312,7 @@ export default function Ferias() {
           )}
         </CardContent>
       </Card>
+    </div>
 
       {/* Dialog de nova solicitação */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
