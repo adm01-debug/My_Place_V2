@@ -179,62 +179,64 @@ export default function Ponto() {
         <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
       </div>
 
-      {/* Clock */}
-      <Card className="border-border/50 shadow-lg">
-        <CardContent className="flex flex-col items-center py-8 space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-8 h-8 text-primary" />
-            <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Validação de localização por GPS ativa</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Clock */}
+        <Card className="border-border/50 shadow-lg h-full">
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4 h-full">
+            <div className="flex items-center gap-2">
+              <Clock className="w-8 h-8 text-primary" />
+              <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Validação de localização por GPS ativa</span>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Punch Buttons */}
-      <div className="grid grid-cols-2 gap-3">
-        {punchConfig.map(({ tipo, label, icon: Icon, iconColor, bgColor }, index) => {
-          const done = isPunched(tipo);
-          const isNext = index === nextPunchIndex;
-          const isLoading = punching === tipo;
+        {/* Punch Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          {punchConfig.map(({ tipo, label, icon: Icon, iconColor, bgColor }, index) => {
+            const done = isPunched(tipo);
+            const isNext = index === nextPunchIndex;
+            const isLoading = punching === tipo;
 
-          return (
-            <Button
-              key={tipo}
-              variant="outline"
-              disabled={done || isLoading || (punching !== null && punching !== tipo)}
-              onClick={() => handlePunch(tipo)}
-              className={`h-auto flex flex-col items-center gap-2 py-4 border-border/50 transition-all ${
-                done
-                  ? 'opacity-60 cursor-not-allowed'
-                  : isNext
-                    ? 'ring-2 ring-primary/50 hover:bg-accent/50'
-                    : 'hover:bg-accent/50'
-              }`}
-            >
-              <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${bgColor} relative`}>
-                {isLoading ? (
-                  <Loader2 className={`w-5 h-5 ${iconColor} animate-spin`} />
-                ) : done ? (
-                  <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Icon className={`w-5 h-5 ${iconColor}`} />
+            return (
+              <Button
+                key={tipo}
+                variant="outline"
+                disabled={done || isLoading || (punching !== null && punching !== tipo)}
+                onClick={() => handlePunch(tipo)}
+                className={`h-auto flex flex-col items-center gap-2 py-6 border-border/50 transition-all ${
+                  done
+                    ? 'opacity-60 cursor-not-allowed'
+                    : isNext
+                      ? 'ring-2 ring-primary/50 hover:bg-accent/50'
+                      : 'hover:bg-accent/50'
+                }`}
+              >
+                <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${bgColor} relative`}>
+                  {isLoading ? (
+                    <Loader2 className={`w-5 h-5 ${iconColor} animate-spin`} />
+                  ) : done ? (
+                    <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                  )}
+                </div>
+                <span className="text-sm font-medium">{label}</span>
+                {done && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {new Date(todayPunches.find((p) => p.tipo === tipo)!.data_hora).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Badge>
                 )}
-              </div>
-              <span className="text-sm font-medium">{label}</span>
-              {done && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {new Date(todayPunches.find((p) => p.tipo === tipo)!.data_hora).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Badge>
-              )}
-            </Button>
-          );
-        })}
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Today's Records */}
