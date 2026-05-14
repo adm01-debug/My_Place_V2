@@ -124,7 +124,7 @@ export default function Navbar() {
 
       {/* Mobile Bottom Nav */}
       <nav aria-label="Navegação mobile" className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg">
-        <div className="flex items-center justify-around h-14 px-2 safe-area-inset-bottom">
+        <div className="flex items-center justify-around h-14 px-2 safe-area-pb">
           {navItems.slice(0, 5).map((item) => {
             const isActive = location.pathname === item.path;
             return (
