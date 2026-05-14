@@ -36,13 +36,15 @@ O sistema "Portal do Colaborador" foi submetido a uma auditoria técnica minucio
 
 ### 2.2 Módulos a Implementar (Backlog Prioritário)
 
-| Funcionalidade | Motivo | Prioridade | Complexidade |
+| Funcionalidade | Motivo | Prioridade | Critério de Aceitação |
 | :--- | :--- | :--- | :--- |
-| **CRUD de Usuários** | Gestão de colaboradores pelo RH (Admissão/Demissão). | Crítica | Média |
-| **Importação de Holerites** | Upload em lote de arquivos PDF para o servidor. | Alta | Alta |
-| **Relatórios Gerenciais** | Exportação de dados para Excel/PDF (Ponto/Férias). | Média | Média |
-| **Dashboard Real** | Conexão dos gráficos com dados agregados do DB. | Média | Baixa |
-| **Configurações Globais** | Personalização de logo, horários e empresa. | Baixa | Baixa |
+| **CRUD de Usuários** | Gestão de colaboradores pelo RH. | Crítica | Interface para criar, editar e desativar usuários com validação de e-mail único. |
+| **Importação de Holerites** | Upload em lote de arquivos PDF. | Alta | Suporte a upload drag-and-drop de múltiplos PDFs com mapeamento automático por CPF/Matrícula. |
+| **Relatórios Gerenciais** | Exportação de dados para Excel/PDF. | Média | Geração de arquivo .xlsx com todos os registros de ponto do mês filtrado. |
+| **Dashboard Real** | Gráficos com dados do banco de dados. | Média | Gráficos de barra e linha atualizados via queries agregadas no Supabase. |
+| **Logs de Auditoria** | Rastreabilidade de ações críticas. | Alta | Tabela de logs imutável registrando QUEM, QUANDO e O QUE foi alterado. |
+| **Configurações Globais** | Personalização de marca. | Baixa | Tela para upload de logo e definição de cores primárias do sistema. |
+
 
 ---
 
