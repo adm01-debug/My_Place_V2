@@ -188,9 +188,13 @@ export default function Home() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
             Dashboard
           </h2>
-          <HoursChart />
-          <SalaryChart />
-          <GoalsProgress />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <HoursChart />
+            <SalaryChart />
+            <div className="md:col-span-2">
+              <GoalsProgress />
+            </div>
+          </div>
         </div>
 
 
