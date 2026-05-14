@@ -172,7 +172,7 @@ export default function Home() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
             Acesso Rápido
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickAccessItems.map((item) => (
               <QuickAccessCard
                 key={item.path}
