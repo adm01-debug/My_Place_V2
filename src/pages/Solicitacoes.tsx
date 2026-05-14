@@ -375,77 +375,80 @@ export default function Solicitacoes() {
         </CardContent>
       </Card>
 
-      {/* Lista de solicitações */}
-      <Card className="border-border/50 shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Minhas Solicitações
-            {hasActiveFilters && (
-              <Badge variant="outline" className="ml-2 text-[10px] font-normal">
-                {filteredSolicitacoes.length} resultado(s)
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2 animate-pulse">
-                  <div className="flex items-center justify-between">
-                    <div className="h-4 w-32 rounded bg-muted/60" />
-                    <div className="h-5 w-16 rounded-full bg-muted/60" />
-                  </div>
-                  <div className="h-3 w-full rounded bg-muted/40" />
-                  <div className="h-3 w-2/3 rounded bg-muted/40" />
-                  <div className="flex items-center justify-between">
-                    <div className="h-3 w-24 rounded bg-muted/40" />
-                    <div className="h-6 w-16 rounded bg-muted/40" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredSolicitacoes.length === 0 ? (
-            <div className="text-center py-6 space-y-2">
-              <FileText className="w-8 h-8 mx-auto text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">
-                {hasActiveFilters ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação registrada.'}
-              </p>
+        {/* Lista de solicitações */}
+        <Card className="border-border/50 shadow-lg col-span-1 lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Minhas Solicitações
               {hasActiveFilters && (
-                <Button variant="ghost" size="sm" className="text-xs" onClick={clearFilters}>
-                  Limpar filtros
-                </Button>
+                <Badge variant="outline" className="ml-2 text-[10px] font-normal">
+                  {filteredSolicitacoes.length} resultado(s)
+                </Badge>
               )}
-            </div>
-          ) : (
-            filteredSolicitacoes.map((s) => (
-              <div key={s.id} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-foreground">{tipoLabels[s.tipo]}</p>
-                  <Badge variant="outline" className={statusColors[s.status]}>
-                    {statusLabels[s.status]}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</p>
-                {s.anexo_url && <AttachmentPreview url={s.anexo_url} />}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
-                  {s.status === 'pendente' && (
-                    <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => setCancelId(s.id)}>
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
-                {s.resposta && (
-                  <div className="p-2 rounded bg-muted/50 border border-border/30">
-                    <p className="text-xs text-muted-foreground"><span className="font-medium">Resposta:</span> {s.resposta}</p>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2 animate-pulse">
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 w-32 rounded bg-muted/60" />
+                      <div className="h-5 w-16 rounded-full bg-muted/60" />
+                    </div>
+                    <div className="h-3 w-full rounded bg-muted/40" />
+                    <div className="h-3 w-2/3 rounded bg-muted/40" />
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-24 rounded bg-muted/40" />
+                      <div className="h-6 w-16 rounded bg-muted/40" />
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : filteredSolicitacoes.length === 0 ? (
+              <div className="text-center py-6 space-y-2">
+                <FileText className="w-8 h-8 mx-auto text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">
+                  {hasActiveFilters ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação registrada.'}
+                </p>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
                 )}
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {filteredSolicitacoes.map((s) => (
+                  <div key={s.id} className="p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-foreground">{tipoLabels[s.tipo]}</p>
+                      <Badge variant="outline" className={statusColors[s.status]}>
+                        {statusLabels[s.status]}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{s.descricao}</p>
+                    {s.anexo_url && <AttachmentPreview url={s.anexo_url} />}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{formatDate(s.created_at)} · {prioridadeLabels[s.prioridade]}</span>
+                      {s.status === 'pendente' && (
+                        <Button variant="ghost" size="sm" className="text-xs text-red-400 hover:text-red-300 h-7" onClick={() => setCancelId(s.id)}>
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                    {s.resposta && (
+                      <div className="p-2 rounded bg-muted/50 border border-border/30">
+                        <p className="text-xs text-muted-foreground"><span className="font-medium">Resposta:</span> {s.resposta}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Dialog nova solicitação */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
