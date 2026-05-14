@@ -239,66 +239,70 @@ export default function Ponto() {
         </div>
       </div>
 
-      {/* Today's Records */}
-      <Card className="border-border/50 shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Registros de Hoje
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
-                  <div className="w-8 h-8 rounded-lg bg-muted/60" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-4 w-24 rounded bg-muted/60" />
-                    <div className="h-3 w-32 rounded bg-muted/40" />
-                  </div>
-                  <div className="h-4 w-16 rounded bg-muted/60" />
-                </div>
-              ))}
-            </div>
-          ) : todayPunches.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nenhum registro realizado hoje.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {todayPunches.map((punch) => {
-                const config = punchConfig.find((p) => p.tipo === punch.tipo);
-                const PunchIcon = config?.icon || Clock;
-                return (
-                  <div key={punch.id} className="flex items-center gap-3 py-2">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config?.bgColor}`}>
-                      <PunchIcon className={`w-4 h-4 ${config?.iconColor}`} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Today's Records */}
+        <Card className="border-border/50 shadow-lg h-full">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Registros de Hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
+                    <div className="w-8 h-8 rounded-lg bg-muted/60" />
+                    <div className="flex-1 space-y-1">
+                      <div className="h-4 w-24 rounded bg-muted/60" />
+                      <div className="h-3 w-32 rounded bg-muted/40" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">{punchLabelMap[punch.tipo]}</p>
-                      {punch.latitude && punch.longitude && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-sm font-semibold text-foreground tabular-nums">
-                      {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </span>
+                    <div className="h-4 w-16 rounded bg-muted/60" />
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : todayPunches.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum registro realizado hoje.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {todayPunches.map((punch) => {
+                  const config = punchConfig.find((p) => p.tipo === punch.tipo);
+                  const PunchIcon = config?.icon || Clock;
+                  return (
+                    <div key={punch.id} className="flex items-center gap-3 py-2">
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config?.bgColor}`}>
+                        <PunchIcon className={`w-4 h-4 ${config?.iconColor}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{punchLabelMap[punch.tipo]}</p>
+                        {punch.latitude && punch.longitude && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground tabular-nums">
+                        {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* History */}
-      <PontoHistory />
+        {/* History Summary in side column or history itself */}
+        <div className="h-full">
+          <PontoHistory />
+        </div>
+      </div>
     </div>
     </PullToRefresh>
   );
