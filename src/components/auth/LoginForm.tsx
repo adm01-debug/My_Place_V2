@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
 
 interface LockoutState {
@@ -137,6 +138,10 @@ export function LoginForm({
       </div>
 
       <GoogleSignInButton />
+      
+      <p className="text-center text-[10px] text-muted-foreground mt-4 px-4 leading-relaxed">
+        Ao entrar, você concorda com nossos <a href="#" className="underline hover:text-primary">Termos de Uso</a> e <a href="#" className="underline hover:text-primary">Política de Privacidade</a>.
+      </p>
     </form>
   );
 }
@@ -147,16 +152,22 @@ function GoogleSignInButton() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      // Usando Supabase diretamente para ter mais controle se necessário, 
+      // ou mantendo o padrão Lovable para consistência.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        }
       });
-      if (result.error) {
-        console.error("Google sign-in error:", result.error);
+      if (error) {
+        console.error("Google sign-in error:", error);
       }
     } catch (err) {
       console.error("Google sign-in failed:", err);
     } finally {
-      setLoading(false);
+      // O redirect acontece, então o loading só para se falhar
+      setTimeout(() => setLoading(false), 2000);
     }
   };
 
