@@ -191,7 +191,7 @@ export default function AdminLocais() {
 
   return (
     <PullToRefresh onRefresh={async () => { setLoading(true); await fetchLocais(); }}>
-      <div className="w-full max-w-2xl mx-auto p-4 pt-6 pb-20 space-y-6">
+      <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Locais Permitidos</h1>
@@ -232,7 +232,7 @@ export default function AdminLocais() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {locais.map((local) => (
               <Card key={local.id} className="border-border/50 shadow-md">
                 <CardContent className="py-4">

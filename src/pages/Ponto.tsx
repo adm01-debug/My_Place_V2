@@ -173,130 +173,136 @@ export default function Ponto() {
 
   return (
     <PullToRefresh onRefresh={fetchTodayPunches}>
-    <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
+    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
         <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
       </div>
 
-      {/* Clock */}
-      <Card className="border-border/50 shadow-lg">
-        <CardContent className="flex flex-col items-center py-8 space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-8 h-8 text-primary" />
-            <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Validação de localização por GPS ativa</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Clock */}
+        <Card className="border-border/50 shadow-lg h-full">
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4 h-full">
+            <div className="flex items-center gap-2">
+              <Clock className="w-8 h-8 text-primary" />
+              <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Validação de localização por GPS ativa</span>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Punch Buttons */}
-      <div className="grid grid-cols-2 gap-3">
-        {punchConfig.map(({ tipo, label, icon: Icon, iconColor, bgColor }, index) => {
-          const done = isPunched(tipo);
-          const isNext = index === nextPunchIndex;
-          const isLoading = punching === tipo;
+        {/* Punch Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          {punchConfig.map(({ tipo, label, icon: Icon, iconColor, bgColor }, index) => {
+            const done = isPunched(tipo);
+            const isNext = index === nextPunchIndex;
+            const isLoading = punching === tipo;
 
-          return (
-            <Button
-              key={tipo}
-              variant="outline"
-              disabled={done || isLoading || (punching !== null && punching !== tipo)}
-              onClick={() => handlePunch(tipo)}
-              className={`h-auto flex flex-col items-center gap-2 py-4 border-border/50 transition-all ${
-                done
-                  ? 'opacity-60 cursor-not-allowed'
-                  : isNext
-                    ? 'ring-2 ring-primary/50 hover:bg-accent/50'
-                    : 'hover:bg-accent/50'
-              }`}
-            >
-              <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${bgColor} relative`}>
-                {isLoading ? (
-                  <Loader2 className={`w-5 h-5 ${iconColor} animate-spin`} />
-                ) : done ? (
-                  <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Icon className={`w-5 h-5 ${iconColor}`} />
+            return (
+              <Button
+                key={tipo}
+                variant="outline"
+                disabled={done || isLoading || (punching !== null && punching !== tipo)}
+                onClick={() => handlePunch(tipo)}
+                className={`h-auto flex flex-col items-center gap-2 py-6 border-border/50 transition-all ${
+                  done
+                    ? 'opacity-60 cursor-not-allowed'
+                    : isNext
+                      ? 'ring-2 ring-primary/50 hover:bg-accent/50'
+                      : 'hover:bg-accent/50'
+                }`}
+              >
+                <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${bgColor} relative`}>
+                  {isLoading ? (
+                    <Loader2 className={`w-5 h-5 ${iconColor} animate-spin`} />
+                  ) : done ? (
+                    <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                  )}
+                </div>
+                <span className="text-sm font-medium">{label}</span>
+                {done && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {new Date(todayPunches.find((p) => p.tipo === tipo)!.data_hora).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Badge>
                 )}
-              </div>
-              <span className="text-sm font-medium">{label}</span>
-              {done && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {new Date(todayPunches.find((p) => p.tipo === tipo)!.data_hora).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Badge>
-              )}
-            </Button>
-          );
-        })}
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Today's Records */}
-      <Card className="border-border/50 shadow-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Registros de Hoje
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
-                  <div className="w-8 h-8 rounded-lg bg-muted/60" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-4 w-24 rounded bg-muted/60" />
-                    <div className="h-3 w-32 rounded bg-muted/40" />
-                  </div>
-                  <div className="h-4 w-16 rounded bg-muted/60" />
-                </div>
-              ))}
-            </div>
-          ) : todayPunches.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nenhum registro realizado hoje.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {todayPunches.map((punch) => {
-                const config = punchConfig.find((p) => p.tipo === punch.tipo);
-                const PunchIcon = config?.icon || Clock;
-                return (
-                  <div key={punch.id} className="flex items-center gap-3 py-2">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config?.bgColor}`}>
-                      <PunchIcon className={`w-4 h-4 ${config?.iconColor}`} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Today's Records */}
+        <Card className="border-border/50 shadow-lg h-full">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Registros de Hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
+                    <div className="w-8 h-8 rounded-lg bg-muted/60" />
+                    <div className="flex-1 space-y-1">
+                      <div className="h-4 w-24 rounded bg-muted/60" />
+                      <div className="h-3 w-32 rounded bg-muted/40" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">{punchLabelMap[punch.tipo]}</p>
-                      {punch.latitude && punch.longitude && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-sm font-semibold text-foreground tabular-nums">
-                      {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </span>
+                    <div className="h-4 w-16 rounded bg-muted/60" />
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : todayPunches.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum registro realizado hoje.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {todayPunches.map((punch) => {
+                  const config = punchConfig.find((p) => p.tipo === punch.tipo);
+                  const PunchIcon = config?.icon || Clock;
+                  return (
+                    <div key={punch.id} className="flex items-center gap-3 py-2">
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config?.bgColor}`}>
+                        <PunchIcon className={`w-4 h-4 ${config?.iconColor}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{punchLabelMap[punch.tipo]}</p>
+                        {punch.latitude && punch.longitude && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground tabular-nums">
+                        {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* History */}
-      <PontoHistory />
+        {/* History Summary in side column or history itself */}
+        <div className="h-full">
+          <PontoHistory />
+        </div>
+      </div>
     </div>
     </PullToRefresh>
   );

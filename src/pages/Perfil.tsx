@@ -16,6 +16,8 @@ export default function Perfil() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [nome, setNome] = useState(profile?.nome || '');
+  const [telefone, setTelefone] = useState(profile?.telefone || '');
+  const [cpf, setCpf] = useState(profile?.cpf || '');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,7 +27,7 @@ export default function Perfil() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ nome })
+      .update({ nome, telefone, cpf })
       .eq('id', user.id);
     if (error) {
       toast({ title: 'Erro ao salvar', variant: 'destructive' });
@@ -112,7 +114,19 @@ export default function Perfil() {
               <Label className="text-sm font-medium">Nome Completo</Label>
             </div>
             <Input value={nome} onChange={e => setNome(e.target.value)} className="bg-background/50" />
-            <Button onClick={handleSave} disabled={saving || nome === profile?.nome} className="w-full gap-2">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Telefone</Label>
+                <Input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000" className="bg-background/50" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">CPF</Label>
+                <Input value={cpf} onChange={e => setCpf(e.target.value)} placeholder="000.000.000-00" className="bg-background/50" />
+              </div>
+            </div>
+
+            <Button onClick={handleSave} disabled={saving || (nome === profile?.nome && telefone === profile?.telefone && cpf === profile?.cpf)} className="w-full gap-2 mt-4">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

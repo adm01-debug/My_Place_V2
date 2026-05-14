@@ -36,7 +36,7 @@ export default function Navbar() {
 
   return (
     <header role="banner" className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
-      <div className="w-full max-w-5xl mx-auto flex h-14 items-center justify-between px-4">
+      <div className="w-full max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
         {/* Logo */}
         <button
           onClick={() => navigate('/')}

@@ -91,7 +91,7 @@ export default function Holerites() {
 
   return (
     <PullToRefresh onRefresh={fetchHolerites}>
-    <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
+    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Holerites</h1>
         <p className="text-sm text-muted-foreground">Consulte seus contracheques</p>
@@ -111,28 +111,31 @@ export default function Holerites() {
         <EmptyState icon={Receipt} title="Nenhum holerite cadastrado" description="Seus contracheques aparecerão aqui quando disponíveis." />
       ) : (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-border/50 shadow-md">
-              <CardContent className="flex flex-col items-center py-4 gap-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10">
-                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+              <CardContent className="flex flex-col items-center justify-center py-8 gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10">
+                  <TrendingUp className="w-6 h-6 text-emerald-500" />
                 </div>
-                <p className="text-xs text-muted-foreground">Último Salário</p>
-                <p className="text-lg font-bold text-foreground">
-                  {latest ? formatCurrency(latest.salario_liquido) : '—'}
-                </p>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Último Salário Líquido</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {latest ? formatCurrency(latest.salario_liquido) : '—'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-border/50 shadow-md">
-              <CardContent className="flex flex-col items-center py-4 gap-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/10">
-                  <Calendar className="w-5 h-5 text-blue-500" />
+              <CardContent className="flex flex-col items-center justify-center py-8 gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                  <Calendar className="w-6 h-6 text-blue-500" />
                 </div>
-                <p className="text-xs text-muted-foreground">Referência</p>
-                <p className="text-lg font-bold text-foreground">
-                  {latest ? formatCompetencia(latest.competencia) : '—'}
-                </p>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Referência Atual</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">
+                    {latest ? formatCompetencia(latest.competencia) : '—'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

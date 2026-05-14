@@ -128,6 +128,7 @@ export default function PontoHistory() {
 
   const grouped = groupByDay(punches);
   const totalHours = Array.from(grouped.values()).reduce((sum, dayPunches) => sum + computeDayHours(dayPunches), 0);
+  const averageHours = grouped.size > 0 ? totalHours / grouped.size : 0;
 
   return (
     <Card className="border-border/50 shadow-lg">
@@ -178,10 +179,15 @@ export default function PontoHistory() {
         {!loading && punches.length > 0 && (
           <div className="flex items-center justify-between px-1">
             <span className="text-xs text-muted-foreground">{grouped.size} dia{grouped.size !== 1 ? 's' : ''} com registros</span>
-            <Badge variant="secondary" className="text-xs">
-              <Clock className="w-3 h-3 mr-1" />
-              {totalHours.toFixed(1)}h total
-            </Badge>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="text-[10px] px-1.5 font-normal">
+                Média: {averageHours.toFixed(1)}h/dia
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                {totalHours.toFixed(1)}h total
+              </Badge>
+            </div>
           </div>
         )}
 
@@ -216,7 +222,7 @@ export default function PontoHistory() {
                           const meta = punchMeta[punch.tipo];
                           const Icon = meta.icon;
                           return (
-                            <div key={punch.id} className="flex items-center gap-2.5">
+                            <div key={punch.id} className="flex items-center gap-2.5 group/item relative">
                               <div className={`flex items-center justify-center w-6 h-6 rounded-md ${meta.bgColor}`}>
                                 <Icon className={`w-3 h-3 ${meta.iconColor}`} />
                               </div>
@@ -224,6 +230,11 @@ export default function PontoHistory() {
                               <span className="text-xs font-medium text-foreground tabular-nums">
                                 {new Date(punch.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
+                              {punch.latitude && punch.longitude && (
+                                <div className="absolute left-0 -top-8 hidden group-hover/item:block z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border shadow-sm">
+                                  📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
