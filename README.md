@@ -44,6 +44,8 @@ docker-compose up -d
 
 ## 📖 Documentação
 
+- [Relatório de Auditoria Enterprise (PDF)](docs/audit_report.pdf)
+- [Relatório de Auditoria Enterprise (Markdown)](docs/audit_report.md)
 - [Arquitetura](docs/ARCHITECTURE.md)
 - [API](docs/API.md)
 - [Deployment](docs/DEPLOYMENT.md)

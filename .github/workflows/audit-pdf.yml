@@ -1,0 +1,30 @@
+name: Audit Report PDF
+on:
+  push:
+    paths:
+      - 'docs/audit_report.md'
+  workflow_dispatch:
+
+jobs:
+  generate-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Pandoc and wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc wkhtmltopdf
+      
+      - name: Generate PDF
+        run: |
+          pandoc docs/audit_report.md -o docs/audit_report.html
+          wkhtmltopdf docs/audit_report.html docs/audit_report.pdf
+      
+      - name: Commit and Push PDF
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/audit_report.pdf
+          git commit -m "docs: auto-generate audit report PDF" || echo "No changes to commit"
+          git push
