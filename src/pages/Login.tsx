@@ -29,7 +29,6 @@ const Login: React.FC = () => {
   const [lockoutState, setLockoutState] = useState<LockoutState | null>(null);
   const { signIn, signUp, isAuthenticated, checkAccountLocked } = useAuth();
   const navigate = useNavigate();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true });
