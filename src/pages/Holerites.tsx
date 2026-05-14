@@ -90,7 +90,7 @@ export default function Holerites() {
   const latest = holerites[0];
 
   return (
-    <PullToRefresh onRefresh={fetchHolerites}>
+    <PullToRefresh onRefresh={async () => { await fetchHolerites(); }}>
     <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Holerites</h1>

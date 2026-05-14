@@ -211,7 +211,7 @@ export default function Solicitacoes() {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
 
   return (
-    <PullToRefresh onRefresh={fetchData}>
+    <PullToRefresh onRefresh={async () => { await fetchData(); }}>
     <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>

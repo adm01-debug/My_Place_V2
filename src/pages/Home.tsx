@@ -109,9 +109,9 @@ export default function Home() {
   };
 
   return (
-    <PullToRefresh onRefresh={fetchCounts}>
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-12 space-y-6">
+    <PullToRefresh onRefresh={async () => { await fetchCounts(); }}>
+    <div className="min-h-screen bg-background/50">
+      <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-24 space-y-6">
         {/* Greeting */}
         <div className="flex items-center gap-2">
           <Sun className="w-5 h-5 text-yellow-500" />

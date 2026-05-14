@@ -28,6 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import ConfirmDialog from '@/components/portal/ConfirmDialog';
 
 interface Local {
   id: string;
@@ -349,27 +350,16 @@ export default function AdminLocais() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-destructive" />
-                Confirmar Exclusão
-              </DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja remover este local? Essa ação não pode ser desfeita.
-            </p>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={!!deleting}>
-                {deleting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                Remover
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          open={!!deleteConfirmId}
+          onOpenChange={(open: boolean) => { if (!open) setDeleteConfirmId(null); }}
+          title="Confirmar Exclusão"
+          description="Tem certeza que deseja remover este local? Essa ação não pode ser desfeita e pode afetar a validação de ponto dos colaboradores."
+          onConfirm={confirmDelete}
+          isLoading={!!deleting}
+          confirmText="Excluir Local"
+          variant="destructive"
+        />
       </div>
     </PullToRefresh>
   );

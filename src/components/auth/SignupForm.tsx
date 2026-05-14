@@ -35,10 +35,11 @@ function PasswordStrength({ password }: { password: string }) {
   const labels = ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'];
 
   const requirements = [
-    { text: '6+ caracteres', valid: password.length >= 6 },
+    { text: '8+ caracteres', valid: password.length >= 8 },
     { text: 'Letra maiúscula', valid: /[A-Z]/.test(password) },
     { text: 'Letra minúscula', valid: /[a-z]/.test(password) },
     { text: 'Número', valid: /[0-9]/.test(password) },
+    { text: 'Especial (!@#)', valid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ];
 
   return (
@@ -127,7 +128,7 @@ export function SignupForm({
           <Input
             id="signup-password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Crie uma senha forte"
+            placeholder="Mínimo 8 chars, A-z, 0-9, @"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
             className="pl-10 pr-10"

@@ -164,6 +164,17 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    @apply h-full overflow-hidden;
+  }
+
+  #root {
+    @apply h-full;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -441,6 +452,10 @@
   .badge-marketing { @apply bg-marketing-light text-marketing; }
 
   /* ========== SAFE AREA ========== */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .safe-area-pb {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }

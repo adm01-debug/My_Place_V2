@@ -83,7 +83,7 @@ export default function Perfil() {
         </div>
       </div>
 
-      <div className="w-full max-w-md mx-auto px-4 -mt-16 pb-20 space-y-6">
+      <div className="w-full max-w-md mx-auto px-4 -mt-16 pb-24 space-y-6">
         {/* Avatar */}
         <div className="flex flex-col items-center">
           <div className="relative group">
@@ -126,7 +126,11 @@ export default function Perfil() {
               </div>
             </div>
 
-            <Button onClick={handleSave} disabled={saving || (nome === profile?.nome && telefone === profile?.telefone && cpf === profile?.cpf)} className="w-full gap-2 mt-4">
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || (nome === profile?.nome && telefone === profile?.telefone && cpf === profile?.cpf)} 
+              className="w-full gap-2 mt-4 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+            >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {saving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

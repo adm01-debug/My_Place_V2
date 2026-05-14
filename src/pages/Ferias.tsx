@@ -197,7 +197,7 @@ export default function Ferias() {
     : 0;
 
   return (
-    <PullToRefresh onRefresh={fetchData}>
+    <PullToRefresh onRefresh={async () => { await fetchData(); }}>
     <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
