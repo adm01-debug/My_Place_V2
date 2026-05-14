@@ -222,7 +222,7 @@ export default function PontoHistory() {
                           const meta = punchMeta[punch.tipo];
                           const Icon = meta.icon;
                           return (
-                            <div key={punch.id} className="flex items-center gap-2.5">
+                            <div key={punch.id} className="flex items-center gap-2.5 group/item relative">
                               <div className={`flex items-center justify-center w-6 h-6 rounded-md ${meta.bgColor}`}>
                                 <Icon className={`w-3 h-3 ${meta.iconColor}`} />
                               </div>
@@ -230,6 +230,11 @@ export default function PontoHistory() {
                               <span className="text-xs font-medium text-foreground tabular-nums">
                                 {new Date(punch.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
+                              {punch.latitude && punch.longitude && (
+                                <div className="absolute left-0 -top-8 hidden group-hover/item:block z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border shadow-sm">
+                                  📍 {punch.latitude.toFixed(4)}, {punch.longitude.toFixed(4)}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
