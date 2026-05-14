@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/');
+    if (isAuthenticated) navigate('/', { replace: true });
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
@@ -61,8 +61,8 @@ const Login: React.FC = () => {
     const result = await signIn(email, password);
     setIsSubmitting(false);
     if (result.success) {
-      toast({ title: 'Bem-vindo!' });
-      navigate('/');
+      toast.success('Login realizado com sucesso!');
+      navigate('/', { replace: true });
     } else {
       if (result.lockoutInfo) {
         setLockoutState({ isLocked: result.lockoutInfo.isLocked, remainingAttempts: result.lockoutInfo.remainingAttempts, lockedUntil: result.lockoutInfo.lockedUntil });
@@ -79,8 +79,8 @@ const Login: React.FC = () => {
     const result = await signUp(email, password, nome);
     setIsSubmitting(false);
     if (result.success) {
-      toast({ title: 'Conta criada!' });
-      navigate('/');
+      toast.success('Conta criada com sucesso!');
+      navigate('/', { replace: true });
     } else {
       toast({ title: 'Erro no cadastro', description: result.error, variant: 'destructive' });
     }

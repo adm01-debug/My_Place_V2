@@ -153,9 +153,9 @@ export default function Ponto() {
 
       if (error) throw error;
 
-      const distText = validation.distance ? ` (${validation.distance}m do ${validation.name})` : '';
+      const distText = validation.distance ? ` (${validation.distance}m de ${validation.name})` : '';
       toast.success(`${punchLabelMap[tipo]} registrada com sucesso!${distText}`, {
-        icon: <ShieldCheck className="w-4 h-4" />,
+        icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
       });
       await fetchTodayPunches();
     } catch (error) {

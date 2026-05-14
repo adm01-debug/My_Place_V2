@@ -117,6 +117,15 @@ export default function Ferias() {
       toast.error('O período mínimo de férias é de 5 dias.');
       return;
     }
+    
+    // Check if start date is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(dataInicio) < today) {
+      toast.error('A data de início não pode ser anterior a hoje.');
+      return;
+    }
+
     if (saldo && dias > saldo.dias_disponiveis) {
       toast.error(`Saldo insuficiente. Disponível: ${saldo.dias_disponiveis} dias.`);
       return;

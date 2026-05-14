@@ -93,10 +93,14 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success("Senha redefinida com sucesso!");
       
+      // Clear sensitive states
+      setPassword("");
+      setConfirmPassword("");
+      
       // Sign out and redirect to login after 2 seconds
       setTimeout(async () => {
         await supabase.auth.signOut();
-        navigate("/login");
+        navigate("/login", { replace: true });
       }, 2000);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao redefinir senha";
