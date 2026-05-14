@@ -28,7 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
-import { ConfirmDialog } from '@/components/portal/ConfirmDialog';
+import ConfirmDialog from '@/components/portal/ConfirmDialog';
 
 interface Local {
   id: string;
@@ -352,7 +352,7 @@ export default function AdminLocais() {
 
         <ConfirmDialog
           open={!!deleteConfirmId}
-          onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+          onOpenChange={(open: boolean) => { if (!open) setDeleteConfirmId(null); }}
           title="Confirmar Exclusão"
           description="Tem certeza que deseja remover este local? Essa ação não pode ser desfeita e pode afetar a validação de ponto dos colaboradores."
           onConfirm={confirmDelete}
