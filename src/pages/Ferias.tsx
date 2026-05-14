@@ -198,7 +198,7 @@ export default function Ferias() {
 
   return (
     <PullToRefresh onRefresh={fetchData}>
-    <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
+    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Férias</h1>
@@ -225,7 +225,7 @@ export default function Ferias() {
         </div>
       ) : (
         <>
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {stats.map(({ label, value, icon: Icon, color }) => {
               const [iconColor, bgColor] = color.split(' ');
               return (
@@ -262,7 +262,8 @@ export default function Ferias() {
         </>
       )}
 
-      <Card className="border-border/50 shadow-lg">
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="border-border/50 shadow-lg">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Histórico de Solicitações
