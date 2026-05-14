@@ -128,6 +128,7 @@ export default function PontoHistory() {
 
   const grouped = groupByDay(punches);
   const totalHours = Array.from(grouped.values()).reduce((sum, dayPunches) => sum + computeDayHours(dayPunches), 0);
+  const averageHours = grouped.size > 0 ? totalHours / grouped.size : 0;
 
   return (
     <Card className="border-border/50 shadow-lg">
@@ -178,10 +179,15 @@ export default function PontoHistory() {
         {!loading && punches.length > 0 && (
           <div className="flex items-center justify-between px-1">
             <span className="text-xs text-muted-foreground">{grouped.size} dia{grouped.size !== 1 ? 's' : ''} com registros</span>
-            <Badge variant="secondary" className="text-xs">
-              <Clock className="w-3 h-3 mr-1" />
-              {totalHours.toFixed(1)}h total
-            </Badge>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="text-[10px] px-1.5 font-normal">
+                Média: {averageHours.toFixed(1)}h/dia
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                {totalHours.toFixed(1)}h total
+              </Badge>
+            </div>
           </div>
         )}
 
