@@ -212,7 +212,7 @@ export default function Solicitacoes() {
 
   return (
     <PullToRefresh onRefresh={fetchData}>
-    <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
+    <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Solicitações</h1>
@@ -239,7 +239,7 @@ export default function Solicitacoes() {
       </div>
 
       {/* Contadores */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="border-border/50 shadow-md cursor-pointer transition-all hover:ring-1 hover:ring-primary/30"
           onClick={() => { setFilterStatus(filterStatus === 'pendente' ? 'todos' : 'pendente'); setShowFilters(true); }}>
           <CardContent className="flex flex-col items-center py-3 gap-1">
@@ -353,8 +353,8 @@ export default function Solicitacoes() {
         </Card>
       )}
 
-      {/* Tipos de solicitação */}
-      <Card className="border-border/50 shadow-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <Card className="border-border/50 shadow-lg lg:sticky lg:top-20">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Tipos de Solicitação
