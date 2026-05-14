@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
@@ -29,7 +29,7 @@ const Login: React.FC = () => {
   const [lockoutState, setLockoutState] = useState<LockoutState | null>(null);
   const { signIn, signUp, isAuthenticated, checkAccountLocked } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true });
@@ -55,8 +55,8 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { toast({ title: 'Campos obrigatórios', variant: 'destructive' }); return; }
-    if (lockoutState?.isLocked) { toast({ title: 'Conta bloqueada', variant: 'destructive' }); return; }
+    if (!email || !password) { toast.error('Campos obrigatórios'); return; }
+    if (lockoutState?.isLocked) { toast.error('Conta bloqueada'); return; }
     setIsSubmitting(true);
     const result = await signIn(email, password);
     setIsSubmitting(false);
@@ -67,14 +67,14 @@ const Login: React.FC = () => {
       if (result.lockoutInfo) {
         setLockoutState({ isLocked: result.lockoutInfo.isLocked, remainingAttempts: result.lockoutInfo.remainingAttempts, lockedUntil: result.lockoutInfo.lockedUntil });
       }
-      toast({ title: 'Erro no login', description: result.error, variant: 'destructive' });
+      toast.error('Erro no login', { description: result.error });
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !nome) { toast({ title: 'Campos obrigatórios', variant: 'destructive' }); return; }
-    if (password.length < 6) { toast({ title: 'Senha muito curta', variant: 'destructive' }); return; }
+    if (!email || !password || !nome) { toast.error('Campos obrigatórios'); return; }
+    if (password.length < 6) { toast.error('Senha muito curta'); return; }
     setIsSubmitting(true);
     const result = await signUp(email, password, nome);
     setIsSubmitting(false);
@@ -82,21 +82,21 @@ const Login: React.FC = () => {
       toast.success('Conta criada com sucesso!');
       navigate('/', { replace: true });
     } else {
-      toast({ title: 'Erro no cadastro', description: result.error, variant: 'destructive' });
+      toast.error('Erro no cadastro', { description: result.error });
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) { toast({ title: 'Email obrigatório', variant: 'destructive' }); return; }
+    if (!email) { toast.error('Email obrigatório'); return; }
     setIsSubmitting(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password?type=recovery`,
     });
     setIsSubmitting(false);
-    if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
+    if (error) { toast.error('Erro', { description: error.message }); return; }
     setResetEmailSent(true);
-    toast({ title: 'Email enviado!' });
+    toast.success('Email enviado!');
   };
 
   return (
