@@ -173,7 +173,7 @@ export default function Ponto() {
 
   return (
     <PullToRefresh onRefresh={fetchTodayPunches}>
-    <div className="w-full max-w-lg mx-auto p-4 pt-6 pb-20 space-y-6">
+    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
         <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
