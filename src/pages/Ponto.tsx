@@ -172,7 +172,7 @@ export default function Ponto() {
   const nextPunchIndex = punchConfig.findIndex((p) => !isPunched(p.tipo));
 
   return (
-    <PullToRefresh onRefresh={fetchTodayPunches}>
+    <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
     <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
