@@ -121,8 +121,8 @@ const Login: React.FC = () => {
             <Building2 className="w-10 h-10 text-primary-foreground" />
           </motion.div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Portal do Colaborador</h1>
-            <p className="text-muted-foreground mt-2">Acesse sua conta para continuar</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Portal do Colaborador</h1>
+            <p className="text-muted-foreground/80 mt-2">Acesse sua conta para continuar</p>
           </div>
         </div>
 
