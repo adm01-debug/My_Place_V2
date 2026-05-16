@@ -410,16 +410,18 @@ export default function Solicitacoes() {
                 ))}
               </div>
             ) : filteredSolicitacoes.length === 0 ? (
-              <div className="text-center py-6 space-y-2">
-                <FileText className="w-8 h-8 mx-auto text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">
-                  {hasActiveFilters ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação registrada.'}
-                </p>
-                {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={clearFilters}>
-                    Limpar filtros
-                  </Button>
-                )}
+              <div className="py-6">
+                <EmptyState 
+                  icon={Inbox}
+                  title="Nenhuma solicitação encontrada" 
+                  description={hasActiveFilters ? 'Não encontramos registros com os filtros aplicados.' : 'Você ainda não possui solicitações registradas.'}
+                >
+                  {hasActiveFilters && (
+                    <Button variant="outline" size="sm" className="mt-2" onClick={clearFilters}>
+                      Limpar filtros
+                    </Button>
+                  )}
+                </EmptyState>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
