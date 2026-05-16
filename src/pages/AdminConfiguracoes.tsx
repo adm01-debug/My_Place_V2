@@ -82,23 +82,28 @@ export default function AdminConfiguracoes() {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="space-y-6">
+      <Skeleton className="h-20 w-full" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
     </div>
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Configurações do Sistema</h1>
-          <p className="text-muted-foreground">Personalize a identidade visual e informações da empresa.</p>
-        </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Salvar Alterações
-        </Button>
-      </div>
+    <div className="space-y-6 pb-10">
+      <ModuleHeader 
+        title="Configurações do Sistema" 
+        description="Personalize a identidade visual e informações da empresa."
+        icon={Settings}
+        actions={
+          <Button onClick={handleSave} disabled={saving} className="gap-2 shadow-sm">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Salvar Alterações
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Identidade Visual */}
