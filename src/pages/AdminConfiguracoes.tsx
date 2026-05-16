@@ -14,6 +14,8 @@ import {
   Loader2,
   Trash2
 } from "lucide-react";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminConfiguracoes() {
   const [config, setConfig] = useState<any>(null);
