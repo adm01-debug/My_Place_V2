@@ -196,13 +196,26 @@ export default function PontoHistory() {
 
         {/* Records */}
         {loading ? (
-          <div className="flex justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <div className="space-y-4 py-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+                <div className="space-y-1.5 pl-1">
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : punches.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
-            Nenhum registro encontrado neste período.
-          </p>
+          <EmptyState 
+            icon={Inbox}
+            title="Nenhum registro" 
+            description="Não encontramos registros de ponto para o período selecionado."
+            className="py-10"
+          />
         ) : (
           <div className="space-y-4">
             {Array.from(grouped.entries())
