@@ -8,21 +8,32 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Home, Clock, Palmtree, Receipt, FileText, User, MapPin, ClipboardCheck, Search } from 'lucide-react';
+import { Home, Clock, Palmtree, Receipt, FileText, User, MapPin, ClipboardCheck, Search, Shield, Settings, Users, BarChart3, Bell, LogIn, Coffee, DoorOpen, LogOut } from 'lucide-react';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
 const pages = [
-  { label: 'Início', path: '/', icon: Home, keywords: 'home dashboard início' },
-  { label: 'Ponto', path: '/ponto', icon: Clock, keywords: 'ponto registro clock time' },
-  { label: 'Férias', path: '/ferias', icon: Palmtree, keywords: 'férias vacation descanso' },
-  { label: 'Holerites', path: '/holerites', icon: Receipt, keywords: 'holerites salário pagamento contracheque' },
-  { label: 'Solicitações', path: '/solicitacoes', icon: FileText, keywords: 'solicitações pedidos requests' },
-  { label: 'Meu Perfil', path: '/perfil', icon: User, keywords: 'perfil profile conta' },
+  { label: 'Início', path: '/', icon: Home, keywords: 'home dashboard início overview' },
+  { label: 'Ponto', path: '/ponto', icon: Clock, keywords: 'ponto registro clock time jornada' },
+  { label: 'Férias', path: '/ferias', icon: Palmtree, keywords: 'férias vacation descanso folga' },
+  { label: 'Holerites', path: '/holerites', icon: Receipt, keywords: 'holerites salário pagamento contracheque recibo' },
+  { label: 'Solicitações', path: '/solicitacoes', icon: FileText, keywords: 'solicitações pedidos requests rh' },
+  { label: 'Meu Perfil', path: '/perfil', icon: User, keywords: 'perfil profile conta settings configurações' },
 ];
 
 const adminPages = [
-  { label: 'Aprovações', path: '/admin/aprovacoes', icon: ClipboardCheck, keywords: 'aprovações admin gestão' },
-  { label: 'Locais Permitidos', path: '/admin/locais', icon: MapPin, keywords: 'locais admin mapa' },
+  { label: 'Aprovações', path: '/admin/aprovacoes', icon: ClipboardCheck, keywords: 'aprovações admin gestão requests' },
+  { label: 'Usuários', path: '/admin/usuarios', icon: Users, keywords: 'usuários users colaboradores admin' },
+  { label: 'Dashboard Admin', path: '/admin', icon: BarChart3, keywords: 'dashboard admin estatísticas metrics' },
+  { label: 'Locais Permitidos', path: '/admin/locais', icon: MapPin, keywords: 'locais admin mapa geofence' },
+  { label: 'Relatórios', path: '/admin/relatorios', icon: FileText, keywords: 'relatórios reports excel csv export' },
+  { label: 'Configurações do Sistema', path: '/admin/configuracoes', icon: Settings, keywords: 'configurações settings system admin' },
+];
+
+const quickActions = [
+  { label: 'Registrar Entrada', action: 'punch-entrada', icon: LogIn, keywords: 'entrada bater ponto start' },
+  { label: 'Sair para Almoço', action: 'punch-almoco', icon: Coffee, keywords: 'almoço pause break' },
+  { label: 'Retornar do Almoço', action: 'punch-retorno', icon: DoorOpen, keywords: 'retorno volta back lunch' },
+  { label: 'Registrar Saída', action: 'punch-saida', icon: LogOut, keywords: 'saída bater ponto end finish' },
 ];
 
 export function GlobalSearch() {
@@ -42,9 +53,17 @@ export function GlobalSearch() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
-  const handleSelect = useCallback((path: string) => {
+  const handleSelect = useCallback((path?: string, action?: string) => {
     setOpen(false);
-    navigate(path);
+    if (path) {
+      navigate(path);
+    } else if (action) {
+      // Dispatch a custom event for actions
+      window.dispatchEvent(new CustomEvent('app-action', { detail: { type: action } }));
+      if (action.startsWith('punch-')) {
+        navigate('/ponto');
+      }
+    }
   }, [navigate]);
 
   return (
@@ -62,6 +81,21 @@ export function GlobalSearch() {
         <CommandInput placeholder="Buscar página ou ação..." />
         <CommandList>
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+          <CommandGroup heading="Ações Rápidas">
+            {quickActions.map(action => (
+              <CommandItem
+                key={action.action}
+                value={action.label + ' ' + action.keywords}
+                onSelect={() => handleSelect(undefined, action.action)}
+                className="gap-3 cursor-pointer"
+              >
+                <div className="flex items-center justify-center w-6 h-6 rounded bg-primary/10">
+                  <action.icon className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <span>{action.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
           <CommandGroup heading="Páginas">
             {pages.map(page => (
               <CommandItem

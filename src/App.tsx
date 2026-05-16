@@ -2,7 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -10,10 +10,9 @@ import PageErrorBoundary from "@/components/portal/PageErrorBoundary";
 import Navbar from "@/components/layout/Navbar";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { BackButton } from "@/components/layout/BackButton";
-import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from "@/components/AnimatedPage";
 import { SystemStatus } from "@/components/portal/SystemStatus";
-
+import { PageLoader } from "@/components/ui/PageLoader";
 
 const Login = lazy(() => import("./pages/Login"));
 const Perfil = lazy(() => import("./pages/Perfil"));
@@ -46,18 +45,10 @@ const queryClient = new QueryClient({
   },
 });
 
-function RouteLoader() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
-
 function Page({ children, name }: { children: React.ReactNode; name: string }) {
   return (
     <PageErrorBoundary pageName={name}>
-      <Suspense fallback={<RouteLoader />}>
+      <Suspense fallback={<PageLoader />}>
         <AnimatedPage>
           {children}
         </AnimatedPage>
@@ -80,7 +71,6 @@ function AuthenticatedLayout() {
         <Breadcrumbs />
         <Outlet />
       </main>
-
     </ProtectedRoute>
   );
 }

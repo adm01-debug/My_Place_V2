@@ -11,7 +11,10 @@ import {
   CheckCircle2,
   ArrowUpRight,
   ArrowDownRight,
-  ShieldCheck
+  ShieldCheck,
+  History,
+  Activity,
+  Zap
 } from "lucide-react";
 import { 
   BarChart, 
@@ -26,23 +29,32 @@ import {
   Pie
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
       const [
         { count: totalUsers },
         { count: pendingFerias },
         { count: pendingSolicitacoes },
         { data: rolesData },
-        { data: todayPunches }
+        { data: todayPunches },
+        { data: recentActivity }
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("solicitacoes_ferias").select("*", { count: "exact", head: true }).eq("status", "pendente"),
         supabase.from("solicitacoes").select("*", { count: "exact", head: true }).eq("status", "pendente"),
         supabase.from("user_roles").select("role"),
-        supabase.from("registros_ponto").select("id").gte("data_hora", new Date().toISOString().split('T')[0])
+        supabase.from("registros_ponto").select("id").gte("data_hora", today),
+        supabase.from("registros_ponto")
+          .select("id, tipo, data_hora, profiles(full_name)")
+          .order("data_hora", { ascending: false })
+          .limit(5)
       ]);
 
       // Process roles for pie chart
@@ -58,7 +70,13 @@ export default function AdminDashboard() {
         pendingFerias: pendingFerias || 0,
         pendingSolicitacoes: pendingSolicitacoes || 0,
         todayPunches: todayPunches?.length || 0,
-        roleChartData
+        roleChartData,
+        recentActivity: (recentActivity || []).map((a: any) => ({
+          id: a.id,
+          user: a.profiles?.full_name || "Sistema",
+          type: a.tipo,
+          time: a.data_hora
+        }))
       };
     }
   });
@@ -141,7 +159,7 @@ export default function AdminDashboard() {
 
         <Card className="border-border/50 shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">Atividade Recente</CardTitle>
+            <CardTitle className="text-lg">Indicadores de Saúde</CardTitle>
             <CardDescription>Resumo volumétrico de ações no sistema.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col justify-center h-[300px] space-y-6">
@@ -170,13 +188,67 @@ export default function AdminDashboard() {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Integridade Fiscal</p>
                 <div className="flex items-center gap-2 mt-1">
                   <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span className="text-lg font-bold">100% Auditado</span>
+                  <span className="text-lg font-bold">Auditado</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/50 shadow-md">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="space-y-1">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Linha do Tempo de Atividades
+            </CardTitle>
+            <CardDescription>Eventos em tempo real processados pelo sistema.</CardDescription>
+          </div>
+          <Badge variant="outline" className="flex items-center gap-1.5 py-1 px-3 bg-primary/5 border-primary/20">
+            <Zap className="h-3.5 w-3.5 text-primary fill-primary/20" />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Live Monitor</span>
+          </Badge>
+        </CardHeader>
+        <CardContent>
+          <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-border/50 before:via-border/50 before:to-transparent">
+            {isLoading ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="relative flex items-center gap-4 pl-2">
+                   <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                   <div className="space-y-1 flex-1">
+                      <Skeleton className="h-4 w-1/3" />
+                      <Skeleton className="h-3 w-1/4" />
+                   </div>
+                </div>
+              ))
+            ) : stats?.recentActivity.length === 0 ? (
+              <p className="text-center py-6 text-muted-foreground text-sm">Nenhuma atividade recente.</p>
+            ) : (
+              stats?.recentActivity.map((activity: any) => (
+                <div key={activity.id} className="relative flex items-center gap-4 pl-2 group">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border shadow-sm z-10 transition-colors group-hover:border-primary/50">
+                    <History className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold truncate text-foreground">
+                        {activity.user}
+                      </p>
+                      <time className="text-[10px] text-muted-foreground whitespace-nowrap bg-muted px-2 py-0.5 rounded-full">
+                        {format(new Date(activity.time), "HH:mm:ss", { locale: ptBR })}
+                      </time>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Realizou registro de <span className="font-medium text-primary uppercase">{activity.type.replace('_', ' ')}</span>
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
