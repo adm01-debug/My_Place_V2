@@ -234,30 +234,40 @@ export default function AdminUsuarios() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestão de Usuários</h1>
-          <p className="text-muted-foreground">Administre as contas dos colaboradores e permissões de acesso.</p>
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            setSelectedUser(null);
-            form.reset();
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button className="w-full md:w-auto">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Novo Usuário
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedUser ? "Editar Usuário" : "Cadastrar Novo Usuário"}</DialogTitle>
-            </DialogHeader>
+    <div className="space-y-6 pb-10">
+      <ModuleHeader 
+        title="Gestão de Usuários" 
+        description="Administre as contas dos colaboradores e permissões de acesso."
+        icon={Users}
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuário..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 h-9 w-[200px] lg:w-[300px]"
+              />
+            </div>
+            
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) {
+                setSelectedUser(null);
+                form.reset();
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2 shadow-sm">
+                  <UserPlus className="h-4 w-4" />
+                  Novo Usuário
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{selectedUser ? "Editar Usuário" : "Cadastrar Novo Usuário"}</DialogTitle>
+                </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
