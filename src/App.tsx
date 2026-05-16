@@ -8,8 +8,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageErrorBoundary from "@/components/portal/PageErrorBoundary";
 import Navbar from "@/components/layout/Navbar";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { BackButton } from "@/components/layout/BackButton";
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from "@/components/AnimatedPage";
+
 
 const Login = lazy(() => import("./pages/Login"));
 const Perfil = lazy(() => import("./pages/Perfil"));
@@ -64,9 +67,14 @@ function AuthenticatedLayout() {
         Pular para o conteúdo
       </a>
       <Navbar />
-      <main id="main-content" className="pb-16 md:pb-0">
+      <main id="main-content" className="pb-16 md:pb-0 px-4 max-w-7xl mx-auto w-full pt-4">
+        <div className="md:hidden mb-2">
+          <BackButton />
+        </div>
+        <Breadcrumbs />
         <Outlet />
       </main>
+
     </ProtectedRoute>
   );
 }
