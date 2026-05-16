@@ -29,6 +29,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import ConfirmDialog from '@/components/portal/ConfirmDialog';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 interface Local {
   id: string;

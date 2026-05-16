@@ -13,6 +13,7 @@ import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/Dashbo
 import { RecentActivity } from '@/components/home/RecentActivity';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (

@@ -30,6 +30,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 
 interface UploadFile {
   file: File;
