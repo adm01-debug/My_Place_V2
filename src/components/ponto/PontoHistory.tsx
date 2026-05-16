@@ -5,12 +5,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight, MapPin, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, addMonths, subWeeks, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 type PunchType = 'entrada' | 'saida_almoco' | 'retorno_almoco' | 'saida';
 
