@@ -262,20 +262,22 @@ export default function Ponto() {
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
-                    <div className="w-8 h-8 rounded-lg bg-muted/60" />
+                  <div key={i} className="flex items-center gap-3 py-2">
+                    <Skeleton className="w-8 h-8 rounded-lg" />
                     <div className="flex-1 space-y-1">
-                      <div className="h-4 w-24 rounded bg-muted/60" />
-                      <div className="h-3 w-32 rounded bg-muted/40" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
                     </div>
-                    <div className="h-4 w-16 rounded bg-muted/60" />
+                    <Skeleton className="h-4 w-16" />
                   </div>
                 ))}
               </div>
             ) : todayPunches.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum registro realizado hoje.
-              </p>
+              <EmptyState 
+                title="Nenhum registro" 
+                description="Você ainda não realizou nenhum registro de ponto hoje."
+                className="py-6"
+              />
             ) : (
               <div className="space-y-3">
                 {todayPunches.map((punch) => {
