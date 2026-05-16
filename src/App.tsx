@@ -14,7 +14,6 @@ import { AnimatedPage } from "@/components/AnimatedPage";
 import { SystemStatus } from "@/components/portal/SystemStatus";
 import { PageLoader } from "@/components/ui/PageLoader";
 
-
 const Login = lazy(() => import("./pages/Login"));
 const Perfil = lazy(() => import("./pages/Perfil"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -46,18 +45,10 @@ const queryClient = new QueryClient({
   },
 });
 
-function RouteLoader() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
-
 function Page({ children, name }: { children: React.ReactNode; name: string }) {
   return (
     <PageErrorBoundary pageName={name}>
-      <Suspense fallback={<RouteLoader />}>
+      <Suspense fallback={<PageLoader />}>
         <AnimatedPage>
           {children}
         </AnimatedPage>
@@ -80,7 +71,6 @@ function AuthenticatedLayout() {
         <Breadcrumbs />
         <Outlet />
       </main>
-
     </ProtectedRoute>
   );
 }
