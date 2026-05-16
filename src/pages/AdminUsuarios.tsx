@@ -86,7 +86,7 @@ interface ProfileWithRole {
     role: "admin" | "gestor" | "user";
   }[];
 }
-...
+
 export default function AdminUsuarios() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -110,7 +110,7 @@ export default function AdminUsuarios() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data: profiles, error: pError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select(`
           *,
@@ -119,8 +119,8 @@ export default function AdminUsuarios() {
           )
         `);
       
-      if (pError) throw pError;
-      return profiles;
+      if (error) throw error;
+      return data as unknown as ProfileWithRole[];
     },
   });
 
