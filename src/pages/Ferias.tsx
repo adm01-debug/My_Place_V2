@@ -210,17 +210,18 @@ export default function Ferias() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
-    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Férias</h1>
-          <p className="text-sm text-muted-foreground">Gerencie suas férias e folgas</p>
-        </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setDialogOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Solicitar
-        </Button>
-      </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Férias" 
+        description="Gerencie seus períodos de descanso e folgas"
+        icon={Palmtree}
+        actions={
+          <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Solicitar
+          </Button>
+        }
+      />
 
       {/* Balance Card */}
       {loading ? (
