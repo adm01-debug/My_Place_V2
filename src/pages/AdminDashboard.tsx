@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   History,
   Activity,
-  Zap
+  Zap,
+  LayoutDashboard
 } from "lucide-react";
 import { 
   BarChart, 
