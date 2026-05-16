@@ -53,9 +53,17 @@ export function GlobalSearch() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
-  const handleSelect = useCallback((path: string) => {
+  const handleSelect = useCallback((path?: string, action?: string) => {
     setOpen(false);
-    navigate(path);
+    if (path) {
+      navigate(path);
+    } else if (action) {
+      // Dispatch a custom event for actions
+      window.dispatchEvent(new CustomEvent('app-action', { detail: { type: action } }));
+      if (action.startsWith('punch-')) {
+        navigate('/ponto');
+      }
+    }
   }, [navigate]);
 
   return (
