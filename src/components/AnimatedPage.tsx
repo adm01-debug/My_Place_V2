@@ -16,7 +16,7 @@ export const AnimatedPage = ({ children }: AnimatedPageProps) => {
       initial={{ opacity: 0, x: xOffset }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -xOffset }}
-      transition={{ type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200, mass: 0.5 }}
     >
       {children}
     </motion.div>
