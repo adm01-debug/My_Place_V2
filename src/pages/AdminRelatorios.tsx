@@ -14,11 +14,14 @@ import {
   Clock,
   Palmtree,
   FileText,
-  Loader2
+  Loader2,
+  FileDown,
+  ChevronRight
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 
 export default function AdminRelatorios() {
   const [dateStart, setDateStart] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"));
