@@ -16,8 +16,6 @@ import {
   Activity,
   Zap
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { 
   BarChart, 
   Bar, 
@@ -31,6 +29,9 @@ import {
   Pie
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -158,7 +159,7 @@ export default function AdminDashboard() {
 
         <Card className="border-border/50 shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">Atividade Recente</CardTitle>
+            <CardTitle className="text-lg">Indicadores de Saúde</CardTitle>
             <CardDescription>Resumo volumétrico de ações no sistema.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col justify-center h-[300px] space-y-6">
@@ -172,6 +173,27 @@ export default function AdminDashboard() {
                   className="h-full bg-primary transition-all duration-1000" 
                   style={{ width: `${stats ? Math.min(100, (stats.todayPunches / (stats.totalUsers || 1)) * 100) : 0}%` }}
                 />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Saúde Operacional</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <span className="text-lg font-bold">Excelente</span>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Integridade Fiscal</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <span className="text-lg font-bold">Auditado</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="border-border/50 shadow-md">
@@ -227,18 +249,6 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-    </div>
-              <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Integridade Fiscal</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span className="text-lg font-bold">100% Auditado</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
