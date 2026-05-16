@@ -75,16 +75,15 @@ export default function Perfil() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header gradient */}
-      <div className="relative h-36 bg-gradient-to-br from-primary/20 via-primary/10 to-background">
-        <div className="absolute top-4 left-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="rounded-full bg-background/50 backdrop-blur-sm">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </div>
+      <div className="w-full max-w-4xl mx-auto px-4 pt-6">
+        <ModuleHeader 
+          title="Meu Perfil" 
+          description="Gerencie suas informações pessoais e profissionais."
+          icon={User}
+        />
       </div>
 
-      <div className="w-full max-w-md mx-auto px-4 -mt-16 pb-24 space-y-6">
+      <div className="w-full max-w-md mx-auto px-4 pb-24 space-y-6">
         {/* Avatar */}
         <div className="flex flex-col items-center">
           <div className="relative group">
