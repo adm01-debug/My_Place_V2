@@ -296,9 +296,12 @@ export default function Ferias() {
               ))}
             </div>
           ) : solicitacoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nenhuma solicitação de férias registrada.
-            </p>
+            <EmptyState 
+              icon={Inbox}
+              title="Nenhuma solicitação" 
+              description="Você ainda não possui solicitações de férias registradas no histórico."
+              className="py-8"
+            />
           ) : (
             solicitacoes.map((s) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/40">
