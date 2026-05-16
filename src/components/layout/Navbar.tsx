@@ -115,6 +115,10 @@ export default function Navbar() {
                     <ClipboardCheck className="w-4 h-4" />
                     Aprovações
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/usuarios')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <Users className="w-4 h-4" />
+                    Gestão de Usuários
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer focus:bg-accent">
                     <MapPin className="w-4 h-4" />
                     Locais Permitidos
