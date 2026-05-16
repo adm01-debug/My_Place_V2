@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      configuracoes_globais: {
+        Row: {
+          cor_primaria: string | null
+          id: string
+          logo_url: string | null
+          nome_empresa: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          cor_primaria?: string | null
+          id?: string
+          logo_url?: string | null
+          nome_empresa?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          cor_primaria?: string | null
+          id?: string
+          logo_url?: string | null
+          nome_empresa?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       holerites: {
         Row: {
           arquivo_url: string | null
