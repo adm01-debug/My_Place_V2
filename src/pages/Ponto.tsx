@@ -180,17 +180,28 @@ export default function Ponto() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Clock */}
-        <Card className="border-border/50 shadow-lg h-full">
-          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4 h-full">
+        {/* Clock & Map Preview */}
+        <Card className="border-border/50 shadow-lg h-full overflow-hidden">
+          <div className="relative h-24 bg-muted/30 border-b border-border/50 overflow-hidden">
+             <div className="absolute inset-0 opacity-20 pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border border-primary/20 animate-[ping_3s_linear_infinite]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border border-primary/10 animate-[ping_4s_linear_infinite]" />
+             </div>
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-1">
+                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 shadow-sm">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Localização Verificada</span>
+                   </div>
+                </div>
+             </div>
+          </div>
+          <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
             <div className="flex items-center gap-2">
               <Clock className="w-8 h-8 text-primary" />
               <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Validação de localização por GPS ativa</span>
-            </div>
+            <p className="text-xs text-muted-foreground">Hora oficial de Brasília (GMT-3)</p>
           </CardContent>
         </Card>
 
