@@ -11,8 +11,13 @@ import {
   CheckCircle2,
   ArrowUpRight,
   ArrowDownRight,
-  ShieldCheck
+  ShieldCheck,
+  History,
+  Activity,
+  Zap
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   BarChart, 
   Bar, 
