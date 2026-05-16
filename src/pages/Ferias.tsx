@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Palmtree, CalendarDays, Plus, Clock, Loader2 } from 'lucide-react';
+import { Palmtree, CalendarDays, Plus, Clock, Loader2, Inbox } from 'lucide-react';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -207,17 +210,18 @@ export default function Ferias() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
-    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Férias</h1>
-          <p className="text-sm text-muted-foreground">Gerencie suas férias e folgas</p>
-        </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setDialogOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Solicitar
-        </Button>
-      </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Férias" 
+        description="Gerencie seus períodos de descanso e folgas"
+        icon={Palmtree}
+        actions={
+          <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Solicitar
+          </Button>
+        }
+      />
 
       {/* Balance Card */}
       {loading ? (
@@ -292,9 +296,12 @@ export default function Ferias() {
               ))}
             </div>
           ) : solicitacoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nenhuma solicitação de férias registrada.
-            </p>
+            <EmptyState 
+              icon={Inbox}
+              title="Nenhuma solicitação" 
+              description="Você ainda não possui solicitações de férias registradas no histórico."
+              className="py-8"
+            />
           ) : (
             solicitacoes.map((s) => (
               <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/40">

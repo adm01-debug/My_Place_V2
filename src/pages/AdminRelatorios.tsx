@@ -14,11 +14,14 @@ import {
   Clock,
   Palmtree,
   FileText,
-  Loader2
+  Loader2,
+  FileDown,
+  ChevronRight
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 
 export default function AdminRelatorios() {
   const [dateStart, setDateStart] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"));
@@ -163,18 +166,19 @@ export default function AdminRelatorios() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Relatórios Gerenciais</h1>
-        <p className="text-muted-foreground">Exporte dados consolidados do sistema para análise em Excel.</p>
-      </div>
+    <div className="space-y-6 pb-10">
+      <ModuleHeader 
+        title="Relatórios Gerenciais" 
+        description="Exporte dados consolidados do sistema para análise em Excel."
+        icon={FileSpreadsheet}
+      />
 
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+      <Card className="border-border/50 shadow-md">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-primary" />
-            Filtros Globais
-          </CardTitle>
+            <CardTitle>Filtros Globais</CardTitle>
+          </div>
           <CardDescription>Defina o período para os relatórios temporais (Ponto, etc).</CardDescription>
         </CardHeader>
         <CardContent>

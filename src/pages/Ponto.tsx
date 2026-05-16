@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 type PunchType = 'entrada' | 'saida_almoco' | 'retorno_almoco' | 'saida';
 
@@ -77,10 +78,6 @@ export default function Ponto() {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchTodayPunches();
-  }, [fetchTodayPunches]);
-
   const getLocation = (): Promise<{ lat: number; lng: number } | null> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
@@ -103,7 +100,6 @@ export default function Ponto() {
 
     if (error) {
       console.error('Erro na validação de localização:', error);
-      // If validation fails, allow punch but warn
       return { allowed: true };
     }
 
@@ -114,7 +110,7 @@ export default function Ponto() {
     return { allowed: false };
   };
 
-  const handlePunch = async (tipo: PunchType) => {
+  const handlePunch = useCallback(async (tipo: PunchType) => {
     if (!user || punching) return;
 
     if (todayPunches.some((p) => p.tipo === tipo)) {
@@ -134,7 +130,6 @@ export default function Ponto() {
         return;
       }
 
-      // Validate geolocation against allowed locations
       const validation = await validateLocation(location.lat, location.lng);
 
       if (!validation.allowed) {
@@ -166,20 +161,35 @@ export default function Ponto() {
     } finally {
       setPunching(null);
     }
-  };
+  }, [user, punching, todayPunches, fetchTodayPunches]);
+
+  useEffect(() => {
+    fetchTodayPunches();
+
+    const handleAction = (e: any) => {
+      const { type } = e.detail;
+      if (type === 'punch-entrada') handlePunch('entrada');
+      if (type === 'punch-almoco') handlePunch('saida_almoco');
+      if (type === 'punch-retorno') handlePunch('retorno_almoco');
+      if (type === 'punch-saida') handlePunch('saida');
+    };
+
+    window.addEventListener('app-action', handleAction);
+    return () => window.removeEventListener('app-action', handleAction);
+  }, [fetchTodayPunches, handlePunch]);
 
   const isPunched = (tipo: PunchType) => todayPunches.some((p) => p.tipo === tipo);
 
-  // Determine next expected punch
   const nextPunchIndex = punchConfig.findIndex((p) => !isPunched(p.tipo));
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
-    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
-        <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
-      </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Registro de Ponto" 
+        description={dateStr}
+        icon={Clock}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Clock & Map Preview */}
@@ -224,7 +234,7 @@ export default function Ponto() {
                   done
                     ? 'opacity-60 cursor-not-allowed'
                     : isNext
-                      ? 'ring-2 ring-primary/50 hover:bg-accent/50'
+                      ? 'ring-2 ring-primary/50 hover:bg-accent/50 shadow-md scale-[1.02]'
                       : 'hover:bg-accent/50'
                 }`}
               >
@@ -252,7 +262,7 @@ export default function Ponto() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
         {/* Today's Records */}
         <Card className="border-border/50 shadow-lg h-full">
           <CardHeader className="pb-2">
@@ -286,7 +296,7 @@ export default function Ponto() {
                   const config = punchConfig.find((p) => p.tipo === punch.tipo);
                   const PunchIcon = config?.icon || Clock;
                   return (
-                    <div key={punch.id} className="flex items-center gap-3 py-2">
+                    <div key={punch.id} className="flex items-center gap-3 py-2 animate-in slide-in-from-left-2 duration-300">
                       <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${config?.bgColor}`}>
                         <PunchIcon className={`w-4 h-4 ${config?.iconColor}`} />
                       </div>
@@ -313,7 +323,7 @@ export default function Ponto() {
           </CardContent>
         </Card>
 
-        {/* History Summary in side column or history itself */}
+        {/* History Summary */}
         <div className="h-full">
           <PontoHistory />
         </div>

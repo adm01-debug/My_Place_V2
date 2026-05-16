@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   History,
   Activity,
-  Zap
+  Zap,
+  LayoutDashboard
 } from "lucide-react";
 import { 
   BarChart, 
@@ -32,6 +33,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -84,11 +87,12 @@ export default function AdminDashboard() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Administrativo</h1>
-        <p className="text-muted-foreground">Visão geral da organização e pendências operacionais.</p>
-      </div>
+    <div className="space-y-6 pb-10">
+      <ModuleHeader 
+        title="Dashboard Administrativo" 
+        description="Visão geral da organização e pendências operacionais."
+        icon={LayoutDashboard}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 

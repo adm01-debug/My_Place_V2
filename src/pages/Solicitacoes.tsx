@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon, Inbox } from 'lucide-react';
 import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -212,31 +215,32 @@ export default function Solicitacoes() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
-    <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Solicitações</h1>
-          <p className="text-sm text-muted-foreground">Abra e acompanhe seus pedidos</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={showFilters ? 'default' : 'outline'}
-            className="gap-1.5 relative"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4" />
-            Filtros
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" />
-            )}
-          </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => openNewWithType('declaracao_vinculo')}>
-            <Plus className="w-4 h-4" />
-            Nova
-          </Button>
-        </div>
-      </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Solicitações" 
+        description="Abra e acompanhe seus pedidos e requerimentos ao RH"
+        icon={FileText}
+        actions={
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={showFilters ? 'default' : 'outline'}
+              className="gap-1.5 relative shadow-sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline">Filtros</span>
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" />
+              )}
+            </Button>
+            <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => openNewWithType('declaracao_vinculo')}>
+              <Plus className="w-4 h-4" />
+              Nova
+            </Button>
+          </div>
+        }
+      />
 
       {/* Contadores */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -406,16 +410,18 @@ export default function Solicitacoes() {
                 ))}
               </div>
             ) : filteredSolicitacoes.length === 0 ? (
-              <div className="text-center py-6 space-y-2">
-                <FileText className="w-8 h-8 mx-auto text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">
-                  {hasActiveFilters ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação registrada.'}
-                </p>
-                {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={clearFilters}>
-                    Limpar filtros
-                  </Button>
-                )}
+              <div className="py-6">
+                <EmptyState 
+                  icon={Inbox}
+                  title="Nenhuma solicitação encontrada" 
+                  description={hasActiveFilters ? 'Não encontramos registros com os filtros aplicados.' : 'Você ainda não possui solicitações registradas.'}
+                >
+                  {hasActiveFilters && (
+                    <Button variant="outline" size="sm" className="mt-2" onClick={clearFilters}>
+                      Limpar filtros
+                    </Button>
+                  )}
+                </EmptyState>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
