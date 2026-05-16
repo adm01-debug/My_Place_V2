@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
+
 type PunchType = 'entrada' | 'saida_almoco' | 'retorno_almoco' | 'saida';
 
 interface PunchRecord {
