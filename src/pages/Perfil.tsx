@@ -81,6 +81,7 @@ export default function Perfil() {
           description="Gerencie suas informações pessoais e profissionais."
           icon={User}
         />
+      </div>
 
       <div className="w-full max-w-md mx-auto space-y-6 pb-24">
         {/* Avatar */}
