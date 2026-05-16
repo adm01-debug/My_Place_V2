@@ -81,7 +81,18 @@ export default function Ponto() {
 
   useEffect(() => {
     fetchTodayPunches();
-  }, [fetchTodayPunches]);
+
+    const handleAction = (e: any) => {
+      const { type } = e.detail;
+      if (type === 'punch-entrada') handlePunch('entrada');
+      if (type === 'punch-almoco') handlePunch('saida_almoco');
+      if (type === 'punch-retorno') handlePunch('retorno_almoco');
+      if (type === 'punch-saida') handlePunch('saida');
+    };
+
+    window.addEventListener('app-action', handleAction);
+    return () => window.removeEventListener('app-action', handleAction);
+  }, [fetchTodayPunches, handlePunch]);
 
   const getLocation = (): Promise<{ lat: number; lng: number } | null> => {
     return new Promise((resolve) => {
