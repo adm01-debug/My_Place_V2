@@ -48,7 +48,11 @@ import {
   Briefcase,
   Mail,
   MoreVertical,
-  Filter
+  Filter,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  BriefcaseBusiness
 } from "lucide-react";
 import { 
   DropdownMenu,

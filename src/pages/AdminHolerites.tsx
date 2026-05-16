@@ -139,6 +139,15 @@ export default function AdminHolerites() {
 
         if (hError) throw hError;
 
+        // Criar notificação para o usuário
+        await supabase.from('notificacoes').insert({
+          user_id: profile.id,
+          titulo: "Novo Holerite Disponível",
+          mensagem: `Seu holerite de ${competencia} já está disponível para visualização.`,
+          tipo: 'info',
+          link: '/holerites'
+        });
+
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "success", progress: 100 } : f));
       } catch (err: any) {
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error", error: err.message } : f));
