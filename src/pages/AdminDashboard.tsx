@@ -36,18 +36,24 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
       const [
         { count: totalUsers },
         { count: pendingFerias },
         { count: pendingSolicitacoes },
         { data: rolesData },
-        { data: todayPunches }
+        { data: todayPunches },
+        { data: recentActivity }
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("solicitacoes_ferias").select("*", { count: "exact", head: true }).eq("status", "pendente"),
         supabase.from("solicitacoes").select("*", { count: "exact", head: true }).eq("status", "pendente"),
         supabase.from("user_roles").select("role"),
-        supabase.from("registros_ponto").select("id").gte("data_hora", new Date().toISOString().split('T')[0])
+        supabase.from("registros_ponto").select("id").gte("data_hora", today),
+        supabase.from("registros_ponto")
+          .select("id, tipo, data_hora, profiles(full_name)")
+          .order("data_hora", { ascending: false })
+          .limit(5)
       ]);
 
       // Process roles for pie chart
@@ -63,7 +69,13 @@ export default function AdminDashboard() {
         pendingFerias: pendingFerias || 0,
         pendingSolicitacoes: pendingSolicitacoes || 0,
         todayPunches: todayPunches?.length || 0,
-        roleChartData
+        roleChartData,
+        recentActivity: (recentActivity || []).map((a: any) => ({
+          id: a.id,
+          user: a.profiles?.full_name || "Sistema",
+          type: a.tipo,
+          time: a.data_hora
+        }))
       };
     }
   });
