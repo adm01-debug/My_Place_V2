@@ -16,7 +16,6 @@ import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
 import { BackButton } from './BackButton';
 
-
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
   { label: 'Ponto', path: '/ponto', icon: Clock },
@@ -39,6 +38,7 @@ export default function Navbar() {
   return (
     <header role="banner" className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
       <div className="w-full max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
+        {/* Logo and Back Button */}
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/')}
@@ -57,7 +57,6 @@ export default function Navbar() {
           </div>
         </div>
 
-
         {/* Desktop Nav */}
         <nav aria-label="Navegação principal" className="hidden md:flex items-center gap-1">
           {navItems.map((item) => {
@@ -69,10 +68,10 @@ export default function Navbar() {
                 size="sm"
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => navigate(item.path)}
-                className={`gap-1.5 text-xs font-medium ${
+                className={`gap-1.5 text-xs font-medium h-9 rounded-md transition-all active:scale-95 ${
                   isActive
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-accent text-accent-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                 }`}
               >
                 <item.icon className="w-3.5 h-3.5" />
@@ -90,8 +89,8 @@ export default function Navbar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="w-8 h-8">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent active:scale-95 transition-transform">
+                <Avatar className="w-8 h-8 border border-border/50 shadow-sm">
                   <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
                   <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
                     {initials}
@@ -99,31 +98,31 @@ export default function Navbar() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 animate-in fade-in zoom-in duration-200">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium text-foreground truncate">{profile?.nome || 'Colaborador'}</p>
                 <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2 cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate('/perfil')} className="gap-2 cursor-pointer focus:bg-accent">
                 <User className="w-4 h-4" />
                 Meu Perfil
               </DropdownMenuItem>
               {hasAdminAccess && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer">
+                  <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer focus:bg-accent">
                     <ClipboardCheck className="w-4 h-4" />
                     Aprovações
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer">
+                  <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer focus:bg-accent">
                     <MapPin className="w-4 h-4" />
                     Locais Permitidos
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                 <LogOut className="w-4 h-4" />
                 Sair
               </DropdownMenuItem>
@@ -133,7 +132,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Bottom Nav */}
-      <nav aria-label="Navegação mobile" className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg">
+      <nav aria-label="Navegação mobile" className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <div className="flex items-center justify-around h-14 px-2 safe-area-pb">
           {navItems.slice(0, 5).map((item) => {
             const isActive = location.pathname === item.path;
@@ -143,14 +142,14 @@ export default function Navbar() {
                 onClick={() => navigate(item.path)}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all active:scale-90 ${
                   isActive
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-none">{item.label}</span>
+                <item.icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                <span className="text-[10px] font-semibold leading-none">{item.label}</span>
               </button>
             );
           })}
