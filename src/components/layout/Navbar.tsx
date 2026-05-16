@@ -14,6 +14,8 @@ import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapP
 import NotificationBell from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
+import { BackButton } from './BackButton';
+
 
 const navItems = [
   { label: 'Início', path: '/', icon: Home },
