@@ -177,11 +177,12 @@ export default function Ponto() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
-    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Registro de Ponto</h1>
-        <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
-      </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Registro de Ponto" 
+        description={dateStr}
+        icon={Clock}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Clock & Map Preview */}
