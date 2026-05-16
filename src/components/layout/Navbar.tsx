@@ -37,16 +37,24 @@ export default function Navbar() {
   return (
     <header role="banner" className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
       <div className="w-full max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
-        {/* Logo */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 font-bold text-foreground hover:opacity-80 transition-opacity"
-        >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80">
-            <Building2 className="w-4 h-4 text-primary-foreground" />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 font-bold text-foreground hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span className="text-sm font-bold hidden sm:inline tracking-tight">Portal do Colaborador</span>
+          </button>
+          
+          <div className="hidden md:block border-l border-border/50 h-6 mx-1" />
+          
+          <div className="hidden md:flex items-center">
+            <BackButton />
           </div>
-          <span className="text-sm font-semibold hidden sm:inline">Portal do Colaborador</span>
-        </button>
+        </div>
+
 
         {/* Desktop Nav */}
         <nav aria-label="Navegação principal" className="hidden md:flex items-center gap-1">
