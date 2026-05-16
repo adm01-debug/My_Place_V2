@@ -215,31 +215,32 @@ export default function Solicitacoes() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
-    <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Solicitações</h1>
-          <p className="text-sm text-muted-foreground">Abra e acompanhe seus pedidos</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={showFilters ? 'default' : 'outline'}
-            className="gap-1.5 relative"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4" />
-            Filtros
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" />
-            )}
-          </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => openNewWithType('declaracao_vinculo')}>
-            <Plus className="w-4 h-4" />
-            Nova
-          </Button>
-        </div>
-      </div>
+    <div className="w-full max-w-5xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Solicitações" 
+        description="Abra e acompanhe seus pedidos e requerimentos ao RH"
+        icon={FileText}
+        actions={
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={showFilters ? 'default' : 'outline'}
+              className="gap-1.5 relative shadow-sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline">Filtros</span>
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" />
+              )}
+            </Button>
+            <Button size="sm" className="gap-1.5 shadow-sm" onClick={() => openNewWithType('declaracao_vinculo')}>
+              <Plus className="w-4 h-4" />
+              Nova
+            </Button>
+          </div>
+        }
+      />
 
       {/* Contadores */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
