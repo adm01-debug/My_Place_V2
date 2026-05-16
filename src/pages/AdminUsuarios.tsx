@@ -74,6 +74,19 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>;
 
+interface ProfileWithRole {
+  id: string;
+  nome: string | null;
+  email: string;
+  cargo: string | null;
+  departamento: string | null;
+  matricula: string | null;
+  cpf: string | null;
+  user_roles: {
+    role: "admin" | "gestor" | "user";
+  }[];
+}
+...
 export default function AdminUsuarios() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
