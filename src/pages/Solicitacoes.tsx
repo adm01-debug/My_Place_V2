@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon, Inbox } from 'lucide-react';
 import { AttachmentPreview } from '@/components/portal/AttachmentPreview';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
