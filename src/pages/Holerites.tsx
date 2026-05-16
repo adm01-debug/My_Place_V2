@@ -93,24 +93,42 @@ export default function Holerites() {
 
   return (
     <PullToRefresh onRefresh={async () => { await fetchHolerites(); }}>
-    <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-20 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Holerites</h1>
-        <p className="text-sm text-muted-foreground">Consulte seus contracheques</p>
-      </div>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <ModuleHeader 
+        title="Holerites" 
+        description="Consulte seus contracheques mensais"
+        icon={Receipt}
+      />
 
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2].map(i => (
-            <div key={i} className="p-4 rounded-lg border border-border/50 animate-pulse space-y-2">
-              <div className="h-5 w-32 rounded bg-muted/60" />
-              <div className="h-4 w-24 rounded bg-muted/40" />
-              <div className="h-3 w-full rounded bg-muted/30" />
-            </div>
-          ))}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+          </div>
+          <Card className="border-border/50">
+             <CardContent className="p-4 space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                  </div>
+                ))}
+             </CardContent>
+          </Card>
         </div>
       ) : holerites.length === 0 ? (
-        <EmptyState icon={Receipt} title="Nenhum holerite cadastrado" description="Seus contracheques aparecerão aqui quando disponíveis." />
+        <EmptyState 
+          icon={Inbox}
+          title="Nenhum holerite encontrado" 
+          description="Seus contracheques aparecerão aqui assim que forem disponibilizados pelo RH."
+        />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
