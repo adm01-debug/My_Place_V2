@@ -81,6 +81,21 @@ export function GlobalSearch() {
         <CommandInput placeholder="Buscar página ou ação..." />
         <CommandList>
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+          <CommandGroup heading="Ações Rápidas">
+            {quickActions.map(action => (
+              <CommandItem
+                key={action.action}
+                value={action.label + ' ' + action.keywords}
+                onSelect={() => handleSelect(undefined, action.action)}
+                className="gap-3 cursor-pointer"
+              >
+                <div className="flex items-center justify-center w-6 h-6 rounded bg-primary/10">
+                  <action.icon className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <span>{action.label}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
           <CommandGroup heading="Páginas">
             {pages.map(page => (
               <CommandItem
