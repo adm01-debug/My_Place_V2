@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck } from 'lucide-react';
+import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck, Users, FileUp, FileSpreadsheet, LayoutDashboard, Settings } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
@@ -111,9 +111,29 @@ export default function Navbar() {
               {hasAdminAccess && (
                 <>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <LayoutDashboard className="w-4 h-4" />
+                    Dashboard Admin
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/admin/aprovacoes')} className="gap-2 cursor-pointer focus:bg-accent">
                     <ClipboardCheck className="w-4 h-4" />
                     Aprovações
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/usuarios')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <Users className="w-4 h-4" />
+                    Gestão de Usuários
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/holerites')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <FileUp className="w-4 h-4" />
+                    Importar Holerites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/relatorios')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Relatórios Gerenciais
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/configuracoes')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <Settings className="w-4 h-4" />
+                    Configurações
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer focus:bg-accent">
                     <MapPin className="w-4 h-4" />
