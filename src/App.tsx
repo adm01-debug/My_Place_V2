@@ -12,6 +12,7 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { BackButton } from "@/components/layout/BackButton";
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from "@/components/AnimatedPage";
+import { SystemStatus } from "@/components/portal/SystemStatus";
 
 
 const Login = lazy(() => import("./pages/Login"));
@@ -111,6 +112,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
+            <SystemStatus />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

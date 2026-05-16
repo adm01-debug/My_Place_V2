@@ -10,6 +10,7 @@ import {
   Bell
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
+import { RecentActivity } from '@/components/home/RecentActivity';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 
@@ -191,8 +192,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <HoursChart />
             <SalaryChart />
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <GoalsProgress />
+            </div>
+            <div className="md:col-span-1">
+              <RecentActivity />
             </div>
           </div>
         </div>

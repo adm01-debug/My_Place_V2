@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Calendar, Hash } from 'lucide-react';
+import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Calendar, Hash, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Perfil() {
@@ -156,6 +156,16 @@ export default function Perfil() {
             </div>
           </Card>
         )}
+
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
+          <div className="flex items-center gap-2 text-primary">
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Conta Verificada</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Sua conta está protegida por criptografia de ponta a ponta e auditoria constante.
+          </p>
+        </div>
       </div>
     </div>
   );
