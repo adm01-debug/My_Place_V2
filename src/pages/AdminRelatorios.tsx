@@ -166,7 +166,7 @@ export default function AdminRelatorios() {
   };
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="w-full max-w-7xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <ModuleHeader 
         title="Relatórios Gerenciais" 
         description="Exporte dados consolidados do sistema para análise em Excel."

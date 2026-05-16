@@ -192,19 +192,18 @@ export default function AdminAprovacoes() {
   return (
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
       <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Painel de Aprovações</h1>
-            <p className="text-sm text-muted-foreground">
-              {totalPendentes > 0
-                ? `${totalPendentes} solicitação(ões) pendente(s) aguardando análise`
-                : 'Nenhuma solicitação pendente'}
-            </p>
-          </div>
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => fetchData()}>
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-        </div>
+        <ModuleHeader 
+          title="Painel de Aprovações" 
+          description={totalPendentes > 0
+            ? `${totalPendentes} solicitação(ões) pendente(s) aguardando análise`
+            : 'Nenhuma solicitação pendente'}
+          icon={ShieldCheck}
+          actions={
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => fetchData()}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          }
+        />
 
         <Tabs defaultValue="ferias" className="w-full">
           <TabsList className="w-full grid grid-cols-2">

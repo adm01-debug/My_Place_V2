@@ -113,11 +113,11 @@ export default function Home() {
     <PullToRefresh onRefresh={async () => { await fetchCounts(); }}>
     <div className="min-h-screen bg-background/50">
       <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-24 space-y-6">
-        {/* Greeting */}
-        <div className="flex items-center gap-2">
-          <Sun className="w-5 h-5 text-yellow-500" />
-          <span className="text-sm text-muted-foreground">{getGreeting()}, <span className="font-medium text-foreground">{firstName}</span></span>
-        </div>
+        <ModuleHeader 
+          title={`Bom dia, ${firstName}`}
+          description={getGreeting()}
+          icon={Sun}
+        />
 
         {/* Pending Summary */}
         {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (

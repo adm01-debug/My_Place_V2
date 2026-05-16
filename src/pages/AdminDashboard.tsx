@@ -87,7 +87,7 @@ export default function AdminDashboard() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="w-full max-w-7xl mx-auto p-4 pt-6 pb-20 space-y-6">
       <ModuleHeader 
         title="Dashboard Administrativo" 
         description="Visão geral da organização e pendências operacionais."
