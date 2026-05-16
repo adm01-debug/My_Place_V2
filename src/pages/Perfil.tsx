@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Calendar, Hash, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 export default function Perfil() {
   const { user, profile } = useAuth();
