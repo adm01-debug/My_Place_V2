@@ -153,16 +153,31 @@ export default function Navbar() {
 
       {/* Mobile Bottom Nav */}
       <nav aria-label="Navegação mobile" className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-around h-14 px-2 safe-area-pb">
-          {navItems.slice(0, 5).map((item) => {
+        <div className="flex items-center justify-around h-16 px-2 safe-area-pb">
+          {/* Mobile Back Button (only shown when not on home) */}
+          {location.pathname !== '/' && (
+            <button
+              onClick={() => navigate(-1)}
+              className="flex flex-col items-center gap-1 px-2 py-1 text-muted-foreground active:scale-90 transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span className="text-[10px] font-semibold">Voltar</span>
+            </button>
+          )}
+
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path;
+            // Limit to 4 items if Back button is present, or 5 if not
+            const limit = location.pathname !== '/' ? 4 : 5;
+            if (navItems.indexOf(item) >= limit) return null;
+
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all active:scale-90 ${
+                className={`flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all active:scale-90 ${
                   isActive
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
