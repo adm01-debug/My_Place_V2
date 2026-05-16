@@ -156,6 +156,21 @@ export default function AdminAprovacoes() {
     if (error) {
       toast.error('Erro: ' + error.message);
     } else {
+      // Criar notificação para o usuário
+      const requestData = actionDialog.type === 'ferias' 
+        ? ferias.find(f => f.id === actionDialog.id)
+        : solicitacoes.find(s => s.id === actionDialog.id);
+      
+      if (requestData) {
+        await supabase.from('notificacoes').insert({
+          user_id: requestData.user_id,
+          titulo: `Sua solicitação foi ${isAprovar ? 'aprovada' : 'recusada'}`,
+          mensagem: `Sua solicitação de ${actionDialog.type === 'ferias' ? 'férias' : 'RH'} foi processada pelo RH.`,
+          tipo: isAprovar ? 'sucesso' : 'alerta',
+          link: actionDialog.type === 'ferias' ? '/ferias' : '/solicitacoes'
+        });
+      }
+
       toast.success(`Solicitação ${isAprovar ? 'aprovada' : 'recusada'} com sucesso!`);
       setActionDialog(null);
       setResposta('');

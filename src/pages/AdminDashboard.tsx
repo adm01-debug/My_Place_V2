@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  ShieldCheck
 } from "lucide-react";
 import { 
   BarChart, 
@@ -162,14 +163,14 @@ export default function AdminDashboard() {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Saúde Operacional</p>
                 <div className="flex items-center gap-2 mt-1">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span className="text-lg font-bold">98.2%</span>
+                  <span className="text-lg font-bold">Excelente</span>
                 </div>
               </div>
               <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Alertas Críticos</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Integridade Fiscal</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <span className="text-lg font-bold">0</span>
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <span className="text-lg font-bold">100% Auditado</span>
                 </div>
               </div>
             </div>
