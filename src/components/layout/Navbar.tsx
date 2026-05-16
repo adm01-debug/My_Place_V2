@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck, Users, FileUp } from 'lucide-react';
+import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck, Users, FileUp, FileSpreadsheet } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
@@ -122,6 +122,10 @@ export default function Navbar() {
                   <DropdownMenuItem onClick={() => navigate('/admin/holerites')} className="gap-2 cursor-pointer focus:bg-accent">
                     <FileUp className="w-4 h-4" />
                     Importar Holerites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/relatorios')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Relatórios Gerenciais
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/admin/locais')} className="gap-2 cursor-pointer focus:bg-accent">
                     <MapPin className="w-4 h-4" />
