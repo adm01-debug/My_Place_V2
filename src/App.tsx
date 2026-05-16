@@ -64,11 +64,7 @@ function AuthenticatedLayout() {
         Pular para o conteúdo
       </a>
       <Navbar />
-      <main id="main-content" className="pb-16 md:pb-0 px-4 max-w-7xl mx-auto w-full pt-4">
-        <div className="md:hidden mb-2">
-          <BackButton />
-        </div>
-        <Breadcrumbs />
+      <main id="main-content" className="pb-24 md:pb-8 px-4 max-w-7xl mx-auto w-full pt-4">
         <Outlet />
       </main>
     </ProtectedRoute>
