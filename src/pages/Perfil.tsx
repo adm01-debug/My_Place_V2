@@ -75,7 +75,7 @@ export default function Perfil() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full max-w-4xl mx-auto px-4 pt-6">
+      <div className="w-full max-w-4xl mx-auto p-4 pt-6 space-y-6">
         <ModuleHeader 
           title="Meu Perfil" 
           description="Gerencie suas informações pessoais e profissionais."
@@ -83,7 +83,7 @@ export default function Perfil() {
         />
       </div>
 
-      <div className="w-full max-w-md mx-auto px-4 pb-24 space-y-6">
+      <div className="w-full max-w-md mx-auto space-y-6 pb-24">
         {/* Avatar */}
         <div className="flex flex-col items-center">
           <div className="relative group">
@@ -169,4 +169,5 @@ export default function Perfil() {
       </div>
     </div>
   );
+}
 }

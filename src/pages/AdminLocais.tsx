@@ -29,6 +29,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import ConfirmDialog from '@/components/portal/ConfirmDialog';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 interface Local {
   id: string;
@@ -193,16 +194,17 @@ export default function AdminLocais() {
   return (
     <PullToRefresh onRefresh={async () => { setLoading(true); await fetchLocais(); }}>
       <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-20 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Locais Permitidos</h1>
-            <p className="text-sm text-muted-foreground">Gerencie os locais de registro de ponto</p>
-          </div>
-          <Button size="sm" className="gap-1.5" onClick={openCreate}>
-            <Plus className="w-4 h-4" />
-            Novo Local
-          </Button>
-        </div>
+        <ModuleHeader 
+          title="Locais Permitidos" 
+          description="Gerencie os locais de registro de ponto"
+          icon={MapPin}
+          actions={
+            <Button size="sm" className="gap-1.5" onClick={openCreate}>
+              <Plus className="w-4 h-4" />
+              Novo Local
+            </Button>
+          }
+        />
 
         {loading ? (
           <div className="space-y-3">
