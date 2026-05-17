@@ -127,7 +127,7 @@ export default function Home() {
         {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {pendingCount.notificacoes > 0 && (
-              <button onClick={() => {}} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
+              <button onClick={() => navigate('/notificacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
                 <Bell className="w-3.5 h-3.5" />
                 {pendingCount.notificacoes} notificação(ões)
               </button>
