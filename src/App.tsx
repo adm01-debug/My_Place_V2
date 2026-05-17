@@ -30,6 +30,8 @@ const AdminHolerites = lazy(() => import("./pages/AdminHolerites"));
 const AdminRelatorios = lazy(() => import("./pages/AdminRelatorios"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminConfiguracoes = lazy(() => import("./pages/AdminConfiguracoes"));
+const Notificacoes = lazy(() => import("./pages/Notificacoes"));
+const Documentos = lazy(() => import("./pages/Documentos"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +97,8 @@ const App = () => (
                 <Route path="/admin/holerites" element={<Page name="Importação de Holerites"><AdminHolerites /></Page>} />
                 <Route path="/admin/relatorios" element={<Page name="Relatórios Gerenciais"><AdminRelatorios /></Page>} />
                 <Route path="/admin/configuracoes" element={<Page name="Configurações"><AdminConfiguracoes /></Page>} />
+                <Route path="/notificacoes" element={<Page name="Notificações"><Notificacoes /></Page>} />
+                <Route path="/documentos" element={<Page name="Documentos"><Documentos /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>

@@ -14,6 +14,7 @@ import { RecentActivity } from '@/components/home/RecentActivity';
 import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
 import { SupportSection } from '@/components/home/SupportSection';
 import { TimeBankCard } from '@/components/home/TimeBankCard';
+import { CompanyAnnouncements } from '@/components/home/CompanyAnnouncements';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
@@ -45,6 +46,7 @@ const quickAccessItems: QuickAccessItem[] = [
   { icon: Palmtree, label: 'Férias', description: 'Solicitar e consultar', path: '/ferias', color: 'text-emerald-500 bg-emerald-500/10' },
   { icon: Receipt, label: 'Holerites', description: 'Consultar pagamentos', path: '/holerites', color: 'text-amber-500 bg-amber-500/10' },
   { icon: FileText, label: 'Solicitações', description: 'Abrir e acompanhar', path: '/solicitacoes', color: 'text-purple-500 bg-purple-500/10' },
+  { icon: FileText, label: 'Documentos', description: 'Contratos e arquivos', path: '/documentos', color: 'text-orange-500 bg-orange-500/10' },
 ];
 
 function QuickAccessCard({ item, onClick }: { item: QuickAccessItem; onClick: () => void }) {
@@ -127,7 +129,7 @@ export default function Home() {
         {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {pendingCount.notificacoes > 0 && (
-              <button onClick={() => {}} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
+              <button onClick={() => navigate('/notificacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
                 <Bell className="w-3.5 h-3.5" />
                 {pendingCount.notificacoes} notificação(ões)
               </button>
@@ -189,6 +191,9 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Company Announcements */}
+        <CompanyAnnouncements />
 
         {/* Quick Access */}
         <div className="space-y-3">

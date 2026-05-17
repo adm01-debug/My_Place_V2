@@ -86,6 +86,45 @@ export type Database = {
         }
         Relationships: []
       }
+      comunicados: {
+        Row: {
+          autor_id: string | null
+          conteudo: string
+          created_at: string
+          data_expiracao: string | null
+          id: string
+          imagem_url: string | null
+          prioridade: string | null
+          status: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          autor_id?: string | null
+          conteudo: string
+          created_at?: string
+          data_expiracao?: string | null
+          id?: string
+          imagem_url?: string | null
+          prioridade?: string | null
+          status?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          autor_id?: string | null
+          conteudo?: string
+          created_at?: string
+          data_expiracao?: string | null
+          id?: string
+          imagem_url?: string | null
+          prioridade?: string | null
+          status?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       configuracoes_globais: {
         Row: {
           cor_primaria: string | null
@@ -149,6 +188,48 @@ export type Database = {
           user_id?: string
           valor_estimado?: number | null
           valor_pago?: number | null
+        }
+        Relationships: []
+      }
+      documentos: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          extensao: string | null
+          id: string
+          nome: string
+          status: string | null
+          tamanho_kb: number | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          extensao?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          tamanho_kb?: number | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          extensao?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
+          tamanho_kb?: number | null
+          updated_at?: string
+          url?: string
+          user_id?: string
         }
         Relationships: []
       }

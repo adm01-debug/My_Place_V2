@@ -165,6 +165,19 @@ export default function NotificationBell() {
             })
           )}
         </ScrollArea>
+        <div className="p-2 border-t border-border/50">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full text-xs font-medium text-primary hover:text-primary hover:bg-primary/5"
+            onClick={() => {
+              setOpen(false);
+              navigate('/notificacoes');
+            }}
+          >
+            Ver todas as notificações
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

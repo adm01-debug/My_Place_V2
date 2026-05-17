@@ -18,6 +18,8 @@ const pages = [
   { label: 'Holerites', path: '/holerites', icon: Receipt, keywords: 'holerites salário pagamento contracheque recibo' },
   { label: 'Solicitações', path: '/solicitacoes', icon: FileText, keywords: 'solicitações pedidos requests rh' },
   { label: 'Meu Perfil', path: '/perfil', icon: User, keywords: 'perfil profile conta settings configurações' },
+  { label: 'Notificações', path: '/notificacoes', icon: Bell, keywords: 'notificações avisos mensagens novidades' },
+  { label: 'Documentos', path: '/documentos', icon: FileText, keywords: 'documentos arquivos contratos pdf' },
 ];
 
 const adminPages = [
