@@ -113,7 +113,7 @@ export default function Notificacoes() {
     switch (tipo) {
       case 'sucesso': return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
       case 'erro': return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'aviso': return <AlertCircle className="w-5 h-5 text-amber-500" />;
+      case 'alerta': return <AlertCircle className="w-5 h-5 text-amber-500" />;
       default: return <Info className="w-5 h-5 text-blue-500" />;
     }
   };
