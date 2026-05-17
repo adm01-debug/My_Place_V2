@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { AprovacaoFeriasCard, type FeriasRequest, type ProfileInfo } from '@/components/admin/AprovacaoFeriasCard';
 import { AprovacaoSolicitacaoCard, type SolicitacaoRequest } from '@/components/admin/AprovacaoSolicitacaoCard';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
 function SkeletonCards() {
   return (
     <div className="space-y-3">
