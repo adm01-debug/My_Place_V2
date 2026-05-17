@@ -26,6 +26,7 @@ export interface Profile {
   apoio_departamento?: string | null;
   salario_base?: number | null;
   valor_hora_extra?: number | null;
+  saldo_horas?: number | null;
 }
 
 interface LockoutInfo {
