@@ -22,6 +22,10 @@ export interface Profile {
   is_admin?: boolean;
   is_gestor?: boolean;
   gestor_id?: string | null;
+  rh_responsavel?: string | null;
+  apoio_departamento?: string | null;
+  salario_base?: number | null;
+  valor_hora_extra?: number | null;
 }
 
 interface LockoutInfo {
