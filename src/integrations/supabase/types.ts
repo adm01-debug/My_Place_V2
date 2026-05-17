@@ -50,6 +50,42 @@ export type Database = {
         }
         Relationships: []
       }
+      beneficios: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          status: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+          valor_mensal: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+          valor_mensal?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+          valor_mensal?: number | null
+        }
+        Relationships: []
+      }
       configuracoes_globais: {
         Row: {
           cor_primaria: string | null
@@ -77,11 +113,52 @@ export type Database = {
         }
         Relationships: []
       }
+      decimo_terceiro: {
+        Row: {
+          ano: number
+          created_at: string | null
+          data_pagamento: string | null
+          id: string
+          parcela: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          valor_estimado: number | null
+          valor_pago: number | null
+        }
+        Insert: {
+          ano: number
+          created_at?: string | null
+          data_pagamento?: string | null
+          id?: string
+          parcela?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          valor_estimado?: number | null
+          valor_pago?: number | null
+        }
+        Update: {
+          ano?: number
+          created_at?: string | null
+          data_pagamento?: string | null
+          id?: string
+          parcela?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          valor_estimado?: number | null
+          valor_pago?: number | null
+        }
+        Relationships: []
+      }
       holerites: {
         Row: {
           arquivo_url: string | null
           competencia: string
+          comprovante_bancario_url: string | null
           created_at: string
+          data_pagamento_banco: string | null
           id: string
           inss: number
           irrf: number
@@ -94,7 +171,9 @@ export type Database = {
         Insert: {
           arquivo_url?: string | null
           competencia: string
+          comprovante_bancario_url?: string | null
           created_at?: string
+          data_pagamento_banco?: string | null
           id?: string
           inss?: number
           irrf?: number
@@ -107,7 +186,9 @@ export type Database = {
         Update: {
           arquivo_url?: string | null
           competencia?: string
+          comprovante_bancario_url?: string | null
           created_at?: string
+          data_pagamento_banco?: string | null
           id?: string
           inss?: number
           irrf?: number
@@ -245,6 +326,89 @@ export type Database = {
         }
         Relationships: []
       }
+      ocorrencias: {
+        Row: {
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          justificada: boolean | null
+          motivo: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          id?: string
+          justificada?: boolean | null
+          motivo?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          justificada?: boolean | null
+          motivo?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      plano_saude_gastos: {
+        Row: {
+          beneficio_id: string | null
+          created_at: string | null
+          data_evento: string
+          descricao: string
+          id: string
+          mes_referencia: string
+          updated_at: string | null
+          user_id: string
+          valor_coparticipacao: number
+          valor_total: number
+        }
+        Insert: {
+          beneficio_id?: string | null
+          created_at?: string | null
+          data_evento: string
+          descricao: string
+          id?: string
+          mes_referencia: string
+          updated_at?: string | null
+          user_id: string
+          valor_coparticipacao: number
+          valor_total: number
+        }
+        Update: {
+          beneficio_id?: string | null
+          created_at?: string | null
+          data_evento?: string
+          descricao?: string
+          id?: string
+          mes_referencia?: string
+          updated_at?: string | null
+          user_id?: string
+          valor_coparticipacao?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_saude_gastos_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "beneficios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -340,6 +504,42 @@ export type Database = {
           observacao?: string | null
           tipo?: Database["public"]["Enums"]["punch_type"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      remuneracoes_variaveis: {
+        Row: {
+          created_at: string | null
+          data_pagamento: string | null
+          id: string
+          mes_referencia: string
+          motivo: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data_pagamento?: string | null
+          id?: string
+          mes_referencia: string
+          motivo?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          data_pagamento?: string | null
+          id?: string
+          mes_referencia?: string
+          motivo?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+          valor?: number
         }
         Relationships: []
       }
@@ -484,6 +684,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vale_transportes: {
+        Row: {
+          cartao_numero: string | null
+          created_at: string | null
+          data_recarga: string
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          valor_recarga: number
+        }
+        Insert: {
+          cartao_numero?: string | null
+          created_at?: string | null
+          data_recarga: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          valor_recarga: number
+        }
+        Update: {
+          cartao_numero?: string | null
+          created_at?: string | null
+          data_recarga?: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          valor_recarga?: number
         }
         Relationships: []
       }
