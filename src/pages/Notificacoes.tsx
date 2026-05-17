@@ -25,7 +25,7 @@ interface Notificacao {
   id: string;
   titulo: string;
   mensagem: string;
-  tipo: 'sucesso' | 'erro' | 'info' | 'aviso';
+  tipo: 'sucesso' | 'erro' | 'info' | 'alerta';
   lida: boolean;
   link?: string;
   created_at: string;
