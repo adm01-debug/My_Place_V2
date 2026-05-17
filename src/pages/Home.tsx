@@ -167,6 +167,24 @@ export default function Home() {
                 <Shield className="w-3 h-3" />
                 {roleLabel[role] || 'Colaborador'}
               </Badge>
+
+              {profile?.data_admissao && (
+                <div className="pt-2">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
+                  <p className="text-xs font-semibold text-primary">
+                    {(() => {
+                      const adm = new Date(profile.data_admissao);
+                      const now = new Date();
+                      const years = now.getFullYear() - adm.getFullYear();
+                      const months = now.getMonth() - adm.getMonth();
+                      if (years > 0) {
+                        return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
+                      }
+                      return `${months} m${months > 1 ? 'eses' : 'ês'}`;
+                    })()}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
