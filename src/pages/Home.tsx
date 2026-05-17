@@ -260,7 +260,10 @@ export default function Home() {
             {profile?.data_admissao && (
               <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
             )}
-            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && (
+            {profile?.salario_base && (
+              <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+            )}
+            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && !profile?.salario_base && (
               <p className="text-sm text-muted-foreground py-4 text-center">
                 Nenhuma informação profissional cadastrada ainda.
               </p>
