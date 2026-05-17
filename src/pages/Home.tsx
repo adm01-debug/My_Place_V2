@@ -192,6 +192,9 @@ export default function Home() {
           </CardContent>
         </Card>
 
+        {/* Company Announcements */}
+        <CompanyAnnouncements />
+
         {/* Quick Access */}
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
