@@ -11,12 +11,13 @@ export function SupportSection() {
   const [gestor, setGestor] = useState<{ nome: string; avatar_url: string | null; cargo: string | null } | null>(null);
 
   useEffect(() => {
-    if (profile?.gestor_id) {
+    const gestorId = profile?.gestor_id;
+    if (gestorId) {
       const fetchGestor = async () => {
         const { data } = await supabase
           .from('profiles')
           .select('nome, avatar_url, cargo')
-          .eq('id', profile.gestor_id)
+          .eq('id', gestorId)
           .single();
         if (data) setGestor(data);
       };
