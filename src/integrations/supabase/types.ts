@@ -411,6 +411,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          apoio_departamento: string | null
           avatar_url: string | null
           bitrix_id: string | null
           cargo: string | null
@@ -424,10 +425,15 @@ export type Database = {
           id: string
           matricula: string | null
           nome: string
+          rh_responsavel: string | null
+          salario_base: number | null
+          saldo_horas: number | null
           telefone: string | null
           updated_at: string
+          valor_hora_extra: number | null
         }
         Insert: {
+          apoio_departamento?: string | null
           avatar_url?: string | null
           bitrix_id?: string | null
           cargo?: string | null
@@ -441,10 +447,15 @@ export type Database = {
           id: string
           matricula?: string | null
           nome: string
+          rh_responsavel?: string | null
+          salario_base?: number | null
+          saldo_horas?: number | null
           telefone?: string | null
           updated_at?: string
+          valor_hora_extra?: number | null
         }
         Update: {
+          apoio_departamento?: string | null
           avatar_url?: string | null
           bitrix_id?: string | null
           cargo?: string | null
@@ -458,8 +469,12 @@ export type Database = {
           id?: string
           matricula?: string | null
           nome?: string
+          rh_responsavel?: string | null
+          salario_base?: number | null
+          saldo_horas?: number | null
           telefone?: string | null
           updated_at?: string
+          valor_hora_extra?: number | null
         }
         Relationships: [
           {

@@ -12,6 +12,8 @@ import {
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { RecentActivity } from '@/components/home/RecentActivity';
 import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
+import { SupportSection } from '@/components/home/SupportSection';
+import { TimeBankCard } from '@/components/home/TimeBankCard';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
@@ -166,6 +168,24 @@ export default function Home() {
                 <Shield className="w-3 h-3" />
                 {roleLabel[role] || 'Colaborador'}
               </Badge>
+
+              {profile?.data_admissao && (
+                <div className="pt-2">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
+                  <p className="text-xs font-semibold text-primary">
+                    {(() => {
+                      const adm = new Date(profile.data_admissao);
+                      const now = new Date();
+                      const years = now.getFullYear() - adm.getFullYear();
+                      const months = now.getMonth() - adm.getMonth();
+                      if (years > 0) {
+                        return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
+                      }
+                      return `${months} m${months > 1 ? 'eses' : 'ês'}`;
+                    })()}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -193,6 +213,7 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <HoursChart />
+            <TimeBankCard />
             <SalaryChart />
             <div className="md:col-span-1">
               <GoalsProgress />
@@ -201,6 +222,14 @@ export default function Home() {
               <RecentActivity />
             </div>
           </div>
+        </div>
+
+        {/* Support and Team Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Suporte & Equipe
+          </h2>
+          <SupportSection />
         </div>
 
         {/* Benefits and Health Section */}
@@ -231,7 +260,10 @@ export default function Home() {
             {profile?.data_admissao && (
               <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
             )}
-            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && (
+            {profile?.salario_base && (
+              <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+            )}
+            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && !profile?.salario_base && (
               <p className="text-sm text-muted-foreground py-4 text-center">
                 Nenhuma informação profissional cadastrada ainda.
               </p>
