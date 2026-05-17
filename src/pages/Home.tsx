@@ -13,6 +13,7 @@ import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/Dashbo
 import { RecentActivity } from '@/components/home/RecentActivity';
 import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
 import { SupportSection } from '@/components/home/SupportSection';
+import { TimeBankCard } from '@/components/home/TimeBankCard';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
