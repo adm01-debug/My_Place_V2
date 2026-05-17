@@ -65,7 +65,7 @@ function computeHoursFromPunches(punches: Array<{ tipo: string; data_hora: strin
 }
 
 export function HoursChart() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [data, setData] = useState<Array<{ dia: string; horas: number }>>([]);
   const [loading, setLoading] = useState(true);
 
@@ -91,6 +91,8 @@ export function HoursChart() {
   }, [user]);
 
   const totalHours = data.reduce((sum, d) => sum + d.horas, 0);
+  const valorExtra = profile?.valor_hora_extra || 0;
+  const estimativaExtra = totalHours > 44 ? (totalHours - 44) * valorExtra : 0; // Simplified logic
 
   return (
     <Card className="border-border/50 shadow-lg">
@@ -100,9 +102,16 @@ export function HoursChart() {
             <Clock className="w-4 h-4 text-blue-500" />
             <h3 className="text-sm font-semibold text-foreground">Horas Trabalhadas</h3>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {loading ? '...' : `${totalHours.toFixed(1)}h esta semana`}
-          </span>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground font-medium">
+              {loading ? '...' : `${totalHours.toFixed(1)}h esta semana`}
+            </p>
+            {valorExtra > 0 && totalHours > 0 && (
+              <p className="text-[10px] text-emerald-600 font-bold">
+                Estimativa Extra: R$ {(totalHours * (valorExtra / 160) * 0.5).toFixed(2)}
+              </p>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pb-4">
