@@ -204,6 +204,14 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Support and Team Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Suporte & Equipe
+          </h2>
+          <SupportSection />
+        </div>
+
         {/* Benefits and Health Section */}
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
