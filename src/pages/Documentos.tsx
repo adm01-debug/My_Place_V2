@@ -44,6 +44,7 @@ const CATEGORIES = [
 
 export default function Documentos() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
