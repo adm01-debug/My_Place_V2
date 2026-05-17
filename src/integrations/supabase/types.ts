@@ -427,6 +427,7 @@ export type Database = {
           nome: string
           rh_responsavel: string | null
           salario_base: number | null
+          saldo_horas: number | null
           telefone: string | null
           updated_at: string
           valor_hora_extra: number | null
@@ -448,6 +449,7 @@ export type Database = {
           nome: string
           rh_responsavel?: string | null
           salario_base?: number | null
+          saldo_horas?: number | null
           telefone?: string | null
           updated_at?: string
           valor_hora_extra?: number | null
@@ -469,6 +471,7 @@ export type Database = {
           nome?: string
           rh_responsavel?: string | null
           salario_base?: number | null
+          saldo_horas?: number | null
           telefone?: string | null
           updated_at?: string
           valor_hora_extra?: number | null
