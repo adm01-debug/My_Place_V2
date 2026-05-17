@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { RecentActivity } from '@/components/home/RecentActivity';
+import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
@@ -200,6 +201,14 @@ export default function Home() {
               <RecentActivity />
             </div>
           </div>
+        </div>
+
+        {/* Benefits and Health Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Minha Vida na Empresa
+          </h2>
+          <BenefitsAndHealth />
         </div>
 
 
