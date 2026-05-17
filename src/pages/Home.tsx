@@ -45,6 +45,7 @@ const quickAccessItems: QuickAccessItem[] = [
   { icon: Palmtree, label: 'Férias', description: 'Solicitar e consultar', path: '/ferias', color: 'text-emerald-500 bg-emerald-500/10' },
   { icon: Receipt, label: 'Holerites', description: 'Consultar pagamentos', path: '/holerites', color: 'text-amber-500 bg-amber-500/10' },
   { icon: FileText, label: 'Solicitações', description: 'Abrir e acompanhar', path: '/solicitacoes', color: 'text-purple-500 bg-purple-500/10' },
+  { icon: FileText, label: 'Documentos', description: 'Contratos e arquivos', path: '/documentos', color: 'text-orange-500 bg-orange-500/10' },
 ];
 
 function QuickAccessCard({ item, onClick }: { item: QuickAccessItem; onClick: () => void }) {
