@@ -152,6 +152,48 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          extensao: string | null
+          id: string
+          nome: string
+          status: string | null
+          tamanho_kb: number | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          extensao?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          tamanho_kb?: number | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          extensao?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
+          tamanho_kb?: number | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       holerites: {
         Row: {
           arquivo_url: string | null
