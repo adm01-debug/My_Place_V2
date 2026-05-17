@@ -30,6 +30,7 @@ const AdminHolerites = lazy(() => import("./pages/AdminHolerites"));
 const AdminRelatorios = lazy(() => import("./pages/AdminRelatorios"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminConfiguracoes = lazy(() => import("./pages/AdminConfiguracoes"));
+const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
