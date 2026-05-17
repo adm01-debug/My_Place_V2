@@ -213,6 +213,7 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <HoursChart />
+            <TimeBankCard />
             <SalaryChart />
             <div className="md:col-span-1">
               <GoalsProgress />
