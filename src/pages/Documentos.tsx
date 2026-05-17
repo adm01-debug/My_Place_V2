@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Plus
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
