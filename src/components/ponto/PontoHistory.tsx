@@ -188,8 +188,24 @@ export default function PontoHistory() {
               </Badge>
               <Badge variant="secondary" className="text-xs">
                 <Clock className="w-3 h-3 mr-1" />
-                {totalHours.toFixed(1)}h total
+                {totalHours.toFixed(1)}h acumuladas
               </Badge>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-6 text-[10px] px-2 gap-1 border-primary/20 hover:bg-primary/5"
+                onClick={() => {
+                  const csv = punches.map(p => `${p.data_hora},${p.tipo},${p.latitude},${p.longitude}`).join('\n');
+                  const blob = new Blob([`Data/Hora,Tipo,Latitude,Longitude\n${csv}`], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `ponto_${format(referenceDate, 'MM-yyyy')}.csv`;
+                  a.click();
+                }}
+              >
+                Exportar
+              </Button>
             </div>
           </div>
         )}

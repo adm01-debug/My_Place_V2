@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PontoHistory from '@/components/ponto/PontoHistory';
+import { PontoMetrics } from '@/components/ponto/PontoMetrics';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
@@ -208,12 +209,18 @@ export default function Ponto() {
                 </div>
              </div>
           </div>
-          <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-8 h-8 text-primary" />
-              <span className="text-5xl font-bold text-foreground tabular-nums">{timeStr}</span>
+          <CardContent className="flex flex-col items-center justify-center py-6 space-y-4">
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
+                <Clock className="w-6 h-6 text-primary" />
+                <span className="text-4xl font-bold text-foreground tabular-nums">{timeStr}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Hora oficial (GMT-3)</p>
             </div>
-            <p className="text-xs text-muted-foreground">Hora oficial de Brasília (GMT-3)</p>
+            
+            <div className="w-full pt-2">
+              <PontoMetrics punches={todayPunches} />
+            </div>
           </CardContent>
         </Card>
 
