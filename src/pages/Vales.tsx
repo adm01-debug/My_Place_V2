@@ -371,6 +371,29 @@ export default function Vales() {
           </div>
         </div>
 
+        {/* Etapa 8: Insights Preditivos e Alertas */}
+        <AnimatePresence>
+          {availableAdvance < (salary * 0.1) && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-4"
+            >
+              <div className="p-2 bg-amber-500 rounded-full text-white">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-black uppercase text-amber-700 tracking-wider">Atenção ao Limite</p>
+                <p className="text-[11px] text-amber-600 font-medium">Você já utilizou a maior parte do seu limite de adiantamento. Novas solicitações passarão por análise criteriosa.</p>
+              </div>
+              <Button variant="outline" size="sm" className="bg-white/50 border-amber-200 text-amber-700 font-bold text-[10px] uppercase">
+                Ver Regras
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
            <div className="relative w-full md:w-96 group">
