@@ -159,9 +159,15 @@ export default function Vales() {
   const currentUsed = 0; // In a real app, calculate from active vales
   const availableAdvance = maxAdvance - currentUsed;
 
-  const handlePrint = useReactToPrint({
-    contentRef: receiptRef,
-  });
+  const handlePrint = useCallback(() => {
+    const content = receiptRef.current;
+    if (!content) return;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+    win.document.write(`<html><head><title>Comprovante</title><script src="https://cdn.tailwindcss.com"></script></head><body>${content.innerHTML}</body></html>`);
+    win.document.close();
+    setTimeout(() => { win.print(); win.close(); }, 500);
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
