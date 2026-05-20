@@ -22,13 +22,13 @@ import { ModuleHeader } from '@/components/layout/ModuleHeader';
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3 py-2.5">
-      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
-        <Icon className="w-4 h-4 text-primary" />
+    <div className="flex items-center gap-3 py-3 border-b border-border/30 last:border-0 hover:bg-primary/5 transition-colors px-2 rounded-lg group">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+        <Icon className="w-5 h-5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground truncate">{value}</p>
+        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{label}</p>
+        <p className="text-sm font-semibold text-foreground truncate">{value}</p>
       </div>
     </div>
   );
@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={async () => { await fetchCounts(); }}>
     <div className="min-h-screen bg-background/50">
-      <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-24 space-y-6">
+      <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-24 space-y-8">
         <ModuleHeader 
           title={`Olá, ${firstName}`}
           description={getGreeting()}
@@ -151,8 +151,8 @@ export default function Home() {
         )}
 
         {/* Raio-X do Colaborador (Profile + Info) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1 border-border/50 shadow-xl overflow-hidden h-fit">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <Card className="md:col-span-4 border-border/50 shadow-xl overflow-hidden h-fit bg-gradient-to-b from-card to-background">
             <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
             <CardContent className="relative pt-0 pb-6 -mt-12">
               <div className="flex flex-col items-center text-center space-y-3">
@@ -204,7 +204,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2 border-border/50 shadow-lg h-fit">
+          <Card className="md:col-span-8 border-border/50 shadow-lg h-fit bg-card/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-primary" />
@@ -260,14 +260,20 @@ export default function Home() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
             Dashboard
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <HoursChart />
-            <TimeBankCard />
-            <SalaryChart />
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="md:col-span-3">
+              <HoursChart />
+            </div>
+            <div className="md:col-span-3">
+              <TimeBankCard />
+            </div>
+            <div className="md:col-span-3">
+              <SalaryChart />
+            </div>
+            <div className="md:col-span-3">
               <GoalsProgress />
             </div>
-            <div className="md:col-span-1">
+            <div className="md:col-span-6">
               <RecentActivity />
             </div>
           </div>
