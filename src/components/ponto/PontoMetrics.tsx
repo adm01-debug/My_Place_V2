@@ -100,11 +100,16 @@ export function PontoMetrics({ punches, expectedHours = 8 }: PontoMetricsProps) 
       <Card className="border-border/50 bg-accent/5 overflow-hidden">
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Timer className={`w-4 h-4 ${isOvertime ? 'text-amber-500 animate-pulse' : 'text-primary'}`} />
-              <span className="text-sm font-medium">Tempo de Trabalho Hoje</span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <Timer className={`w-4 h-4 ${isOvertime ? 'text-amber-500 animate-pulse' : 'text-primary'}`} />
+                <span className="text-sm font-bold uppercase tracking-tight">Tempo de Trabalho Hoje</span>
+              </div>
+              <p className="text-[9px] text-muted-foreground font-medium italic">
+                {isOvertime ? "Você está acumulando horas extras ✨" : "Mantenha o foco, você está no caminho! 🚀"}
+              </p>
             </div>
-            <span className={`text-2xl font-bold tabular-nums ${isOvertime ? 'text-amber-500' : 'text-foreground'}`}>
+            <span className={`text-2xl font-bold tabular-nums tracking-tighter ${isOvertime ? 'text-amber-500' : 'text-foreground'}`}>
               {formatTime(currentTotalSeconds)}
             </span>
           </div>

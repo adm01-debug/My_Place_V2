@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PontoHistory from '@/components/ponto/PontoHistory';
 import { PontoMetrics } from '@/components/ponto/PontoMetrics';
+import { PontoAnalytics } from '@/components/ponto/PontoAnalytics';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
@@ -147,6 +148,11 @@ export default function Ponto() {
         tipo,
         latitude: location.lat,
         longitude: location.lng,
+        metadata: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          timestamp_sync: new Date().toISOString()
+        }
       });
 
       if (error) throw error;
@@ -155,6 +161,12 @@ export default function Ponto() {
       toast.success(`${punchLabelMap[tipo]} registrada com sucesso!${distText}`, {
         icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
       });
+      
+      // Haptic feedback if supported
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 30, 100]);
+      }
+      
       await fetchTodayPunches();
     } catch (error) {
       console.error('Erro ao registrar ponto:', error);
@@ -187,9 +199,19 @@ export default function Ponto() {
     <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <ModuleHeader 
-        title="Bater Ponto" 
+        title="Ponto Eletrônico Digital" 
         description={dateStr}
         icon={Clock}
+      />
+
+      <PontoAnalytics 
+        stats={{
+          saldoMes: "+04:20",
+          mediaEntrada: "08:58",
+          mediaSaida: "18:05",
+          diasIncompletos: 2,
+          percentualPontualidade: 94
+        }}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
