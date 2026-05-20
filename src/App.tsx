@@ -23,6 +23,7 @@ const Ponto = lazy(() => import("./pages/Ponto"));
 const Ferias = lazy(() => import("./pages/Ferias"));
 const Holerites = lazy(() => import("./pages/Holerites"));
 const Solicitacoes = lazy(() => import("./pages/Solicitacoes"));
+const Vales = lazy(() => import("./pages/Vales"));
 const AdminLocais = lazy(() => import("./pages/AdminLocais"));
 const AdminAprovacoes = lazy(() => import("./pages/AdminAprovacoes"));
 const AdminUsuarios = lazy(() => import("./pages/AdminUsuarios"));
@@ -90,14 +91,15 @@ const App = () => (
                 <Route path="/ferias" element={<Page name="Férias"><Ferias /></Page>} />
                 <Route path="/holerites" element={<Page name="Holerites"><Holerites /></Page>} />
                 <Route path="/solicitacoes" element={<Page name="Solicitações"><Solicitacoes /></Page>} />
+                <Route path="/vales" element={<Page name="Vales"><Vales /></Page>} />
                 <Route path="/admin" element={<Page name="Dashboard Admin"><AdminDashboard /></Page>} />
                 <Route path="/admin/locais" element={<Page name="Locais Permitidos"><AdminLocais /></Page>} />
                 <Route path="/admin/aprovacoes" element={<Page name="Aprovações"><AdminAprovacoes /></Page>} />
                 <Route path="/admin/usuarios" element={<Page name="Gestão de Usuários"><AdminUsuarios /></Page>} />
                 <Route path="/admin/holerites" element={<Page name="Importação de Holerites"><AdminHolerites /></Page>} />
                 <Route path="/admin/relatorios" element={<Page name="Relatórios Gerenciais"><AdminRelatorios /></Page>} />
-                <Route path="/admin/configuracoes" element={<Page name="Configurações"><AdminConfiguracoes /></Page>} />
-                <Route path="/notificacoes" element={<Page name="Notificações"><Notificacoes /></Page>} />
+                <Route path="/admin/configuracoes" element={<Page name="Configurações"><AdminConfiguracoes /></Route>
+                <Route path="/notificacoes" element={<Page name="Notificacoes"><Notificacoes /></Page>} />
                 <Route path="/documentos" element={<Page name="Documentos"><Documentos /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
