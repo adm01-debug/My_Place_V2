@@ -257,60 +257,75 @@ export default function Vales() {
           }
         />
 
-        {/* Step 2 & 3: Specialized Dashboard & Limits */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Limite Disponível</p>
-                <div className="p-2 bg-primary/20 rounded-full">
-                  <TrendingUp className="w-4 h-4 text-primary" />
+        {/* Strategic Dashboard: Financial Wellness & Intelligence */}
+        <div className=\"grid grid-cols-1 md:grid-cols-4 gap-4\">
+          <Card className=\"md:col-span-2 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group\">
+            <div className=\"absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all\" />
+            <CardContent className=\"pt-8 relative\">
+              <div className=\"flex justify-between items-start\">
+                <div className=\"space-y-1\">
+                  <p className=\"text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]\">Saldo Disponível para Antecipação</p>
+                  <h3 className=\"text-4xl font-black tracking-tighter\">{formatCurrency(availableAdvance)}</h3>
+                </div>
+                <div className=\"p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20\">
+                  <TrendingUp className=\"w-6 h-6 text-white animate-pulse\" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">{formatCurrency(availableAdvance)}</h3>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Baseado em 40% do seu salário bruto
-              </p>
-              <div className="mt-4 h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                  className="h-full bg-primary"
-                />
+              
+              <div className=\"mt-8 space-y-3\">
+                <div className=\"flex justify-between items-end text-xs font-bold\">
+                  <span className=\"text-primary-foreground/80\">Utilização do Limite</span>
+                  <span>{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                </div>
+                <div className=\"h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5\">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                    transition={{ duration: 1, ease: \"easeOut\" }}
+                    className=\"h-full bg-gradient-to-r from-emerald-400 to-white shadow-[0_0_15px_rgba(255,255,255,0.5)]\"
+                  />
+                </div>
+                <div className=\"flex justify-between text-[9px] text-primary-foreground/60 uppercase font-black\">
+                  <span>R$ 0,00</span>
+                  <span>Limite Máximo: {formatCurrency(maxAdvance)}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider">Em Processamento</p>
-                <div className="p-2 bg-amber-500/10 rounded-full">
-                  <Clock className="w-4 h-4 text-amber-500" />
+          <Card className=\"border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden\">
+            <CardContent className=\"pt-6\">
+              <div className=\"flex items-center gap-2 mb-4\">
+                <div className=\"p-2 bg-amber-500/10 rounded-lg\">
+                  <Clock className=\"w-4 h-4 text-amber-500\" />
                 </div>
+                <p className=\"text-xs font-bold text-muted-foreground uppercase tracking-wider\">Processando</p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
+              <h3 className=\"text-3xl font-black text-foreground\">
                 {vales.filter(v => v.status === 'pendente' || v.status === 'em_analise').length}
               </h3>
-              <p className="text-[10px] text-muted-foreground mt-1">Solicitações aguardando RH/Financeiro</p>
+              <p className=\"text-[10px] text-muted-foreground mt-2\">Solicitações em auditoria pelo RH</p>
             </CardContent>
+            <div className=\"h-1 bg-amber-500/30 w-full\" />
           </Card>
 
-          <Card className="border-border/50 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Último Pago</p>
-                <div className="p-2 bg-emerald-500/10 rounded-full">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <Card className=\"border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden\">
+            <CardContent className=\"pt-6\">
+              <div className=\"flex items-center gap-2 mb-4\">
+                <div className=\"p-2 bg-indigo-500/10 rounded-lg\">
+                  <CheckCircle2 className=\"w-4 h-4 text-indigo-500\" />
                 </div>
+                <p className=\"text-xs font-bold text-muted-foreground uppercase tracking-wider\">Próximo Pagamento</p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
-                {vales.find(v => v.status === 'pago')?.valor ? formatCurrency(vales.find(v => v.status === 'pago')!.valor) : '---'}
-              </h3>
-              <p className="text-[10px] text-muted-foreground mt-1">Competência: {format(new Date(), 'MMMM', { locale: ptBR })}</p>
+              <div className=\"space-y-1\">
+                <h3 className=\"text-2xl font-black text-foreground\">{formatCurrency(vales.find(v => v.status === 'pago')?.valor || 0)}</h3>
+                <p className=\"text-[10px] font-bold text-indigo-500 uppercase\">Agendado para 05/{format(new Date(), 'MM')}</p>
+              </div>
             </CardContent>
+            <div className=\"h-1 bg-indigo-500/30 w-full\" />
           </Card>
         </div>
+
 
         {/* List of Requests with Visual Timeline (Step 5 & 6) */}
         <div className="space-y-4">
