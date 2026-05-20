@@ -238,90 +238,162 @@ export default function Vales() {
         />
 
         {/* Strategic Dashboard: Financial Wellness & Intelligence */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="md:col-span-2 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group">
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-            <CardContent className="pt-8 relative">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Saldo Disponível para Antecipação</p>
-                  <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
-                </div>
-                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
-                  <TrendingUp className="w-6 h-6 text-white animate-pulse" />
-                </div>
-              </div>
-              
-              <div className="mt-8 space-y-3">
-                <div className="flex justify-between items-end text-xs font-bold">
-                  <span className="text-primary-foreground/80">Utilização do Limite</span>
-                  <span>{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
-                </div>
-                <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-emerald-400 to-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                  />
-                </div>
-                <div className="flex justify-between text-[9px] text-primary-foreground/60 uppercase font-black">
-                  <span>R$ 0,00</span>
-                  <span>Limite Máximo: {formatCurrency(maxAdvance)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-amber-500/10 rounded-lg">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Processando</p>
-              </div>
-              <h3 className="text-3xl font-black text-foreground">
-                {vales.filter(v => v.status === 'pendente' || v.status === 'em_analise').length}
-              </h3>
-              <p className="text-[10px] text-muted-foreground mt-2">Solicitações em auditoria pelo RH</p>
-            </CardContent>
-            <div className="h-1 bg-amber-500/30 w-full" />
-          </Card>
-
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-indigo-500/10 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Próximo Pagamento</p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+          <Card className="lg:col-span-4 border-border/50 shadow-xl overflow-hidden bg-card/50 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <div className="space-y-1">
-                <h3 className="text-2xl font-black text-foreground">{formatCurrency(vales.find(v => v.status === 'pago')?.valor || 0)}</h3>
-                <p className="text-[10px] font-bold text-indigo-500 uppercase">Agendado para 05/{format(new Date(), 'MM')}</p>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  Fluxo de Antecipações
+                </CardTitle>
+                <p className="text-[10px] text-muted-foreground">Visão semestral de solicitações aprovadas</p>
+              </div>
+              <div className="flex items-center gap-4">
+                 <div className="text-right">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Total do Período</p>
+                    <p className="text-sm font-black text-primary">{formatCurrency(chartData.reduce((acc, curr) => acc + curr.valor, 0))}</p>
+                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="px-0 pt-4">
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
+                              <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
+                              <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="valor" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#colorValor)" 
+                      animationDuration={1500}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
-            <div className="h-1 bg-indigo-500/30 w-full" />
           </Card>
+
+          <div className="lg:col-span-2 space-y-4">
+            <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+              <CardContent className="pt-8 relative flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="space-y-1">
+                      <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
+                      <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+                    </div>
+                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                      <DollarSign className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end text-xs font-bold">
+                      <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
+                      <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                        transition={{ duration: 1.5, ease: "circOut" }}
+                        className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
+                    <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
+                    Detalhes <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
+           <div className="relative w-full md:w-96 group">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+             <Input 
+               placeholder="Buscar por justificativa ou tipo..." 
+               className="pl-10 h-11 bg-background/50 border-border/50 focus:border-primary/50 transition-all rounded-xl"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
+           </div>
+           
+           <div className="flex items-center gap-3 w-full md:w-auto">
+             <div className="flex bg-muted/30 p-1 rounded-xl border border-border/50 w-full md:w-auto">
+               {(['todos', 'pendente', 'aprovado', 'pago'] as const).map((status) => (
+                 <button
+                   key={status}
+                   onClick={() => setStatusFilter(status)}
+                   className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                     statusFilter === status 
+                       ? 'bg-background text-primary shadow-sm ring-1 ring-border/50' 
+                       : 'text-muted-foreground hover:text-foreground'
+                   }`}
+                 >
+                   {status === 'todos' ? 'Todos' : status}
+                 </button>
+               ))}
+             </div>
+             <Button variant="outline" className="h-11 px-4 rounded-xl border-border/50 hidden md:flex">
+                <Filter className="w-4 h-4 mr-2" />
+                Filtros
+             </Button>
+           </div>
         </div>
 
         {/* List of Requests with Visual Timeline */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Histórico de Solicitações
+            <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Histórico Estratégico
+              <Badge variant="secondary" className="text-[10px] font-black">{filteredVales.length}</Badge>
             </h2>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="h-8 text-[10px] gap-1">
-                <Filter className="w-3 h-3" /> Filtrar
-              </Button>
-            </div>
           </div>
 
           <AnimatePresence mode="popLayout">
             {loading ? (
+
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-24 w-full bg-muted/40 animate-pulse rounded-xl border border-border/50" />
