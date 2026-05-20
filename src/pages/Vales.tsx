@@ -62,7 +62,7 @@ const valeIcons: Record<TipoVale, any> = {
   adiantamento_salarial: DollarSign,
   vale_refeicao: Utensils,
   vale_transporte: Bus,
-  vale_combustivel: ShieldCheck, // Using ShieldCheck as a placeholder for fuel
+  vale_combustivel: ShieldCheck, 
 };
 
 const statusColors: Record<StatusVale, string> = {
@@ -74,7 +74,6 @@ const statusColors: Record<StatusVale, string> = {
   cancelado: 'bg-muted text-muted-foreground border-border',
 };
 
-// Step 10: Receipt Component
 const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => {
   return (
     <div className="p-8 bg-white text-slate-900 font-serif max-w-2xl mx-auto border shadow-sm">
@@ -85,11 +84,11 @@ const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => 
         </div>
         <div className="text-right">
           <p className="font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
-          <p className="text-xs uppercase">Digital Signature Validated</p>
+          <p className="text-xs uppercase font-sans">Digital Signature Validated</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-2 gap-8 mb-8 font-sans">
         <div className="space-y-4">
           <div>
             <p className="text-[10px] uppercase font-bold text-slate-400">Beneficiário</p>
@@ -109,7 +108,7 @@ const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => 
         </div>
       </div>
 
-      <div className="space-y-4 mb-8">
+      <div className="space-y-4 mb-8 font-sans">
         <div className="bg-slate-50 p-4 rounded border border-slate-200">
           <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tipo de Solicitação</p>
           <p className="font-medium">{valeLabels[vale.tipo]}</p>
@@ -120,7 +119,7 @@ const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => 
         </div>
       </div>
 
-      <div className="mt-12 pt-8 border-t border-slate-200">
+      <div className="mt-12 pt-8 border-t border-slate-200 font-sans">
         <div className="flex justify-between gap-12">
           <div className="flex-1 text-center">
             <div className="h-0.5 bg-slate-400 mb-2" />
@@ -153,10 +152,10 @@ export default function Vales() {
   const [amount, setAmount] = useState('');
   const [justification, setJustification] = useState('');
 
-  // Simulated Limits (Step 3)
+  // Simulated Limits
   const salary = profile?.salario_base || 3500;
   const maxAdvance = salary * 0.4;
-  const currentUsed = 0; // In a real app, calculate from active vales
+  const currentUsed = 0; 
   const availableAdvance = maxAdvance - currentUsed;
 
   const handlePrint = useCallback(() => {
@@ -172,25 +171,31 @@ export default function Vales() {
   const fetchData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    // Simulating fetching for now, as we'll use the 'solicitacoes' table with a filter
     const { data, error } = await supabase
       .from('solicitacoes')
       .select('*')
       .eq('user_id', user.id)
-      .in('tipo', ['adiantamento_salarial', 'outros']) // Map to vales
+      .in('tipo', ['adiantamento_salarial', 'outros'])
       .order('created_at', { ascending: false });
 
     if (data) {
-      // Mapping existing requests to our specialized interface
-      const mappedVales: ValeRequest[] = data.map(item => ({
-        id: item.id,
-        tipo: (item.tipo === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'vale_refeicao') as TipoVale,
-        valor: 0, // In real app, extract from a metadata field
-        data_solicitacao: item.created_at,
-        status: (item.status === 'aprovada' ? 'aprovado' : item.status) as StatusVale,
-        justificativa: item.descricao,
-        etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : 3
-      }));
+      const mappedVales: ValeRequest[] = data.map(item => {
+        // Simple heuristic to extract value from description if stored there
+        const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
+        const valor = valorMatch ? parseFloat(valorMatch[1].replace(',', '.')) : 0;
+        
+        return {
+          id: item.id,
+          tipo: item.descricao.includes('Vale Refeição') ? 'vale_refeicao' : 
+                item.descricao.includes('Vale Transporte') ? 'vale_transporte' : 
+                item.descricao.includes('Combustível') ? 'vale_combustivel' : 'adiantamento_salarial',
+          valor: valor,
+          data_solicitacao: item.created_at,
+          status: (item.status === 'aprovada' ? 'aprovado' : item.status === 'recusada' ? 'recusado' : item.status === 'cancelada' ? 'cancelado' : item.status) as StatusVale,
+          justificativa: item.descricao.split('Justificativa: ')[1] || item.descricao,
+          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
+        };
+      });
       setVales(mappedVales);
     }
     setLoading(false);
@@ -257,62 +262,76 @@ export default function Vales() {
           }
         />
 
-        {/* Step 2 & 3: Specialized Dashboard & Limits */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Limite Disponível</p>
-                <div className="p-2 bg-primary/20 rounded-full">
-                  <TrendingUp className="w-4 h-4 text-primary" />
+        {/* Strategic Dashboard: Financial Wellness & Intelligence */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="md:col-span-2 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group">
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+            <CardContent className="pt-8 relative">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Saldo Disponível para Antecipação</p>
+                  <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+                </div>
+                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+                  <TrendingUp className="w-6 h-6 text-white animate-pulse" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">{formatCurrency(availableAdvance)}</h3>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Baseado em 40% do seu salário bruto
-              </p>
-              <div className="mt-4 h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                  className="h-full bg-primary"
-                />
+              
+              <div className="mt-8 space-y-3">
+                <div className="flex justify-between items-end text-xs font-bold">
+                  <span className="text-primary-foreground/80">Utilização do Limite</span>
+                  <span>{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                </div>
+                <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-emerald-400 to-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                  />
+                </div>
+                <div className="flex justify-between text-[9px] text-primary-foreground/60 uppercase font-black">
+                  <span>R$ 0,00</span>
+                  <span>Limite Máximo: {formatCurrency(maxAdvance)}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-md">
+          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider">Em Processamento</p>
-                <div className="p-2 bg-amber-500/10 rounded-full">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-amber-500/10 rounded-lg">
                   <Clock className="w-4 h-4 text-amber-500" />
                 </div>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Processando</p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
+              <h3 className="text-3xl font-black text-foreground">
                 {vales.filter(v => v.status === 'pendente' || v.status === 'em_analise').length}
               </h3>
-              <p className="text-[10px] text-muted-foreground mt-1">Solicitações aguardando RH/Financeiro</p>
+              <p className="text-[10px] text-muted-foreground mt-2">Solicitações em auditoria pelo RH</p>
             </CardContent>
+            <div className="h-1 bg-amber-500/30 w-full" />
           </Card>
 
-          <Card className="border-border/50 shadow-md">
+          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Último Pago</p>
-                <div className="p-2 bg-emerald-500/10 rounded-full">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-indigo-500/10 rounded-lg">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-500" />
                 </div>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Próximo Pagamento</p>
               </div>
-              <h3 className="text-2xl font-bold text-foreground">
-                {vales.find(v => v.status === 'pago')?.valor ? formatCurrency(vales.find(v => v.status === 'pago')!.valor) : '---'}
-              </h3>
-              <p className="text-[10px] text-muted-foreground mt-1">Competência: {format(new Date(), 'MMMM', { locale: ptBR })}</p>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-black text-foreground">{formatCurrency(vales.find(v => v.status === 'pago')?.valor || 0)}</h3>
+                <p className="text-[10px] font-bold text-indigo-500 uppercase">Agendado para 05/{format(new Date(), 'MM')}</p>
+              </div>
             </CardContent>
+            <div className="h-1 bg-indigo-500/30 w-full" />
           </Card>
         </div>
 
-        {/* List of Requests with Visual Timeline (Step 5 & 6) */}
+        {/* List of Requests with Visual Timeline */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
@@ -361,6 +380,8 @@ export default function Vales() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.05 }}
+                    onClick={() => setSelectedVale(vale)}
+                    className="cursor-pointer"
                   >
                     <Card className="overflow-hidden border-border/40 hover:border-primary/30 transition-all group">
                       <CardContent className="p-0">
@@ -392,13 +413,12 @@ export default function Vales() {
                               </Badge>
                             </div>
 
-                            {/* Timeline Stepper (Step 5) */}
+                            {/* Timeline Stepper */}
                             <div className="relative pt-4 pb-2">
                               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-muted -translate-y-1/2" />
                               <div className="relative flex justify-between items-center w-full">
                                 {[1, 2, 3, 4].map((step) => {
                                   const isActive = vale.etapa_atual >= step;
-                                  const isLast = step === 4;
                                   return (
                                     <div key={step} className="relative flex flex-col items-center gap-2">
                                       <div className={`w-3 h-3 rounded-full z-10 border-2 transition-all ${
@@ -434,7 +454,7 @@ export default function Vales() {
           </AnimatePresence>
         </div>
 
-        {/* Step 8: Contextual FAQ/Policies */}
+        {/* FAQ/Policies */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="border-border/50 bg-muted/20">
             <CardHeader className="pb-2">
@@ -472,7 +492,7 @@ export default function Vales() {
           </Card>
         </div>
 
-        {/* Step 4: Specialized Modal */}
+        {/* Request Modal */}
         <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
           <DialogContent className="sm:max-w-[500px] overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-primary/50 to-primary" />
@@ -530,6 +550,7 @@ export default function Vales() {
                       <p className="text-[10px] text-muted-foreground">Disponível: <span className="font-bold">{formatCurrency(availableAdvance)}</span></p>
                       <button 
                         className="text-[10px] text-primary font-bold hover:underline"
+                        type="button"
                         onClick={() => setAmount(availableAdvance.toFixed(2).replace('.', ','))}
                       >
                         Usar máximo
@@ -573,7 +594,6 @@ export default function Vales() {
 
             {selectedVale && (
               <div className="space-y-6">
-                {/* Specialized Header Info */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl border border-border/50">
                   <div>
                     <p className="text-[10px] uppercase font-bold text-muted-foreground">ID</p>
@@ -593,7 +613,6 @@ export default function Vales() {
                   </div>
                 </div>
 
-                {/* Step 5 Timeline */}
                 <div className="p-6 border border-border/50 rounded-xl">
                   <h4 className="text-xs font-bold uppercase mb-6 tracking-widest text-center">Jornada da Solicitação</h4>
                   <div className="relative flex justify-between">
@@ -624,7 +643,6 @@ export default function Vales() {
                   </div>
                 </div>
 
-                {/* Receipt Preview (Hidden, for print) */}
                 <div className="hidden">
                   <div ref={receiptRef}>
                     <ValeReceipt vale={selectedVale} profile={profile} />
