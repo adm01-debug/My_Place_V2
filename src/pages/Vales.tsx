@@ -37,10 +37,10 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 
-type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
-type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
+export type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
+export type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
 
-interface ValeRequest {
+export interface ValeRequest {
   id: string;
   tipo: TipoVale;
   valor: number;
