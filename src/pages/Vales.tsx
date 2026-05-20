@@ -85,7 +85,7 @@ export default function Vales() {
   const [justification, setJustification] = useState('');
 
   // Simulated Limits (Step 3)
-  const salary = profile?.salario || 3500;
+  const salary = profile?.salario_base || 3500;
   const maxAdvance = salary * 0.4;
   const currentUsed = 0; // In a real app, calculate from active vales
   const availableAdvance = maxAdvance - currentUsed;
