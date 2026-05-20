@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -18,7 +18,8 @@ import {
   Search,
   ChevronRight,
   ShieldCheck,
-  Calendar
+  Calendar,
+  FileText
 } from 'lucide-react';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useReactToPrint } from 'react-to-print';
 
 type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
 type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
@@ -72,12 +74,79 @@ const statusColors: Record<StatusVale, string> = {
   cancelado: 'bg-muted text-muted-foreground border-border',
 };
 
+// Step 10: Receipt Component
+const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => {
+  return (
+    <div className="p-8 bg-white text-slate-900 font-serif max-w-2xl mx-auto border shadow-sm">
+      <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold uppercase tracking-tighter">Comprovante de Adiantamento</h1>
+          <p className="text-sm text-slate-500 mt-1">ID: {vale.id.slice(0, 8).toUpperCase()}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
+          <p className="text-xs uppercase">Digital Signature Validated</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="space-y-4">
+          <div>
+            <p className="text-[10px] uppercase font-bold text-slate-400">Beneficiário</p>
+            <p className="font-bold">{profile?.nome || 'Colaborador'}</p>
+            <p className="text-xs">{profile?.cargo || 'Cargo não informado'}</p>
+            <p className="text-xs">Matrícula: {profile?.matricula || '---'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold text-slate-400">CPF</p>
+            <p className="text-sm">{profile?.cpf || '---'}</p>
+          </div>
+        </div>
+        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-right">
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Valor do Adiantamento</p>
+          <p className="text-3xl font-black">R$ {vale.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          <p className="text-[10px] text-slate-500 mt-1 italic">Este valor será descontado na próxima folha.</p>
+        </div>
+      </div>
+
+      <div className="space-y-4 mb-8">
+        <div className="bg-slate-50 p-4 rounded border border-slate-200">
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tipo de Solicitação</p>
+          <p className="font-medium">{valeLabels[vale.tipo]}</p>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Justificativa</p>
+          <p className="text-sm leading-relaxed">{vale.justificativa}</p>
+        </div>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-slate-200">
+        <div className="flex justify-between gap-12">
+          <div className="flex-1 text-center">
+            <div className="h-0.5 bg-slate-400 mb-2" />
+            <p className="text-[10px] uppercase font-bold">Assinatura Eletrônica RH</p>
+          </div>
+          <div className="flex-1 text-center">
+            <div className="h-0.5 bg-slate-400 mb-2" />
+            <p className="text-[10px] uppercase font-bold">Assinatura Colaborador</p>
+          </div>
+        </div>
+        <p className="text-[8px] text-center text-slate-400 mt-8">
+          Este documento é uma representação digital de uma operação financeira interna e possui validade jurídica conforme MP 2.200-2/2001.
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export default function Vales() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [vales, setVales] = useState<ValeRequest[]>([]);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
   
   // Form State
   const [selectedType, setSelectedType] = useState<TipoVale>('adiantamento_salarial');
@@ -89,6 +158,10 @@ export default function Vales() {
   const maxAdvance = salary * 0.4;
   const currentUsed = 0; // In a real app, calculate from active vales
   const availableAdvance = maxAdvance - currentUsed;
+
+  const handlePrint = useReactToPrint({
+    contentRef: receiptRef,
+  });
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -479,6 +552,88 @@ export default function Vales() {
                 Confirmar
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Detail Modal */}
+        <Dialog open={!!selectedVale} onOpenChange={(open) => !open && setSelectedVale(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-primary" />
+                Detalhes da Solicitação
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedVale && (
+              <div className="space-y-6">
+                {/* Specialized Header Info */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl border border-border/50">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">ID</p>
+                    <p className="text-xs font-mono">{selectedVale.id.slice(0, 8).toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Status</p>
+                    <Badge className={statusColors[selectedVale.status]}>{selectedVale.status}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Valor</p>
+                    <p className="text-sm font-bold">{formatCurrency(selectedVale.valor)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Tipo</p>
+                    <p className="text-xs font-semibold">{valeLabels[selectedVale.tipo]}</p>
+                  </div>
+                </div>
+
+                {/* Step 5 Timeline */}
+                <div className="p-6 border border-border/50 rounded-xl">
+                  <h4 className="text-xs font-bold uppercase mb-6 tracking-widest text-center">Jornada da Solicitação</h4>
+                  <div className="relative flex justify-between">
+                    {[1, 2, 3, 4].map((step) => {
+                      const isActive = selectedVale.etapa_atual >= step;
+                      const labels = ['Enviado', 'Em Análise', 'Aprovado', 'Processado'];
+                      const descs = ['Aguardando RH', 'Verificando limites', 'Liberado p/ Financeiro', 'Pagamento efetuado'];
+                      return (
+                        <div key={step} className="flex flex-col items-center gap-2 relative z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                            isActive ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'bg-card border-muted text-muted-foreground'
+                          }`}>
+                            {isActive ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-xs font-bold">{step}</span>}
+                          </div>
+                          <div className="text-center max-w-[80px]">
+                            <p className={`text-[10px] font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{labels[step-1]}</p>
+                            <p className="text-[8px] text-muted-foreground leading-tight hidden sm:block">{descs[step-1]}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="absolute top-4 left-0 w-full h-0.5 bg-muted -z-0" />
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((selectedVale.etapa_atual - 1) / 3) * 100}%` }}
+                      className="absolute top-4 left-0 h-0.5 bg-primary -z-0"
+                    />
+                  </div>
+                </div>
+
+                {/* Receipt Preview (Hidden, for print) */}
+                <div className="hidden">
+                  <div ref={receiptRef}>
+                    <ValeReceipt vale={selectedVale} profile={profile} />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                  <Button variant="outline" className="gap-2" onClick={handlePrint}>
+                    <FileText className="w-4 h-4" />
+                    Imprimir Comprovante
+                  </Button>
+                  <Button onClick={() => setSelectedVale(null)}>Fechar</Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
