@@ -269,19 +269,13 @@ export default function Vales() {
               <div className="space-y-1">
                 <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  Fluxo de Antecipações
+                  Performance Financeira
                 </CardTitle>
-                <p className="text-[10px] text-muted-foreground">Visão semestral de solicitações aprovadas</p>
-              </div>
-              <div className="flex items-center gap-4">
-                 <div className="text-right">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Total do Período</p>
-                    <p className="text-sm font-black text-primary">{formatCurrency(chartData.reduce((acc, curr) => acc + curr.valor, 0))}</p>
-                 </div>
+                <p className="text-[10px] text-muted-foreground">Visão holística de gastos e tendências</p>
               </div>
             </CardHeader>
-            <CardContent className="px-0 pt-4">
-              <div className="h-[200px] w-full">
+            <CardContent className="px-0 pt-4 flex gap-4">
+              <div className="h-[200px] w-full lg:w-2/3">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
@@ -323,8 +317,19 @@ export default function Vales() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
+              
+              {/* Distribution Stats */}
+              <div className="hidden lg:flex flex-col justify-center gap-4 pr-6">
+                {(['adiantamento_salarial', 'vale_refeicao', 'vale_transporte'] as const).map(tipo => (
+                  <div key={tipo} className="space-y-1">
+                    <p className="text-[9px] uppercase font-black text-muted-foreground">{valeLabels[tipo]}</p>
+                    <p className="text-sm font-black">{formatCurrency(vales.filter(v => v.tipo === tipo).reduce((acc, curr) => acc + curr.valor, 0))}</p>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
+
 
           <div className="lg:col-span-2 space-y-4">
             <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
