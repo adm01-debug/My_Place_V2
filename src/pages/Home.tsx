@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Building2, Briefcase, Calendar, Hash, Shield, 
   Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon,
-  Bell
+  Bell, User
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { RecentActivity } from '@/components/home/RecentActivity';
@@ -120,7 +121,7 @@ export default function Home() {
     <div className="min-h-screen bg-background/50">
       <div className="w-full max-w-4xl mx-auto p-4 pt-6 pb-24 space-y-6">
         <ModuleHeader 
-          title={`Bom dia, ${firstName}`}
+          title={`Olá, ${firstName}`}
           description={getGreeting()}
           icon={Sun}
         />
@@ -149,48 +150,91 @@ export default function Home() {
           </div>
         )}
 
-        {/* Profile Card */}
-        <Card className="border-border/50 shadow-xl overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
-          <CardContent className="relative pt-0 pb-6 -mt-12">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
-                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
-                <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+        {/* Raio-X do Colaborador (Profile + Info) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-1 border-border/50 shadow-xl overflow-hidden h-fit">
+            <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
+            <CardContent className="relative pt-0 pb-6 -mt-12">
+              <div className="flex flex-col items-center text-center space-y-3">
+                <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
+                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
 
-              <div className="space-y-1">
-                <h1 className="text-xl font-bold text-foreground">{profile?.nome || 'Colaborador'}</h1>
-                <p className="text-sm text-muted-foreground">{profile?.email || user?.email}</p>
-              </div>
-
-              <Badge variant={roleBadgeVariant[role] || 'outline'} className="gap-1">
-                <Shield className="w-3 h-3" />
-                {roleLabel[role] || 'Colaborador'}
-              </Badge>
-
-              {profile?.data_admissao && (
-                <div className="pt-2">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
-                  <p className="text-xs font-semibold text-primary">
-                    {(() => {
-                      const adm = new Date(profile.data_admissao);
-                      const now = new Date();
-                      const years = now.getFullYear() - adm.getFullYear();
-                      const months = now.getMonth() - adm.getMonth();
-                      if (years > 0) {
-                        return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
-                      }
-                      return `${months} m${months > 1 ? 'eses' : 'ês'}`;
-                    })()}
-                  </p>
+                <div className="space-y-1">
+                  <h1 className="text-xl font-bold text-foreground">{profile?.nome || 'Colaborador'}</h1>
+                  <p className="text-sm text-muted-foreground">{profile?.email || user?.email}</p>
                 </div>
+
+                <Badge variant={roleBadgeVariant[role] || 'outline'} className="gap-1">
+                  <Shield className="w-3 h-3" />
+                  {roleLabel[role] || 'Colaborador'}
+                </Badge>
+
+                {profile?.data_admissao && (
+                  <div className="pt-2">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
+                    <p className="text-xs font-semibold text-primary">
+                      {(() => {
+                        const adm = new Date(profile.data_admissao);
+                        const now = new Date();
+                        const years = now.getFullYear() - adm.getFullYear();
+                        const months = now.getMonth() - adm.getMonth();
+                        if (years > 0) {
+                          return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
+                        }
+                        return `${months} m${months > 1 ? 'eses' : 'ês'}`;
+                      })()}
+                    </p>
+                  </div>
+                )}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-4 text-xs"
+                  onClick={() => navigate('/perfil')}
+                >
+                  <User className="w-3.5 h-3.5 mr-2" />
+                  Editar Perfil
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="md:col-span-2 border-border/50 shadow-lg h-fit">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Raio-X Profissional
+                </h2>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+              {profile?.cargo && (
+                <ProfileInfoItem icon={Briefcase} label="Cargo" value={profile.cargo} />
               )}
-            </div>
-          </CardContent>
-        </Card>
+              {profile?.departamento && (
+                <ProfileInfoItem icon={Building2} label="Departamento" value={profile.departamento} />
+              )}
+              {profile?.matricula && (
+                <ProfileInfoItem icon={Hash} label="Matrícula" value={profile.matricula} />
+              )}
+              {profile?.data_admissao && (
+                <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
+              )}
+              {profile?.salario_base && (
+                <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+              )}
+              {profile?.gestor_id && (
+                 <ProfileInfoItem icon={User} label="Reporta-se a" value="Seu Gestor Direto" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Company Announcements */}
         <CompanyAnnouncements />
@@ -246,35 +290,6 @@ export default function Home() {
         </div>
 
 
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Informações Profissionais
-            </h2>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            {profile?.cargo && (
-              <ProfileInfoItem icon={Briefcase} label="Cargo" value={profile.cargo} />
-            )}
-            {profile?.departamento && (
-              <ProfileInfoItem icon={Building2} label="Departamento" value={profile.departamento} />
-            )}
-            {profile?.matricula && (
-              <ProfileInfoItem icon={Hash} label="Matrícula" value={profile.matricula} />
-            )}
-            {profile?.data_admissao && (
-              <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
-            )}
-            {profile?.salario_base && (
-              <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
-            )}
-            {!profile?.cargo && !profile?.departamento && !profile?.matricula && !profile?.data_admissao && !profile?.salario_base && (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                Nenhuma informação profissional cadastrada ainda.
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
       </div>
     </div>

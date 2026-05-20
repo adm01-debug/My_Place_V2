@@ -65,7 +65,7 @@ export function CompanyAnnouncements() {
             <Megaphone className="w-4 h-4 text-primary" />
           </div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Comunicados
+            Comunicados da Empresa
           </h2>
         </div>
         <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">

@@ -22,6 +22,7 @@ const navItems = [
   { label: 'Férias', path: '/ferias', icon: Palmtree },
   { label: 'Holerites', path: '/holerites', icon: Receipt },
   { label: 'Solicitações', path: '/solicitacoes', icon: FileText },
+  { label: 'Documentos', path: '/documentos', icon: FileText },
 ];
 
 export default function Navbar() {
