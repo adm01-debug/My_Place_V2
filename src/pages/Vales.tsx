@@ -38,6 +38,7 @@ import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ValeReceipt } from '@/components/vales/ValeReceipt';
+import { RequestStepper } from '@/components/vales/RequestStepper';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 
@@ -178,44 +179,43 @@ export default function Vales() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
 
-  const handleRequest = async () => {
-    if (!user || !amount || !justification) {
-      toast.error('Campos obrigatórios ausentes', {
-        description: 'Por favor, informe o valor e a justificativa para continuar.',
-        icon: <AlertCircle className="w-4 h-4 text-red-500" />
-      });
-      return;
-    }
-
-    const numAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
-    if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error('Valor inválido', {
-        description: 'O valor da solicitação deve ser maior que zero.'
-      });
-      return;
-    }
-
-    if (selectedType === 'adiantamento_salarial' && numAmount > availableAdvance) {
-      toast.error('Limite excedido', {
-        description: `O valor máximo disponível é ${formatCurrency(availableAdvance)}`,
-        action: {
-          label: 'Usar Máximo',
-          onClick: () => setAmount(availableAdvance.toFixed(2).replace('.', ','))
+    // Etapa 3: Sincronização em Tempo Real (Realtime Sync)
+    const channel = supabase
+      .channel('vales_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'solicitacoes',
+          filter: `user_id=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          fetchData();
         }
-      });
-      return;
-    }
+      )
+      .subscribe();
 
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchData, user?.id]);
+
+  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string }) => {
+    if (!user) return;
+
+    const numAmount = parseFloat(data.amount.replace(/\./g, '').replace(',', '.'));
+    
     setIsSubmitting(true);
     const loadingToast = toast.loading('Processando sua solicitação...');
 
     try {
       const { error } = await supabase.from('solicitacoes').insert({
         user_id: user.id,
-        tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
-        descricao: `[${valeLabels[selectedType]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${justification}`,
+        tipo: data.type === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        descricao: `[${valeLabels[data.type]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${data.justification}`,
         status: 'pendente',
         prioridade: 'normal'
       });
@@ -370,6 +370,29 @@ export default function Vales() {
             </Card>
           </div>
         </div>
+
+        {/* Etapa 8: Insights Preditivos e Alertas */}
+        <AnimatePresence>
+          {availableAdvance < (salary * 0.1) && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-4"
+            >
+              <div className="p-2 bg-amber-500 rounded-full text-white">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-black uppercase text-amber-700 tracking-wider">Atenção ao Limite</p>
+                <p className="text-[11px] text-amber-600 font-medium">Você já utilizou a maior parte do seu limite de adiantamento. Novas solicitações passarão por análise criteriosa.</p>
+              </div>
+              <Button variant="outline" size="sm" className="bg-white/50 border-amber-200 text-amber-700 font-bold text-[10px] uppercase">
+                Ver Regras
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
@@ -565,141 +588,15 @@ export default function Vales() {
           </Card>
         </div>
 
-        {/* Request Modal - Strategic Transformation */}
+        {/* Request Modal - Strategic Transformation (Etapa 1 & 2) */}
         <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
-          <DialogContent className="sm:max-w-[550px] overflow-hidden p-0 border-0 shadow-2xl">
-            <div className="bg-gradient-to-r from-primary to-indigo-600 h-2 w-full" />
-            
-            <div className="p-6 pb-0">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black flex items-center gap-3 tracking-tighter">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Plus className="w-6 h-6 text-primary" />
-                  </div>
-                  Nova Solicitação
-                </DialogTitle>
-                <DialogDescription className="text-xs font-medium">
-                  Selecione o benefício e informe os detalhes para análise do RH.
-                </DialogDescription>
-              </DialogHeader>
-            </div>
-
-            <div className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
-              <div className="space-y-3">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tipo de Benefício</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(Object.entries(valeLabels) as [TipoVale, string][]).map(([type, label]) => {
-                    const Icon = valeIcons[type];
-                    const isSelected = selectedType === type;
-                    return (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedType(type)}
-                        className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all group relative overflow-hidden ${
-                          isSelected 
-                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/5' 
-                            : 'border-border/50 bg-card hover:border-primary/30 hover:bg-muted/30'
-                        }`}
-                      >
-                        <div className={`p-2 rounded-lg mb-3 transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'}`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <span className={`text-[10px] font-black leading-tight uppercase tracking-tight text-left ${isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}>
-                          {label}
-                        </span>
-                        {isSelected && (
-                          <motion.div layoutId="active-check" className="absolute top-2 right-2">
-                            <CheckCircle2 className="w-4 h-4 text-primary" />
-                          </motion.div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="amount" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Valor do Pedido</Label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-muted-foreground group-focus-within:text-primary transition-colors">R$</div>
-                    <Input 
-                      id="amount"
-                      placeholder="0,00"
-                      className="pl-12 h-14 text-xl font-black rounded-2xl border-border/50 focus:border-primary/50 bg-background/50 transition-all shadow-inner"
-                      value={amount}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '');
-                        if (val === '') { setAmount(''); return; }
-                        let n = parseInt(val);
-                        let formatted = (n / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                        setAmount(formatted);
-                      }}
-                    />
-                  </div>
-                  {selectedType === 'adiantamento_salarial' && (
-                    <div className="flex justify-between items-center px-1">
-                      <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">Disponível: <span className="font-black text-foreground">{formatCurrency(availableAdvance)}</span></p>
-                      <button 
-                        className="text-[9px] text-primary font-black uppercase tracking-widest hover:underline"
-                        type="button"
-                        onClick={() => setAmount(availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 }))}
-                      >
-                        Máximo
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Documentos (Opcional)</Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-2xl h-14 flex items-center justify-center bg-muted/20 hover:bg-muted/30 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">Anexar Arquivo</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="justification" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Justificativa e Notas</Label>
-                <Textarea 
-                  id="justification"
-                  placeholder="Explique o motivo desta solicitação para agilizar a aprovação..."
-                  className="resize-none min-h-[120px] rounded-2xl border-border/50 bg-background/50 p-4 font-medium text-sm focus:border-primary/50 transition-all"
-                  value={justification}
-                  onChange={(e) => setJustification(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="bg-muted/30 p-6 flex flex-col-reverse sm:flex-row gap-3 mt-0 border-t border-border/20">
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsNewModalOpen(false)}
-                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-12 px-6"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleRequest} 
-                disabled={isSubmitting} 
-                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-12 px-8 gap-2 shadow-lg shadow-primary/20"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processando
-                  </>
-                ) : (
-                  <>
-                    Enviar Solicitação
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
+          <DialogContent className="sm:max-w-[550px] overflow-hidden p-6 border-0 shadow-2xl">
+            <RequestStepper 
+              onClose={() => setIsNewModalOpen(false)} 
+              onSubmit={handleRequest}
+              isSubmitting={isSubmitting}
+              availableAdvance={availableAdvance}
+            />
           </DialogContent>
         </Dialog>
 
@@ -735,48 +632,96 @@ export default function Vales() {
                   </div>
                 </div>
 
-                <div className="p-6 border border-border/50 rounded-xl">
-                  <h4 className="text-xs font-bold uppercase mb-6 tracking-widest text-center">Jornada da Solicitação</h4>
-                  <div className="relative flex justify-between">
+                <div className="p-6 border border-border/50 rounded-xl relative overflow-hidden">
+                   {/* Etapa 4: Visualização de Timeline de Aprovação */}
+                  <h4 className="text-xs font-bold uppercase mb-8 tracking-widest text-center relative z-10">Jornada da Solicitação</h4>
+                  
+                  <div className="relative flex justify-between items-start">
+                    {/* Progress Bar Background */}
+                    <div className="absolute top-4 left-0 w-full h-1 bg-muted rounded-full" />
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((selectedVale.etapa_atual - 1) / 3) * 100}%` }}
+                      className="absolute top-4 left-0 h-1 bg-primary rounded-full z-0"
+                    />
+
                     {[1, 2, 3, 4].map((step) => {
                       const isActive = selectedVale.etapa_atual >= step;
-                      const labels = ['Enviado', 'Em Análise', 'Aprovado', 'Processado'];
-                      const descs = ['Aguardando RH', 'Verificando limites', 'Liberado p/ Financeiro', 'Pagamento efetuado'];
+                      const isCompleted = selectedVale.etapa_atual > step;
+                      const labels = ['Enviado', 'Análise', 'Aprovado', 'Concluído'];
+                      const icons = [FileText, Clock, ShieldCheck, CheckCircle2];
+                      const Icon = icons[step - 1];
+                      
                       return (
-                        <div key={step} className="flex flex-col items-center gap-2 relative z-10">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                            isActive ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'bg-card border-muted text-muted-foreground'
-                          }`}>
-                            {isActive ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-xs font-bold">{step}</span>}
-                          </div>
-                          <div className="text-center max-w-[80px]">
-                            <p className={`text-[10px] font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{labels[step-1]}</p>
-                            <p className="text-[8px] text-muted-foreground leading-tight hidden sm:block">{descs[step-1]}</p>
+                        <div key={step} className="flex flex-col items-center gap-3 relative z-10 w-1/4">
+                          <motion.div 
+                            initial={false}
+                            animate={{ 
+                              scale: isActive ? 1.1 : 1,
+                              backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                              borderColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted))'
+                            }}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${
+                              isActive ? 'text-white' : 'text-muted-foreground'
+                            }`}
+                          >
+                            {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+                          </motion.div>
+                          <div className="text-center">
+                            <p className={`text-[10px] font-black uppercase tracking-tight ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {labels[step - 1]}
+                            </p>
+                            <p className="text-[8px] text-muted-foreground font-medium hidden sm:block">
+                              {step === 1 ? 'Via App' : step === 2 ? 'Fila do RH' : step === 3 ? 'Financeiro' : 'Liberado'}
+                            </p>
                           </div>
                         </div>
                       );
                     })}
-                    <div className="absolute top-4 left-0 w-full h-0.5 bg-muted -z-0" />
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${((selectedVale.etapa_atual - 1) / 3) * 100}%` }}
-                      className="absolute top-4 left-0 h-0.5 bg-primary -z-0"
-                    />
                   </div>
                 </div>
 
+                {/* Etapa 5: Gestão de Documentos e Anexos (Placeholder UI) */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Documentação Vinculada</h4>
+                    <Button variant="ghost" size="sm" className="h-7 text-[9px] uppercase font-bold gap-1.5">
+                      <Plus className="w-3 h-3" /> Adicionar Anexo
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl hover:bg-muted/40 transition-all cursor-pointer group">
+                      <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
+                        <FileText className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">comprovante_justificativa.pdf</p>
+                        <p className="text-[9px] text-muted-foreground">PDF • 1.2 MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border/20 flex flex-col sm:flex-row gap-3">
+                  {/* Etapa 7: Exportação e Compartilhamento Premium */}
+                  <Button 
+                    className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+                    onClick={handlePrint}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Gerar Comprovante PDF
+                  </Button>
+                  <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50">
+                    <ArrowRight className="w-4 h-4" />
+                    Compartilhar via WhatsApp
+                  </Button>
+                </div>
+                
+                {/* Hidden Receipt for Printing */}
                 <div className="hidden">
                   <div ref={receiptRef}>
                     <ValeReceipt vale={selectedVale} profile={profile} />
                   </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                  <Button variant="outline" className="gap-2" onClick={handlePrint}>
-                    <FileText className="w-4 h-4" />
-                    Imprimir Comprovante
-                  </Button>
-                  <Button onClick={() => setSelectedVale(null)}>Fechar</Button>
                 </div>
               </div>
             )}
