@@ -192,10 +192,16 @@ export default function Home() {
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
                     <p className="text-xs font-semibold text-primary">
                       {(() => {
-                        const adm = new Date(profile.data_admissao);
+                        const adm = new Date(profile.data_admissao + 'T12:00:00');
                         const now = new Date();
-                        const years = now.getFullYear() - adm.getFullYear();
-                        const months = now.getMonth() - adm.getMonth();
+                        let years = now.getFullYear() - adm.getFullYear();
+                        let months = now.getMonth() - adm.getMonth();
+                        
+                        if (months < 0 || (months === 0 && now.getDate() < adm.getDate())) {
+                          years--;
+                          months += 12;
+                        }
+
                         if (years > 0) {
                           return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
                         }
