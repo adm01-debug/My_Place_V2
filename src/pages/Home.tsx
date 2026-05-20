@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Building2, Briefcase, Calendar, Hash, Shield, 
   Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon,
-  Bell, User
+  Bell, User, ChevronRight, HeartHandshake, HelpCircle
 } from 'lucide-react';
 import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { RecentActivity } from '@/components/home/RecentActivity';
@@ -247,10 +247,21 @@ export default function Home() {
                 <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
               )}
               {profile?.salario_base && (
-                <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+                <div className="flex items-center justify-between group">
+                  <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate('/holerites')}>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
               {profile?.gestor_id && (
-                 <ProfileInfoItem icon={User} label="Reporta-se a" value={gestorNome || 'Carregando...'} />
+                 <ProfileInfoItem icon={User} label="Gestor Direto" value={gestorNome || 'Carregando...'} />
+              )}
+              {profile?.rh_responsavel && (
+                 <ProfileInfoItem icon={HeartHandshake} label="RH Responsável" value={profile.rh_responsavel} />
+              )}
+              {profile?.apoio_departamento && (
+                 <ProfileInfoItem icon={HelpCircle} label="Apoio Departamento" value={profile.apoio_departamento} />
               )}
             </CardContent>
           </Card>
