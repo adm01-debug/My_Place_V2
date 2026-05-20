@@ -399,27 +399,28 @@ export default function Vales() {
                   <div key={i} className="h-24 w-full bg-muted/40 animate-pulse rounded-xl border border-border/50" />
                 ))}
               </div>
-            ) : vales.length === 0 ? (
+            ) : filteredVales.length === 0 ? (
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="py-12 flex flex-col items-center justify-center text-center space-y-3 bg-muted/20 rounded-2xl border-2 border-dashed border-border/50"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="py-20 flex flex-col items-center justify-center text-center space-y-4 bg-muted/10 rounded-3xl border-2 border-dashed border-border/50"
               >
-                <div className="p-4 bg-muted/50 rounded-full">
-                  <Receipt className="w-8 h-8 text-muted-foreground" />
+                <div className="p-6 bg-background rounded-full shadow-inner ring-8 ring-muted/20">
+                  <Search className="w-10 h-10 text-muted-foreground/40" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Nenhuma solicitação ativa</h3>
-                  <p className="text-sm text-muted-foreground max-w-xs">
-                    Você ainda não possui pedidos de vales ou adiantamentos registrados.
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-foreground tracking-tight">Nenhum resultado encontrado</h3>
+                  <p className="text-xs text-muted-foreground max-w-[250px] mx-auto">
+                    Não encontramos solicitações para os filtros aplicados. Tente ajustar sua busca.
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setIsNewModalOpen(true)}>
-                  Começar agora
+                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('todos'); }} className="text-primary font-black uppercase tracking-widest text-[10px]">
+                  Limpar Filtros
                 </Button>
               </motion.div>
             ) : (
-              vales.map((vale, idx) => {
+              filteredVales.map((vale, idx) => {
+
                 const Icon = valeIcons[vale.tipo] || Receipt;
                 return (
                   <motion.div
