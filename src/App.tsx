@@ -98,7 +98,7 @@ const App = () => (
                 <Route path="/admin/usuarios" element={<Page name="Gestão de Usuários"><AdminUsuarios /></Page>} />
                 <Route path="/admin/holerites" element={<Page name="Importação de Holerites"><AdminHolerites /></Page>} />
                 <Route path="/admin/relatorios" element={<Page name="Relatórios Gerenciais"><AdminRelatorios /></Page>} />
-                <Route path="/admin/configuracoes" element={<Page name="Configurações"><AdminConfiguracoes /></Route>
+                <Route path="/admin/configuracoes" element={<Page name="Configurações"><AdminConfiguracoes /></Page>} />
                 <Route path="/notificacoes" element={<Page name="Notificacoes"><Notificacoes /></Page>} />
                 <Route path="/documentos" element={<Page name="Documentos"><Documentos /></Page>} />
               </Route>
