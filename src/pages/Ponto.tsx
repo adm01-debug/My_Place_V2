@@ -186,7 +186,7 @@ export default function Ponto() {
     <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <ModuleHeader 
-        title="Registro de Ponto" 
+        title="Bater Ponto" 
         description={dateStr}
         icon={Clock}
       />

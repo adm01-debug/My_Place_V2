@@ -164,7 +164,7 @@ export default function Holerites() {
           <Card className="border-border/50 shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Holerites Disponíveis ({holerites.length})
+                Meus Holerites ({holerites.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">

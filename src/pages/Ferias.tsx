@@ -185,7 +185,7 @@ export default function Ferias() {
 
   const stats = [
     {
-      label: 'Saldo Disponível',
+      label: 'Saldo de Férias',
       value: saldo ? `${saldo.dias_disponiveis} dias` : '—',
       icon: Palmtree,
       color: 'text-emerald-500 bg-emerald-500/10',
@@ -212,7 +212,7 @@ export default function Ferias() {
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <ModuleHeader 
-        title="Férias" 
+        title="Minhas Férias" 
         description="Gerencie seus períodos de descanso e folgas"
         icon={Palmtree}
         actions={
