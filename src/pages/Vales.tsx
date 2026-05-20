@@ -191,9 +191,9 @@ export default function Vales() {
                 item.descricao.includes('Combustível') ? 'vale_combustivel' : 'adiantamento_salarial',
           valor: valor,
           data_solicitacao: item.created_at,
-          status: (item.status === 'aprovada' ? 'aprovado' : item.status) as StatusVale,
+          status: (item.status === 'aprovada' ? 'aprovado' : item.status === 'recusada' ? 'recusado' : item.status === 'cancelada' ? 'cancelado' : item.status) as StatusVale,
           justificativa: item.descricao.split('Justificativa: ')[1] || item.descricao,
-          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' || item.status === 'aprovado' ? 3 : 4
+          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
         };
       });
       setVales(mappedVales);
