@@ -565,95 +565,144 @@ export default function Vales() {
           </Card>
         </div>
 
-        {/* Request Modal */}
+        {/* Request Modal - Strategic Transformation */}
         <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
-          <DialogContent className="sm:max-w-[500px] overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-primary/50 to-primary" />
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" />
-                Nova Solicitação de Vale
-              </DialogTitle>
-              <DialogDescription>
-                Escolha o tipo de benefício ou adiantamento que deseja solicitar.
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent className="sm:max-w-[550px] overflow-hidden p-0 border-0 shadow-2xl">
+            <div className="bg-gradient-to-r from-primary to-indigo-600 h-2 w-full" />
+            
+            <div className="p-6 pb-0">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black flex items-center gap-3 tracking-tighter">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Plus className="w-6 h-6 text-primary" />
+                  </div>
+                  Nova Solicitação
+                </DialogTitle>
+                <DialogDescription className="text-xs font-medium">
+                  Selecione o benefício e informe os detalhes para análise do RH.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
-            <div className="space-y-6 py-4">
-              {/* Type Selector */}
-              <div className="grid grid-cols-2 gap-3">
-                {(Object.entries(valeLabels) as [TipoVale, string][]).map(([type, label]) => {
-                  const Icon = valeIcons[type];
-                  const isSelected = selectedType === type;
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => setSelectedType(type)}
-                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
-                        isSelected 
-                          ? 'border-primary bg-primary/5 shadow-sm' 
-                          : 'border-border/50 bg-card hover:border-border hover:bg-muted/50'
-                      }`}
-                    >
-                      <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className={`text-[10px] font-bold text-center leading-tight uppercase ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {label}
-                      </span>
-                    </button>
-                  );
-                })}
+            <div className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tipo de Benefício</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(Object.entries(valeLabels) as [TipoVale, string][]).map(([type, label]) => {
+                    const Icon = valeIcons[type];
+                    const isSelected = selectedType === type;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setSelectedType(type)}
+                        className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all group relative overflow-hidden ${
+                          isSelected 
+                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/5' 
+                            : 'border-border/50 bg-card hover:border-primary/30 hover:bg-muted/30'
+                        }`}
+                      >
+                        <div className={`p-2 rounded-lg mb-3 transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className={`text-[10px] font-black leading-tight uppercase tracking-tight text-left ${isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                          {label}
+                        </span>
+                        {isSelected && (
+                          <motion.div layoutId="active-check" className="absolute top-2 right-2">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                          </motion.div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-xs font-bold uppercase">Valor Solicitado (R$)</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="amount" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Valor do Pedido</Label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-muted-foreground group-focus-within:text-primary transition-colors">R$</div>
                     <Input 
                       id="amount"
-                      type="text"
                       placeholder="0,00"
-                      className="pl-10 text-lg font-bold"
+                      className="pl-12 h-14 text-xl font-black rounded-2xl border-border/50 focus:border-primary/50 bg-background/50 transition-all shadow-inner"
                       value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '');
+                        if (val === '') { setAmount(''); return; }
+                        let n = parseInt(val);
+                        let formatted = (n / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                        setAmount(formatted);
+                      }}
                     />
                   </div>
                   {selectedType === 'adiantamento_salarial' && (
                     <div className="flex justify-between items-center px-1">
-                      <p className="text-[10px] text-muted-foreground">Disponível: <span className="font-bold">{formatCurrency(availableAdvance)}</span></p>
+                      <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">Disponível: <span className="font-black text-foreground">{formatCurrency(availableAdvance)}</span></p>
                       <button 
-                        className="text-[10px] text-primary font-bold hover:underline"
+                        className="text-[9px] text-primary font-black uppercase tracking-widest hover:underline"
                         type="button"
-                        onClick={() => setAmount(availableAdvance.toFixed(2).replace('.', ','))}
+                        onClick={() => setAmount(availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 }))}
                       >
-                        Usar máximo
+                        Máximo
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="justification" className="text-xs font-bold uppercase">Justificativa</Label>
-                  <Textarea 
-                    id="justification"
-                    placeholder="Descreva brevemente o motivo da sua solicitação..."
-                    className="resize-none min-h-[100px]"
-                    value={justification}
-                    onChange={(e) => setJustification(e.target.value)}
-                  />
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Documentos (Opcional)</Label>
+                  <div className="border-2 border-dashed border-border/50 rounded-2xl h-14 flex items-center justify-center bg-muted/20 hover:bg-muted/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">Anexar Arquivo</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="justification" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Justificativa e Notas</Label>
+                <Textarea 
+                  id="justification"
+                  placeholder="Explique o motivo desta solicitação para agilizar a aprovação..."
+                  className="resize-none min-h-[120px] rounded-2xl border-border/50 bg-background/50 p-4 font-medium text-sm focus:border-primary/50 transition-all"
+                  value={justification}
+                  onChange={(e) => setJustification(e.target.value)}
+                />
               </div>
             </div>
 
-            <DialogFooter className="bg-muted/30 -mx-6 -mb-6 p-6">
-              <Button variant="ghost" onClick={() => setIsNewModalOpen(false)}>Cancelar</Button>
-              <Button onClick={handleRequest} disabled={isSubmitting} className="gap-2 min-w-[120px]">
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                Confirmar
+            <DialogFooter className="bg-muted/30 p-6 flex flex-col-reverse sm:flex-row gap-3 mt-0 border-t border-border/20">
+              <Button 
+                variant="ghost" 
+                onClick={() => setIsNewModalOpen(false)}
+                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-12 px-6"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleRequest} 
+                disabled={isSubmitting} 
+                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-12 px-8 gap-2 shadow-lg shadow-primary/20"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processando
+                  </>
+                ) : (
+                  <>
+                    Enviar Solicitação
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
 
         {/* Detail Modal */}
         <Dialog open={!!selectedVale} onOpenChange={(open) => !open && setSelectedVale(null)}>
