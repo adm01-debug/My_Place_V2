@@ -86,6 +86,9 @@ export default function Vales() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
   
   // Form State
@@ -96,8 +99,39 @@ export default function Vales() {
   // Simulated Limits
   const salary = profile?.salario_base || 3500;
   const maxAdvance = salary * 0.4;
-  const currentUsed = 0; 
+  
+  const currentUsed = useMemo(() => {
+    return vales
+      .filter(v => v.status !== 'recusado' && v.status !== 'cancelado' && v.tipo === 'adiantamento_salarial')
+      .reduce((acc, curr) => acc + curr.valor, 0);
+  }, [vales]);
+
   const availableAdvance = maxAdvance - currentUsed;
+
+  const chartData = useMemo(() => {
+    const months = [5, 4, 3, 2, 1, 0].map(m => subMonths(new Date(), m));
+    return months.map(date => {
+      const monthLabel = format(date, 'MMM', { locale: ptBR });
+      const monthVales = vales.filter(v => 
+        format(new Date(v.data_solicitacao), 'MM/yyyy') === format(date, 'MM/yyyy') &&
+        (v.status === 'aprovado' || v.status === 'pago')
+      );
+      return {
+        name: monthLabel,
+        valor: monthVales.reduce((acc, curr) => acc + curr.valor, 0)
+      };
+    });
+  }, [vales]);
+
+  const filteredVales = useMemo(() => {
+    return vales.filter(v => {
+      const matchesSearch = v.justificativa.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           valeLabels[v.tipo].toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'todos' || v.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [vales, searchTerm, statusFilter]);
+
 
   const handlePrint = useCallback(() => {
     const content = receiptRef.current;
