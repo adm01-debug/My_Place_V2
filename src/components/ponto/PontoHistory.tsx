@@ -5,7 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Inbox } from 'lucide-react';
+import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronLeft, ChevronRight, MapPin, AlertCircle, Inbox, FileSpreadsheet, PencilLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -279,10 +279,15 @@ export default function PontoHistory() {
                                     href={`https://www.google.com/maps?q=${punch.latitude},${punch.longitude}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-primary hover:underline mt-1"
+                                    className="text-primary hover:underline mt-1 flex items-center gap-1"
                                   >
+                                    <MapPin className="w-2 h-2" />
                                     Ver no mapa
                                   </a>
+                                  <button className="text-amber-500 hover:underline mt-1.5 pt-1.5 border-t border-border/50 flex items-center gap-1">
+                                    <PencilLine className="w-2 h-2" />
+                                    Solicitar Ajuste
+                                  </button>
                                 </div>
                               ) : (
                                 <div className="absolute left-0 -top-8 hidden group-hover/item:block z-50 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border shadow-md">
