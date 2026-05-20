@@ -609,48 +609,96 @@ export default function Vales() {
                   </div>
                 </div>
 
-                <div className="p-6 border border-border/50 rounded-xl">
-                  <h4 className="text-xs font-bold uppercase mb-6 tracking-widest text-center">Jornada da Solicitação</h4>
-                  <div className="relative flex justify-between">
+                <div className="p-6 border border-border/50 rounded-xl relative overflow-hidden">
+                   {/* Etapa 4: Visualização de Timeline de Aprovação */}
+                  <h4 className="text-xs font-bold uppercase mb-8 tracking-widest text-center relative z-10">Jornada da Solicitação</h4>
+                  
+                  <div className="relative flex justify-between items-start">
+                    {/* Progress Bar Background */}
+                    <div className="absolute top-4 left-0 w-full h-1 bg-muted rounded-full" />
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((selectedVale.etapa_atual - 1) / 3) * 100}%` }}
+                      className="absolute top-4 left-0 h-1 bg-primary rounded-full z-0"
+                    />
+
                     {[1, 2, 3, 4].map((step) => {
                       const isActive = selectedVale.etapa_atual >= step;
-                      const labels = ['Enviado', 'Em Análise', 'Aprovado', 'Processado'];
-                      const descs = ['Aguardando RH', 'Verificando limites', 'Liberado p/ Financeiro', 'Pagamento efetuado'];
+                      const isCompleted = selectedVale.etapa_atual > step;
+                      const labels = ['Enviado', 'Análise', 'Aprovado', 'Concluído'];
+                      const icons = [FileText, Clock, ShieldCheck, CheckCircle2];
+                      const Icon = icons[step - 1];
+                      
                       return (
-                        <div key={step} className="flex flex-col items-center gap-2 relative z-10">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                            isActive ? 'bg-primary border-primary text-white scale-110 shadow-lg' : 'bg-card border-muted text-muted-foreground'
-                          }`}>
-                            {isActive ? <CheckCircle2 className="w-4 h-4" /> : <span className="text-xs font-bold">{step}</span>}
-                          </div>
-                          <div className="text-center max-w-[80px]">
-                            <p className={`text-[10px] font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{labels[step-1]}</p>
-                            <p className="text-[8px] text-muted-foreground leading-tight hidden sm:block">{descs[step-1]}</p>
+                        <div key={step} className="flex flex-col items-center gap-3 relative z-10 w-1/4">
+                          <motion.div 
+                            initial={false}
+                            animate={{ 
+                              scale: isActive ? 1.1 : 1,
+                              backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                              borderColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted))'
+                            }}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${
+                              isActive ? 'text-white' : 'text-muted-foreground'
+                            }`}
+                          >
+                            {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+                          </motion.div>
+                          <div className="text-center">
+                            <p className={`text-[10px] font-black uppercase tracking-tight ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {labels[step - 1]}
+                            </p>
+                            <p className="text-[8px] text-muted-foreground font-medium hidden sm:block">
+                              {step === 1 ? 'Via App' : step === 2 ? 'Fila do RH' : step === 3 ? 'Financeiro' : 'Liberado'}
+                            </p>
                           </div>
                         </div>
                       );
                     })}
-                    <div className="absolute top-4 left-0 w-full h-0.5 bg-muted -z-0" />
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${((selectedVale.etapa_atual - 1) / 3) * 100}%` }}
-                      className="absolute top-4 left-0 h-0.5 bg-primary -z-0"
-                    />
                   </div>
                 </div>
 
+                {/* Etapa 5: Gestão de Documentos e Anexos (Placeholder UI) */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Documentação Vinculada</h4>
+                    <Button variant="ghost" size="sm" className="h-7 text-[9px] uppercase font-bold gap-1.5">
+                      <Plus className="w-3 h-3" /> Adicionar Anexo
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl hover:bg-muted/40 transition-all cursor-pointer group">
+                      <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
+                        <FileText className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">comprovante_justificativa.pdf</p>
+                        <p className="text-[9px] text-muted-foreground">PDF • 1.2 MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border/20 flex flex-col sm:flex-row gap-3">
+                  {/* Etapa 7: Exportação e Compartilhamento Premium */}
+                  <Button 
+                    className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+                    onClick={handlePrint}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Gerar Comprovante PDF
+                  </Button>
+                  <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50">
+                    <ArrowRight className="w-4 h-4" />
+                    Compartilhar via WhatsApp
+                  </Button>
+                </div>
+                
+                {/* Hidden Receipt for Printing */}
                 <div className="hidden">
                   <div ref={receiptRef}>
                     <ValeReceipt vale={selectedVale} profile={profile} />
                   </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                  <Button variant="outline" className="gap-2" onClick={handlePrint}>
-                    <FileText className="w-4 h-4" />
-                    Imprimir Comprovante
-                  </Button>
-                  <Button onClick={() => setSelectedVale(null)}>Fechar</Button>
                 </div>
               </div>
             )}
