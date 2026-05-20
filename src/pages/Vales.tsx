@@ -280,105 +280,128 @@ export default function Vales() {
             </CardHeader>
             <CardContent className="px-0 pt-4 flex gap-4">
               <div className="h-[200px] w-full lg:w-2/3">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
-                              <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
-                              <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="valor" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={3} 
-                      fillOpacity={1} 
-                      fill="url(#colorValor)" 
-                      animationDuration={1500}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {loading ? (
+                  <div className="h-full w-full px-6 flex flex-col justify-end gap-2 pb-4">
+                    <div className="flex items-end gap-2 h-full">
+                      {[1, 2, 3, 4, 5, 6].map(i => (
+                        <Skeleton key={i} className="flex-1" style={{ height: `${20 + Math.random() * 60}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
+                      />
+                      <YAxis hide />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
+                                <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
+                                <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="valor" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3} 
+                        fillOpacity={1} 
+                        fill="url(#colorValor)" 
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
               
               {/* Distribution Stats */}
               <div className="hidden lg:flex flex-col justify-center gap-4 pr-6">
-                {(['adiantamento_salarial', 'vale_refeicao', 'vale_transporte'] as const).map(tipo => (
-                  <div key={tipo} className="space-y-1">
-                    <p className="text-[9px] uppercase font-black text-muted-foreground">{valeLabels[tipo]}</p>
-                    <p className="text-sm font-black">{formatCurrency(vales.filter(v => v.tipo === tipo).reduce((acc, curr) => acc + curr.valor, 0))}</p>
-                  </div>
-                ))}
+                {loading ? (
+                  [1, 2, 3].map(i => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-2 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))
+                ) : (
+                  (['adiantamento_salarial', 'vale_refeicao', 'vale_transporte'] as const).map(tipo => (
+                    <div key={tipo} className="space-y-1">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground">{valeLabels[tipo]}</p>
+                      <p className="text-sm font-black">{formatCurrency(vales.filter(v => v.tipo === tipo).reduce((acc, curr) => acc + curr.valor, 0))}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
 
-
           <div className="lg:col-span-2 space-y-4">
-            <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-              <CardContent className="pt-8 relative flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="space-y-1">
-                      <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
-                      <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+            {loading ? (
+              <Skeleton className="w-full h-full min-h-[250px] rounded-2xl" />
+            ) : (
+              <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+                <CardContent className="pt-8 relative flex flex-col h-full justify-between">
+                  <div>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="space-y-1">
+                        <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
+                        <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+                      </div>
+                      <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <DollarSign className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                      <DollarSign className="w-6 h-6 text-white" />
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-end text-xs font-bold">
+                        <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
+                        <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                          transition={{ duration: 1.5, ease: "circOut" }}
+                          className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                        />
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-end text-xs font-bold">
-                      <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
-                      <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                        transition={{ duration: 1.5, ease: "circOut" }}
-                        className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
-                    <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                  <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
+                    <div className="space-y-1">
+                      <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
+                      <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
+                      Detalhes <ChevronRight className="w-3 h-3 ml-1" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
-                    Detalhes <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
+
 
         {/* Etapa 8: Insights Preditivos e Alertas */}
         <AnimatePresence>
