@@ -35,7 +35,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useReactToPrint } from 'react-to-print';
+
 
 type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
 type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
