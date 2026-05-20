@@ -71,6 +71,7 @@ export default function Perfil() {
     { icon: Building2, label: 'Departamento', value: profile?.departamento },
     { icon: Hash, label: 'Matrícula', value: profile?.matricula },
     { icon: Calendar, label: 'Admissão', value: profile?.data_admissao ? new Date(profile.data_admissao + 'T12:00:00').toLocaleDateString('pt-BR') : null },
+    { icon: User, label: 'Reporta-se a', value: profile?.gestor_id ? 'Seu Gestor Direto' : null },
   ].filter(item => item.value);
 
   return (
