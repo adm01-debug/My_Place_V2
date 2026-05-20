@@ -182,6 +182,18 @@ export default function Vales() {
   }, [user]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsNewModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+
     fetchData();
 
     // Etapa 3: Sincronização em Tempo Real (Realtime Sync)
@@ -245,6 +257,23 @@ export default function Vales() {
       setIsSubmitting(false);
     }
   };
+
+  const handleCancel = async (id: string) => {
+    if (!user) return;
+    
+    const confirmToast = toast.promise(
+      supabase.from('solicitacoes').update({ status: 'cancelada' }).eq('id', id),
+      {
+        loading: 'Cancelando solicitação...',
+        success: 'Solicitação cancelada com sucesso.',
+        error: 'Erro ao cancelar. Tente novamente.'
+      }
+    );
+    
+    setSelectedVale(null);
+    fetchData();
+  };
+
 
 
   const formatCurrency = (val: number) => {
@@ -767,7 +796,18 @@ export default function Vales() {
                     <FileText className="w-4 h-4" />
                     Gerar Comprovante PDF
                   </Button>
+                  {selectedVale.status === 'pendente' && (
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                      onClick={() => handleCancel(selectedVale.id)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Cancelar Solicitação
+                    </Button>
+                  )}
                   <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50">
+
                     <ArrowRight className="w-4 h-4" />
                     Compartilhar via WhatsApp
                   </Button>
