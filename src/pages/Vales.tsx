@@ -38,6 +38,7 @@ import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ValeReceipt } from '@/components/vales/ValeReceipt';
+import { RequestStepper } from '@/components/vales/RequestStepper';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 
