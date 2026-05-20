@@ -232,7 +232,7 @@ export default function Vales() {
         icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />
       });
       
-      setIsNewModalOpen(false);
+      // Modal handles its own success state now
       setAmount('');
       setJustification('');
       fetchData();
@@ -265,6 +265,17 @@ export default function Vales() {
             </Button>
           }
         />
+
+        {/* Floating Action Button for Mobile Accessibility */}
+        <div className="fixed bottom-24 right-6 z-50 md:hidden">
+          <Button 
+            onClick={() => setIsNewModalOpen(true)} 
+            className="w-14 h-14 rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center p-0"
+          >
+            <Plus className="w-8 h-8" />
+          </Button>
+        </div>
+
 
         {/* Strategic Dashboard: Financial Wellness & Intelligence */}
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
