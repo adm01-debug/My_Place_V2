@@ -55,7 +55,7 @@ export interface ValeRequest {
   etapa_atual: number;
 }
 
-const valeLabels: Record<TipoVale, string> = {
+export const valeLabels: Record<TipoVale, string> = {
   adiantamento_salarial: 'Adiantamento Salarial',
   vale_refeicao: 'Vale Refeição / Alimentação',
   vale_transporte: 'Vale Transporte',
@@ -78,69 +78,6 @@ const statusColors: Record<StatusVale, string> = {
   cancelado: 'bg-muted text-muted-foreground border-border',
 };
 
-const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => {
-  return (
-    <div className="p-8 bg-white text-slate-900 font-serif max-w-2xl mx-auto border shadow-sm">
-      <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold uppercase tracking-tighter">Comprovante de Adiantamento</h1>
-          <p className="text-sm text-slate-500 mt-1">ID: {vale.id.slice(0, 8).toUpperCase()}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
-          <p className="text-xs uppercase font-sans">Digital Signature Validated</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-8 mb-8 font-sans">
-        <div className="space-y-4">
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Beneficiário</p>
-            <p className="font-bold">{profile?.nome || 'Colaborador'}</p>
-            <p className="text-xs">{profile?.cargo || 'Cargo não informado'}</p>
-            <p className="text-xs">Matrícula: {profile?.matricula || '---'}</p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">CPF</p>
-            <p className="text-sm">{profile?.cpf || '---'}</p>
-          </div>
-        </div>
-        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-right">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Valor do Adiantamento</p>
-          <p className="text-3xl font-black">R$ {vale.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <p className="text-[10px] text-slate-500 mt-1 italic">Este valor será descontado na próxima folha.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4 mb-8 font-sans">
-        <div className="bg-slate-50 p-4 rounded border border-slate-200">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tipo de Solicitação</p>
-          <p className="font-medium">{valeLabels[vale.tipo]}</p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Justificativa</p>
-          <p className="text-sm leading-relaxed">{vale.justificativa}</p>
-        </div>
-      </div>
-
-      <div className="mt-12 pt-8 border-t border-slate-200 font-sans">
-        <div className="flex justify-between gap-12">
-          <div className="flex-1 text-center">
-            <div className="h-0.5 bg-slate-400 mb-2" />
-            <p className="text-[10px] uppercase font-bold">Assinatura Eletrônica RH</p>
-          </div>
-          <div className="flex-1 text-center">
-            <div className="h-0.5 bg-slate-400 mb-2" />
-            <p className="text-[10px] uppercase font-bold">Assinatura Colaborador</p>
-          </div>
-        </div>
-        <p className="text-[8px] text-center text-slate-400 mt-8">
-          Este documento é uma representação digital de uma operação financeira interna e possui validade jurídica conforme MP 2.200-2/2001.
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export default function Vales() {
   const { user, profile } = useAuth();
