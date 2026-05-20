@@ -195,16 +195,21 @@ export default function Ponto() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Clock & Map Preview */}
         <Card className="border-border/50 shadow-lg h-full overflow-hidden">
-          <div className="relative h-24 bg-muted/30 border-b border-border/50 overflow-hidden">
-             <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="relative h-28 bg-muted/30 border-b border-border/50 overflow-hidden">
+             <div className="absolute inset-0 opacity-30 pointer-events-none">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full border border-primary/20 animate-[ping_3s_linear_infinite]" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border border-primary/10 animate-[ping_4s_linear_infinite]" />
+                {/* Simulated Radar Line */}
+                <div className="absolute top-1/2 left-1/2 w-[150px] h-[1px] bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 origin-left animate-[spin_4s_linear_infinite]" />
              </div>
              <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-1">
-                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 shadow-sm">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Localização Verificada</span>
+                   <div className="flex flex-col items-center gap-2 px-4 py-2 rounded-2xl bg-background/60 backdrop-blur-md border border-white/20 shadow-xl">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">Escritório Central</span>
+                      </div>
+                      <span className="text-[9px] text-muted-foreground font-medium">Sua localização está dentro do raio permitido</span>
                    </div>
                 </div>
              </div>
@@ -315,13 +320,15 @@ export default function Ponto() {
                           </p>
                         )}
                       </div>
-                      <span className="text-sm font-semibold text-foreground tabular-nums">
-                        {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
+                          {new Date(punch.data_hora).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">Confirmado</span>
+                      </div>
                     </div>
                   );
                 })}
