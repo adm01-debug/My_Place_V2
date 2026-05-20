@@ -19,7 +19,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Calendar,
-  FileText
+  FileText,
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
@@ -33,14 +35,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ValeReceipt } from '@/components/vales/ValeReceipt';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 
-type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
-type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
+export type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
+export type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
 
-interface ValeRequest {
+export interface ValeRequest {
   id: string;
   tipo: TipoVale;
   valor: number;
@@ -51,7 +55,7 @@ interface ValeRequest {
   etapa_atual: number;
 }
 
-const valeLabels: Record<TipoVale, string> = {
+export const valeLabels: Record<TipoVale, string> = {
   adiantamento_salarial: 'Adiantamento Salarial',
   vale_refeicao: 'Vale Refeição / Alimentação',
   vale_transporte: 'Vale Transporte',
@@ -74,69 +78,6 @@ const statusColors: Record<StatusVale, string> = {
   cancelado: 'bg-muted text-muted-foreground border-border',
 };
 
-const ValeReceipt = ({ vale, profile }: { vale: ValeRequest, profile: any }) => {
-  return (
-    <div className="p-8 bg-white text-slate-900 font-serif max-w-2xl mx-auto border shadow-sm">
-      <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold uppercase tracking-tighter">Comprovante de Adiantamento</h1>
-          <p className="text-sm text-slate-500 mt-1">ID: {vale.id.slice(0, 8).toUpperCase()}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
-          <p className="text-xs uppercase font-sans">Digital Signature Validated</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-8 mb-8 font-sans">
-        <div className="space-y-4">
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Beneficiário</p>
-            <p className="font-bold">{profile?.nome || 'Colaborador'}</p>
-            <p className="text-xs">{profile?.cargo || 'Cargo não informado'}</p>
-            <p className="text-xs">Matrícula: {profile?.matricula || '---'}</p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-slate-400">CPF</p>
-            <p className="text-sm">{profile?.cpf || '---'}</p>
-          </div>
-        </div>
-        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-right">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Valor do Adiantamento</p>
-          <p className="text-3xl font-black">R$ {vale.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <p className="text-[10px] text-slate-500 mt-1 italic">Este valor será descontado na próxima folha.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4 mb-8 font-sans">
-        <div className="bg-slate-50 p-4 rounded border border-slate-200">
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tipo de Solicitação</p>
-          <p className="font-medium">{valeLabels[vale.tipo]}</p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Justificativa</p>
-          <p className="text-sm leading-relaxed">{vale.justificativa}</p>
-        </div>
-      </div>
-
-      <div className="mt-12 pt-8 border-t border-slate-200 font-sans">
-        <div className="flex justify-between gap-12">
-          <div className="flex-1 text-center">
-            <div className="h-0.5 bg-slate-400 mb-2" />
-            <p className="text-[10px] uppercase font-bold">Assinatura Eletrônica RH</p>
-          </div>
-          <div className="flex-1 text-center">
-            <div className="h-0.5 bg-slate-400 mb-2" />
-            <p className="text-[10px] uppercase font-bold">Assinatura Colaborador</p>
-          </div>
-        </div>
-        <p className="text-[8px] text-center text-slate-400 mt-8">
-          Este documento é uma representação digital de uma operação financeira interna e possui validade jurídica conforme MP 2.200-2/2001.
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export default function Vales() {
   const { user, profile } = useAuth();
@@ -145,6 +86,9 @@ export default function Vales() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
   
   // Form State
@@ -155,8 +99,39 @@ export default function Vales() {
   // Simulated Limits
   const salary = profile?.salario_base || 3500;
   const maxAdvance = salary * 0.4;
-  const currentUsed = 0; 
+  
+  const currentUsed = useMemo(() => {
+    return vales
+      .filter(v => v.status !== 'recusado' && v.status !== 'cancelado' && v.tipo === 'adiantamento_salarial')
+      .reduce((acc, curr) => acc + curr.valor, 0);
+  }, [vales]);
+
   const availableAdvance = maxAdvance - currentUsed;
+
+  const chartData = useMemo(() => {
+    const months = [5, 4, 3, 2, 1, 0].map(m => subMonths(new Date(), m));
+    return months.map(date => {
+      const monthLabel = format(date, 'MMM', { locale: ptBR });
+      const monthVales = vales.filter(v => 
+        format(new Date(v.data_solicitacao), 'MM/yyyy') === format(date, 'MM/yyyy') &&
+        (v.status === 'aprovado' || v.status === 'pago')
+      );
+      return {
+        name: monthLabel,
+        valor: monthVales.reduce((acc, curr) => acc + curr.valor, 0)
+      };
+    });
+  }, [vales]);
+
+  const filteredVales = useMemo(() => {
+    return vales.filter(v => {
+      const matchesSearch = v.justificativa.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           valeLabels[v.tipo].toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'todos' || v.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [vales, searchTerm, statusFilter]);
+
 
   const handlePrint = useCallback(() => {
     const content = receiptRef.current;
@@ -207,41 +182,66 @@ export default function Vales() {
 
   const handleRequest = async () => {
     if (!user || !amount || !justification) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error('Campos obrigatórios ausentes', {
+        description: 'Por favor, informe o valor e a justificativa para continuar.',
+        icon: <AlertCircle className="w-4 h-4 text-red-500" />
+      });
       return;
     }
 
-    const numAmount = parseFloat(amount.replace(',', '.'));
+    const numAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error('Valor inválido.');
+      toast.error('Valor inválido', {
+        description: 'O valor da solicitação deve ser maior que zero.'
+      });
       return;
     }
 
     if (selectedType === 'adiantamento_salarial' && numAmount > availableAdvance) {
-      toast.error(`O valor máximo para adiantamento é R$ ${availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+      toast.error('Limite excedido', {
+        description: `O valor máximo disponível é ${formatCurrency(availableAdvance)}`,
+        action: {
+          label: 'Usar Máximo',
+          onClick: () => setAmount(availableAdvance.toFixed(2).replace('.', ','))
+        }
+      });
       return;
     }
 
     setIsSubmitting(true);
-    const { error } = await supabase.from('solicitacoes').insert({
-      user_id: user.id,
-      tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
-      descricao: `[${valeLabels[selectedType]}] Valor: R$ ${amount} - Justificativa: ${justification}`,
-      status: 'pendente',
-      prioridade: 'normal'
-    });
+    const loadingToast = toast.loading('Processando sua solicitação...');
 
-    if (error) {
-      toast.error('Erro ao processar solicitação: ' + error.message);
-    } else {
-      toast.success('Solicitação de vale enviada com sucesso!');
+    try {
+      const { error } = await supabase.from('solicitacoes').insert({
+        user_id: user.id,
+        tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        descricao: `[${valeLabels[selectedType]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${justification}`,
+        status: 'pendente',
+        prioridade: 'normal'
+      });
+
+      if (error) throw error;
+
+      toast.success('Solicitação enviada!', {
+        id: loadingToast,
+        description: 'Sua jornada de aprovação começou. Acompanhe pelo histórico.',
+        icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+      });
+      
       setIsNewModalOpen(false);
       setAmount('');
       setJustification('');
       fetchData();
+    } catch (error: any) {
+      toast.error('Falha no processamento', {
+        id: loadingToast,
+        description: error.message
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
+
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -263,116 +263,189 @@ export default function Vales() {
         />
 
         {/* Strategic Dashboard: Financial Wellness & Intelligence */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="md:col-span-2 bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group">
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-            <CardContent className="pt-8 relative">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Saldo Disponível para Antecipação</p>
-                  <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
-                </div>
-                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
-                  <TrendingUp className="w-6 h-6 text-white animate-pulse" />
-                </div>
-              </div>
-              
-              <div className="mt-8 space-y-3">
-                <div className="flex justify-between items-end text-xs font-bold">
-                  <span className="text-primary-foreground/80">Utilização do Limite</span>
-                  <span>{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
-                </div>
-                <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-emerald-400 to-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                  />
-                </div>
-                <div className="flex justify-between text-[9px] text-primary-foreground/60 uppercase font-black">
-                  <span>R$ 0,00</span>
-                  <span>Limite Máximo: {formatCurrency(maxAdvance)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-amber-500/10 rounded-lg">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Processando</p>
-              </div>
-              <h3 className="text-3xl font-black text-foreground">
-                {vales.filter(v => v.status === 'pendente' || v.status === 'em_analise').length}
-              </h3>
-              <p className="text-[10px] text-muted-foreground mt-2">Solicitações em auditoria pelo RH</p>
-            </CardContent>
-            <div className="h-1 bg-amber-500/30 w-full" />
-          </Card>
-
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-indigo-500/10 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Próximo Pagamento</p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+          <Card className="lg:col-span-4 border-border/50 shadow-xl overflow-hidden bg-card/50 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <div className="space-y-1">
-                <h3 className="text-2xl font-black text-foreground">{formatCurrency(vales.find(v => v.status === 'pago')?.valor || 0)}</h3>
-                <p className="text-[10px] font-bold text-indigo-500 uppercase">Agendado para 05/{format(new Date(), 'MM')}</p>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  Fluxo de Antecipações
+                </CardTitle>
+                <p className="text-[10px] text-muted-foreground">Visão semestral de solicitações aprovadas</p>
+              </div>
+              <div className="flex items-center gap-4">
+                 <div className="text-right">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Total do Período</p>
+                    <p className="text-sm font-black text-primary">{formatCurrency(chartData.reduce((acc, curr) => acc + curr.valor, 0))}</p>
+                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="px-0 pt-4">
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
+                    />
+                    <YAxis hide />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
+                              <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
+                              <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="valor" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#colorValor)" 
+                      animationDuration={1500}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
-            <div className="h-1 bg-indigo-500/30 w-full" />
           </Card>
+
+          <div className="lg:col-span-2 space-y-4">
+            <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+              <CardContent className="pt-8 relative flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="space-y-1">
+                      <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
+                      <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+                    </div>
+                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                      <DollarSign className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end text-xs font-bold">
+                      <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
+                      <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                        transition={{ duration: 1.5, ease: "circOut" }}
+                        className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
+                    <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
+                    Detalhes <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
+           <div className="relative w-full md:w-96 group">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+             <Input 
+               placeholder="Buscar por justificativa ou tipo..." 
+               className="pl-10 h-11 bg-background/50 border-border/50 focus:border-primary/50 transition-all rounded-xl"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
+           </div>
+           
+           <div className="flex items-center gap-3 w-full md:w-auto">
+             <div className="flex bg-muted/30 p-1 rounded-xl border border-border/50 w-full md:w-auto">
+               {(['todos', 'pendente', 'aprovado', 'pago'] as const).map((status) => (
+                 <button
+                   key={status}
+                   onClick={() => setStatusFilter(status)}
+                   className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                     statusFilter === status 
+                       ? 'bg-background text-primary shadow-sm ring-1 ring-border/50' 
+                       : 'text-muted-foreground hover:text-foreground'
+                   }`}
+                 >
+                   {status === 'todos' ? 'Todos' : status}
+                 </button>
+               ))}
+             </div>
+             <Button variant="outline" className="h-11 px-4 rounded-xl border-border/50 hidden md:flex">
+                <Filter className="w-4 h-4 mr-2" />
+                Filtros
+             </Button>
+           </div>
         </div>
 
         {/* List of Requests with Visual Timeline */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Histórico de Solicitações
+            <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Histórico Estratégico
+              <Badge variant="secondary" className="text-[10px] font-black">{filteredVales.length}</Badge>
             </h2>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="h-8 text-[10px] gap-1">
-                <Filter className="w-3 h-3" /> Filtrar
-              </Button>
-            </div>
           </div>
 
           <AnimatePresence mode="popLayout">
             {loading ? (
+
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-24 w-full bg-muted/40 animate-pulse rounded-xl border border-border/50" />
                 ))}
               </div>
-            ) : vales.length === 0 ? (
+            ) : filteredVales.length === 0 ? (
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="py-12 flex flex-col items-center justify-center text-center space-y-3 bg-muted/20 rounded-2xl border-2 border-dashed border-border/50"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="py-20 flex flex-col items-center justify-center text-center space-y-4 bg-muted/10 rounded-3xl border-2 border-dashed border-border/50"
               >
-                <div className="p-4 bg-muted/50 rounded-full">
-                  <Receipt className="w-8 h-8 text-muted-foreground" />
+                <div className="p-6 bg-background rounded-full shadow-inner ring-8 ring-muted/20">
+                  <Search className="w-10 h-10 text-muted-foreground/40" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Nenhuma solicitação ativa</h3>
-                  <p className="text-sm text-muted-foreground max-w-xs">
-                    Você ainda não possui pedidos de vales ou adiantamentos registrados.
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-foreground tracking-tight">Nenhum resultado encontrado</h3>
+                  <p className="text-xs text-muted-foreground max-w-[250px] mx-auto">
+                    Não encontramos solicitações para os filtros aplicados. Tente ajustar sua busca.
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setIsNewModalOpen(true)}>
-                  Começar agora
+                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('todos'); }} className="text-primary font-black uppercase tracking-widest text-[10px]">
+                  Limpar Filtros
                 </Button>
               </motion.div>
             ) : (
-              vales.map((vale, idx) => {
+              filteredVales.map((vale, idx) => {
+
                 const Icon = valeIcons[vale.tipo] || Receipt;
                 return (
                   <motion.div
