@@ -262,8 +262,13 @@ export default function Vales() {
     if (!user) return;
     
     const confirmToast = toast.promise(
-      supabase.from('solicitacoes').update({ status: 'cancelada' }).eq('id', id),
+      (async () => {
+        const { error } = await supabase.from('solicitacoes').update({ status: 'cancelada' }).eq('id', id);
+        if (error) throw error;
+        return true;
+      })(),
       {
+
         loading: 'Cancelando solicitação...',
         success: 'Solicitação cancelada com sucesso.',
         error: 'Erro ao cancelar. Tente novamente.'
