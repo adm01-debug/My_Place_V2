@@ -217,7 +217,7 @@ export default function Solicitacoes() {
     <PullToRefresh onRefresh={async () => { await fetchData(); }}>
     <div className="w-full max-w-5xl mx-auto space-y-6">
       <ModuleHeader 
-        title="Solicitações" 
+        title="Minhas Solicitações" 
         description="Abra e acompanhe seus pedidos e requerimentos ao RH"
         icon={FileText}
         actions={
