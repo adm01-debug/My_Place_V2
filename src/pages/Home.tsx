@@ -80,6 +80,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   const [pendingCount, setPendingCount] = useState({ ferias: 0, solicitacoes: 0, notificacoes: 0 });
+  const [gestorNome, setGestorNome] = useState<string | null>(null);
 
   const fetchCounts = useCallback(async () => {
     if (!user) return;
@@ -91,7 +92,20 @@ export default function Home() {
     setPendingCount({ ferias: f.count || 0, solicitacoes: s.count || 0, notificacoes: n.count || 0 });
   }, [user]);
 
-  useEffect(() => { fetchCounts(); }, [fetchCounts]);
+  const fetchGestor = useCallback(async () => {
+    if (!profile?.gestor_id) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('nome')
+      .eq('id', profile.gestor_id)
+      .single();
+    if (data) setGestorNome(data.nome);
+  }, [profile?.gestor_id]);
+
+  useEffect(() => { 
+    fetchCounts(); 
+    fetchGestor();
+  }, [fetchCounts, fetchGestor]);
 
   const initials = profile?.nome
     ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -230,7 +244,7 @@ export default function Home() {
                 <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
               )}
               {profile?.gestor_id && (
-                 <ProfileInfoItem icon={User} label="Reporta-se a" value="Seu Gestor Direto" />
+                 <ProfileInfoItem icon={User} label="Reporta-se a" value={gestorNome || 'Carregando...'} />
               )}
             </CardContent>
           </Card>

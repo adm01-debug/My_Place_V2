@@ -8,6 +8,8 @@ export function TimeBankCard() {
   const { profile } = useAuth();
   
   const saldo = profile?.saldo_horas || 0;
+  const valorHoraExtra = profile?.valor_hora_extra || 0;
+  const valorEstimado = saldo > 0 ? saldo * valorHoraExtra : 0;
   const isPositive = saldo >= 0;
 
   return (
@@ -45,7 +47,9 @@ export function TimeBankCard() {
             </div>
             <p className="text-[11px] text-muted-foreground">
               {isPositive 
-                ? 'Você possui horas para compensar.' 
+                ? valorEstimado > 0 
+                  ? `Valor estimado: R$ ${valorEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                  : 'Você possui horas para compensar.' 
                 : 'Atenção: você possui horas em débito.'}
             </p>
           </div>
