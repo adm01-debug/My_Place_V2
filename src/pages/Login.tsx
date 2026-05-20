@@ -99,15 +99,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5 dark:from-slate-950 dark:via-slate-900 dark:to-primary/10 relative overflow-hidden">
       {/* Decorative blurred orbs */}
       <div className="absolute top-[-120px] left-[-80px] w-72 h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-100px] right-[-60px] w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' as const }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' as const }}
         className="w-full max-w-md space-y-8 relative z-10"
       >
         <div className="text-center space-y-4">
@@ -119,9 +119,9 @@ const Login: React.FC = () => {
           >
             <Building2 className="w-10 h-10 text-primary-foreground" />
           </motion.div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Portal do Colaborador</h1>
-            <p className="text-muted-foreground/80 mt-2">Acesse sua conta para continuar</p>
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
+            <h1 className="text-3xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 uppercase">Portal do Colaborador</h1>
+            <p className="text-muted-foreground/80 mt-2 font-medium">Autoatendimento 360º de RH</p>
           </div>
         </div>
 
