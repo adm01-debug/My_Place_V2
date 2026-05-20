@@ -31,8 +31,10 @@ interface RequestStepperProps {
 const steps = [
   { id: 'type', title: 'Tipo de Vale', description: 'O que você precisa?' },
   { id: 'details', title: 'Valores', description: 'Quanto e por quê?' },
-  { id: 'review', title: 'Revisão', description: 'Tudo certinho?' }
+  { id: 'review', title: 'Revisão', description: 'Tudo certinho?' },
+  { id: 'success', title: 'Sucesso', description: 'Tudo pronto!' }
 ];
+
 
 export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvance }: RequestStepperProps) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -71,13 +73,15 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
     },
   ];
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+  const handleNext = async () => {
+    if (currentStep === 2) {
+      await onSubmit({ type: selectedType, amount, justification });
+      setCurrentStep(3);
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      onSubmit({ type: selectedType, amount, justification });
     }
   };
+
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -267,12 +271,42 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                 </div>
               </div>
             )}
+
+            {currentStep === 3 && (
+              <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-500/20"
+                >
+                  <CheckCircle2 className="w-10 h-10" />
+                </motion.div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Solicitação Enviada!</h3>
+                  <p className="text-sm text-muted-foreground max-w-[280px]">
+                    Sua solicitação de {valeLabels[selectedType]} no valor de R$ {amount} foi registrada com sucesso.
+                  </p>
+                </div>
+                <div className="bg-muted/30 p-4 rounded-xl border border-border/50 w-full flex items-center gap-3">
+                  <Info className="w-5 h-5 text-primary" />
+                  <p className="text-[10px] text-left text-muted-foreground font-medium">
+                    Você pode acompanhar o status na tela inicial e baixar o comprovante assim que for aprovado.
+                  </p>
+                </div>
+                <Button onClick={onClose} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
+                  Entendi, Voltar ao Dashboard
+                </Button>
+              </div>
+            )}
           </motion.div>
+
         </AnimatePresence>
       </div>
 
       {/* Stepper Footer */}
-      <div className="flex gap-3 pt-8 mt-auto px-2">
+      {currentStep < 3 && (
+        <div className="flex gap-3 pt-8 mt-auto px-2">
+
         <Button
           variant="outline"
           onClick={handleBack}
@@ -296,7 +330,9 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
           )}
         </Button>
       </div>
+      )}
     </div>
+
   );
 };
 

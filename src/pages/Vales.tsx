@@ -30,7 +30,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -178,6 +182,18 @@ export default function Vales() {
   }, [user]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsNewModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+
     fetchData();
 
     // Etapa 3: Sincronização em Tempo Real (Realtime Sync)
@@ -228,7 +244,7 @@ export default function Vales() {
         icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />
       });
       
-      setIsNewModalOpen(false);
+      // Modal handles its own success state now
       setAmount('');
       setJustification('');
       fetchData();
@@ -241,6 +257,28 @@ export default function Vales() {
       setIsSubmitting(false);
     }
   };
+
+  const handleCancel = async (id: string) => {
+    if (!user) return;
+    
+    const confirmToast = toast.promise(
+      (async () => {
+        const { error } = await supabase.from('solicitacoes').update({ status: 'cancelada' }).eq('id', id);
+        if (error) throw error;
+        return true;
+      })(),
+      {
+
+        loading: 'Cancelando solicitação...',
+        success: 'Solicitação cancelada com sucesso.',
+        error: 'Erro ao cancelar. Tente novamente.'
+      }
+    );
+    
+    setSelectedVale(null);
+    fetchData();
+  };
+
 
 
   const formatCurrency = (val: number) => {
@@ -262,6 +300,17 @@ export default function Vales() {
           }
         />
 
+        {/* Floating Action Button for Mobile Accessibility */}
+        <div className="fixed bottom-24 right-6 z-50 md:hidden">
+          <Button 
+            onClick={() => setIsNewModalOpen(true)} 
+            className="w-14 h-14 rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center p-0"
+          >
+            <Plus className="w-8 h-8" />
+          </Button>
+        </div>
+
+
         {/* Strategic Dashboard: Financial Wellness & Intelligence */}
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
           <Card className="lg:col-span-4 border-border/50 shadow-xl overflow-hidden bg-card/50 backdrop-blur-sm">
@@ -269,107 +318,135 @@ export default function Vales() {
               <div className="space-y-1">
                 <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  Fluxo de Antecipações
+                  Performance Financeira
                 </CardTitle>
-                <p className="text-[10px] text-muted-foreground">Visão semestral de solicitações aprovadas</p>
-              </div>
-              <div className="flex items-center gap-4">
-                 <div className="text-right">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Total do Período</p>
-                    <p className="text-sm font-black text-primary">{formatCurrency(chartData.reduce((acc, curr) => acc + curr.valor, 0))}</p>
-                 </div>
+                <p className="text-[10px] text-muted-foreground">Visão holística de gastos e tendências</p>
               </div>
             </CardHeader>
-            <CardContent className="px-0 pt-4">
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
-                    />
-                    <YAxis hide />
-                    <Tooltip 
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
-                              <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
-                              <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="valor" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={3} 
-                      fillOpacity={1} 
-                      fill="url(#colorValor)" 
-                      animationDuration={1500}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+            <CardContent className="px-0 pt-4 flex gap-4">
+              <div className="h-[200px] w-full lg:w-2/3">
+                {loading ? (
+                  <div className="h-full w-full px-6 flex flex-col justify-end gap-2 pb-4">
+                    <div className="flex items-end gap-2 h-full">
+                      {[1, 2, 3, 4, 5, 6].map(i => (
+                        <Skeleton key={i} className="flex-1" style={{ height: `${20 + Math.random() * 60}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fontSize: 10, fontWeight: 700, fill: 'hsl(var(--muted-foreground))' }} 
+                      />
+                      <YAxis hide />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-popover border border-border p-2 rounded-lg shadow-xl backdrop-blur-md">
+                                <p className="text-[10px] font-bold uppercase text-muted-foreground">{payload[0].payload.name}</p>
+                                <p className="text-xs font-black text-primary">{formatCurrency(payload[0].value as number)}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="valor" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3} 
+                        fillOpacity={1} 
+                        fill="url(#colorValor)" 
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+              
+              {/* Distribution Stats */}
+              <div className="hidden lg:flex flex-col justify-center gap-4 pr-6">
+                {loading ? (
+                  [1, 2, 3].map(i => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-2 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))
+                ) : (
+                  (['adiantamento_salarial', 'vale_refeicao', 'vale_transporte'] as const).map(tipo => (
+                    <div key={tipo} className="space-y-1">
+                      <p className="text-[9px] uppercase font-black text-muted-foreground">{valeLabels[tipo]}</p>
+                      <p className="text-sm font-black">{formatCurrency(vales.filter(v => v.tipo === tipo).reduce((acc, curr) => acc + curr.valor, 0))}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
 
           <div className="lg:col-span-2 space-y-4">
-            <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-              <CardContent className="pt-8 relative flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="space-y-1">
-                      <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
-                      <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+            {loading ? (
+              <Skeleton className="w-full h-full min-h-[250px] rounded-2xl" />
+            ) : (
+              <Card className="bg-gradient-to-br from-primary via-primary/90 to-indigo-700 text-white shadow-xl border-0 overflow-hidden relative group h-full">
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+                <CardContent className="pt-8 relative flex flex-col h-full justify-between">
+                  <div>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="space-y-1">
+                        <p className="text-primary-foreground/70 text-[10px] font-bold uppercase tracking-[0.2em]">Disponível para Antecipação</p>
+                        <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(availableAdvance)}</h3>
+                      </div>
+                      <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <DollarSign className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                      <DollarSign className="w-6 h-6 text-white" />
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-end text-xs font-bold">
+                        <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
+                        <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
+                          transition={{ duration: 1.5, ease: "circOut" }}
+                          className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                        />
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-end text-xs font-bold">
-                      <span className="text-primary-foreground/80 uppercase text-[9px]">Utilização</span>
-                      <span className="text-lg font-black">{((currentUsed / maxAdvance) * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 p-[1px]">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(currentUsed / maxAdvance) * 100}%` }}
-                        transition={{ duration: 1.5, ease: "circOut" }}
-                        className="h-full bg-gradient-to-r from-emerald-400 to-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
-                    <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                  <div className="pt-6 border-t border-white/10 mt-6 flex justify-between items-center">
+                    <div className="space-y-1">
+                      <p className="text-[9px] text-primary-foreground/60 uppercase font-black">Limite Total</p>
+                      <p className="text-sm font-bold">{formatCurrency(maxAdvance)}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
+                      Detalhes <ChevronRight className="w-3 h-3 ml-1" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0 text-[10px] uppercase font-black h-8">
-                    Detalhes <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
+
 
         {/* Etapa 8: Insights Preditivos e Alertas */}
         <AnimatePresence>
@@ -555,27 +632,40 @@ export default function Vales() {
           <Card className="border-border/50 bg-muted/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                <Info className="w-4 h-4" />
-                Regras de Adiantamento
+                <HelpCircle className="w-4 h-4 text-primary" />
+                Dúvidas e Políticas Estratégicas
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs space-y-2 text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                  Solicitações permitidas entre os dias 01 e 15 de cada mês.
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                  Limite máximo de 40% do salário nominal.
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                  Desconto automático na folha de pagamento do mês vigente.
-                </li>
-              </ul>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1" className="border-border/50">
+                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
+                    Período de Solicitação
+                  </AccordionTrigger>
+                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
+                    As solicitações são processadas prioritariamente entre os dias 01 e 15 de cada mês. Pedidos fora deste prazo podem sofrer atrasos na análise.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2" className="border-border/50">
+                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
+                    Limite de 40%
+                  </AccordionTrigger>
+                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
+                    O sistema bloqueia automaticamente valores que excedam 40% do seu salário base bruto para garantir sua saúde financeira.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3" className="border-border/50">
+                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
+                    Canais de Aprovação
+                  </AccordionTrigger>
+                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
+                    A jornada passa pelo RH (Análise), Financeiro (Aprovação) e Bancário (Pagamento). O tempo médio é de 48h úteis.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </CardContent>
           </Card>
+
           
           <Card className="border-border/50 bg-primary/5 border-dashed border-2">
             <CardContent className="flex items-center justify-center p-6 h-full text-center">
@@ -711,7 +801,18 @@ export default function Vales() {
                     <FileText className="w-4 h-4" />
                     Gerar Comprovante PDF
                   </Button>
+                  {selectedVale.status === 'pendente' && (
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                      onClick={() => handleCancel(selectedVale.id)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Cancelar Solicitação
+                    </Button>
+                  )}
                   <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50">
+
                     <ArrowRight className="w-4 h-4" />
                     Compartilhar via WhatsApp
                   </Button>
