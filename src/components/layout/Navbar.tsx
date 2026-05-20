@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Ponto', path: '/ponto', icon: Clock },
   { label: 'Férias', path: '/ferias', icon: Palmtree },
   { label: 'Holerites', path: '/holerites', icon: Receipt },
+  { label: 'Vales', path: '/vales', icon: Receipt },
   { label: 'Solicitações', path: '/solicitacoes', icon: FileText },
   { label: 'Documentos', path: '/documentos', icon: FileText },
 ];
