@@ -203,42 +203,19 @@ export default function Vales() {
     };
   }, [fetchData, user?.id]);
 
-  const handleRequest = async () => {
-    if (!user || !amount || !justification) {
-      toast.error('Campos obrigatórios ausentes', {
-        description: 'Por favor, informe o valor e a justificativa para continuar.',
-        icon: <AlertCircle className="w-4 h-4 text-red-500" />
-      });
-      return;
-    }
+  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string }) => {
+    if (!user) return;
 
-    const numAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
-    if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error('Valor inválido', {
-        description: 'O valor da solicitação deve ser maior que zero.'
-      });
-      return;
-    }
-
-    if (selectedType === 'adiantamento_salarial' && numAmount > availableAdvance) {
-      toast.error('Limite excedido', {
-        description: `O valor máximo disponível é ${formatCurrency(availableAdvance)}`,
-        action: {
-          label: 'Usar Máximo',
-          onClick: () => setAmount(availableAdvance.toFixed(2).replace('.', ','))
-        }
-      });
-      return;
-    }
-
+    const numAmount = parseFloat(data.amount.replace(/\./g, '').replace(',', '.'));
+    
     setIsSubmitting(true);
     const loadingToast = toast.loading('Processando sua solicitação...');
 
     try {
       const { error } = await supabase.from('solicitacoes').insert({
         user_id: user.id,
-        tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
-        descricao: `[${valeLabels[selectedType]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${justification}`,
+        tipo: data.type === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        descricao: `[${valeLabels[data.type]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${data.justification}`,
         status: 'pendente',
         prioridade: 'normal'
       });
