@@ -19,7 +19,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Calendar,
-  FileText
+  FileText,
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
@@ -33,8 +35,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ValeReceipt } from '@/components/vales/ValeReceipt';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 
 export type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
