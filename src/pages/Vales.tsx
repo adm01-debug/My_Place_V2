@@ -182,41 +182,66 @@ export default function Vales() {
 
   const handleRequest = async () => {
     if (!user || !amount || !justification) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error('Campos obrigatórios ausentes', {
+        description: 'Por favor, informe o valor e a justificativa para continuar.',
+        icon: <AlertCircle className="w-4 h-4 text-red-500" />
+      });
       return;
     }
 
-    const numAmount = parseFloat(amount.replace(',', '.'));
+    const numAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error('Valor inválido.');
+      toast.error('Valor inválido', {
+        description: 'O valor da solicitação deve ser maior que zero.'
+      });
       return;
     }
 
     if (selectedType === 'adiantamento_salarial' && numAmount > availableAdvance) {
-      toast.error(`O valor máximo para adiantamento é R$ ${availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+      toast.error('Limite excedido', {
+        description: `O valor máximo disponível é ${formatCurrency(availableAdvance)}`,
+        action: {
+          label: 'Usar Máximo',
+          onClick: () => setAmount(availableAdvance.toFixed(2).replace('.', ','))
+        }
+      });
       return;
     }
 
     setIsSubmitting(true);
-    const { error } = await supabase.from('solicitacoes').insert({
-      user_id: user.id,
-      tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
-      descricao: `[${valeLabels[selectedType]}] Valor: R$ ${amount} - Justificativa: ${justification}`,
-      status: 'pendente',
-      prioridade: 'normal'
-    });
+    const loadingToast = toast.loading('Processando sua solicitação...');
 
-    if (error) {
-      toast.error('Erro ao processar solicitação: ' + error.message);
-    } else {
-      toast.success('Solicitação de vale enviada com sucesso!');
+    try {
+      const { error } = await supabase.from('solicitacoes').insert({
+        user_id: user.id,
+        tipo: selectedType === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        descricao: `[${valeLabels[selectedType]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${justification}`,
+        status: 'pendente',
+        prioridade: 'normal'
+      });
+
+      if (error) throw error;
+
+      toast.success('Solicitação enviada!', {
+        id: loadingToast,
+        description: 'Sua jornada de aprovação começou. Acompanhe pelo histórico.',
+        icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+      });
+      
       setIsNewModalOpen(false);
       setAmount('');
       setJustification('');
       fetchData();
+    } catch (error: any) {
+      toast.error('Falha no processamento', {
+        id: loadingToast,
+        description: error.message
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
+
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
