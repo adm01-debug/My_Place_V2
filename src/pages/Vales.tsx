@@ -179,7 +179,29 @@ export default function Vales() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+
+    // Etapa 3: Sincronização em Tempo Real (Realtime Sync)
+    const channel = supabase
+      .channel('vales_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'solicitacoes',
+          filter: `user_id=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchData, user?.id]);
 
   const handleRequest = async () => {
     if (!user || !amount || !justification) {
