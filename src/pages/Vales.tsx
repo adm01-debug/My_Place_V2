@@ -58,6 +58,7 @@ export interface ValeRequest {
   justificativa: string;
   data_pagamento_prevista?: string;
   etapa_atual: number;
+  anexo_url?: string | null;
 }
 
 export const valeLabels: Record<TipoVale, string> = {
