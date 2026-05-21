@@ -735,30 +735,20 @@ export default function Vales() {
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Período de Solicitação
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    As solicitações são processadas prioritariamente entre os dias 01 e 15 de cada mês. Pedidos fora deste prazo podem sofrer atrasos na análise.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Limite de 40%
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    O sistema bloqueia automaticamente valores que excedam 40% do seu salário base bruto para garantir sua saúde financeira.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Canais de Aprovação
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    A jornada passa pelo RH (Análise), Financeiro (Aprovação) e Bancário (Pagamento). O tempo médio é de 48h úteis.
-                  </AccordionContent>
-                </AccordionItem>
+                {faqs.length > 0 ? (
+                  faqs.map((faq) => (
+                    <AccordionItem key={faq.id} value={faq.id} className="border-border/50">
+                      <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline text-left">
+                        {faq.pergunta}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
+                        {faq.resposta}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-muted-foreground py-4">Carregando políticas atualizadas...</p>
+                )}
               </Accordion>
             </CardContent>
           </Card>
