@@ -161,14 +161,21 @@ export default function Vales() {
     if (data) {
       const mappedVales: ValeRequest[] = data.map(item => {
         // Use real column 'valor' if available, otherwise try to parse (for legacy data)
-        let valor = item.valor ? parseFloat(item.valor.toString()) : 0;
+        let valor = item.valor ? Number(item.valor) : 0;
         
-        if (valor === 0) {
+        if (valor === 0 && item.descricao) {
           const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
           valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
         }
         
-        // Map the type correctly using the new database enum values
+        // Map the status from DB enum to our local UI status type
+        let status: StatusVale = 'pendente';
+        if (item.status === 'aprovada') status = 'aprovado';
+        else if (item.status === 'recusada') status = 'recusado';
+        else if (item.status === 'cancelada') status = 'cancelado';
+        else if (item.status === 'em_analise') status = 'em_analise';
+        else if (item.status === 'pendente') status = 'pendente';
+
         const tipoMapped = item.tipo as TipoVale;
         
         return {
@@ -176,9 +183,9 @@ export default function Vales() {
           tipo: tipoMapped,
           valor: valor,
           data_solicitacao: item.created_at,
-          status: (item.status === 'aprovada' ? 'aprovado' : item.status === 'recusada' ? 'recusado' : item.status === 'cancelada' ? 'cancelado' : item.status) as StatusVale,
-          justificativa: item.descricao.split('Justificativa: ')[1] || item.descricao,
-          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' || item.status === 'aprovado' ? 3 : 4
+          status: status,
+          justificativa: item.descricao?.split('Justificativa: ')[1] || item.descricao || '',
+          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
         };
       });
       setVales(mappedVales);
