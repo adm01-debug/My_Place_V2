@@ -318,7 +318,7 @@ export default function Ponto() {
 
     window.addEventListener('app-action', handleAction);
     return () => window.removeEventListener('app-action', handleAction);
-  }, [fetchTodayPunches, handlePunch]);
+  }, [loadData, handlePunch]);
 
   const isPunched = (tipo: PunchType) => todayPunches.some((p) => p.tipo === tipo);
 
