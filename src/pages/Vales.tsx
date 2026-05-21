@@ -807,15 +807,26 @@ export default function Vales() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex items-center gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl hover:bg-muted/40 transition-all cursor-pointer group">
-                      <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
-                        <FileText className="w-4 h-4 text-primary" />
+                    {selectedVale.anexo_url ? (
+                      <a 
+                        href={selectedVale.anexo_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-all cursor-pointer group"
+                      >
+                        <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
+                          <FileText className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">Comprovante Anexado</p>
+                          <p className="text-[9px] text-muted-foreground uppercase">Clique para visualizar</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-3 p-4 bg-muted/10 border border-dashed border-border rounded-xl col-span-2 justify-center">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Nenhum anexo disponível</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">comprovante_justificativa.pdf</p>
-                        <p className="text-[9px] text-muted-foreground">PDF • 1.2 MB</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
