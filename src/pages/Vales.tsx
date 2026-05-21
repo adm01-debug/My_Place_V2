@@ -280,6 +280,17 @@ export default function Vales() {
   };
 
 
+  const handleShareWhatsApp = (vale: ValeRequest) => {
+    const text = `*Solicitação de Vale - Portal do Colaborador*\n\n` +
+      `*Tipo:* ${valeLabels[vale.tipo]}\n` +
+      `*Valor:* ${formatCurrency(vale.valor)}\n` +
+      `*Data:* ${new Date(vale.data_solicitacao).toLocaleDateString('pt-BR')}\n` +
+      `*Status:* ${vale.status.toUpperCase()}\n` +
+      `*Justificativa:* ${vale.justificativa}\n\n` +
+      `ID da Operação: ${vale.id.toUpperCase()}`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -811,8 +822,11 @@ export default function Vales() {
                       Cancelar Solicitação
                     </Button>
                   )}
-                  <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50">
-
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 h-12 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] border-border/50"
+                    onClick={() => handleShareWhatsApp(selectedVale)}
+                  >
                     <ArrowRight className="w-4 h-4" />
                     Compartilhar via WhatsApp
                   </Button>

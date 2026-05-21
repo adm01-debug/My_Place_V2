@@ -45,6 +45,13 @@ export default function Ponto() {
   const [todayPunches, setTodayPunches] = useState<PunchRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [punching, setPunching] = useState<PunchType | null>(null);
+  const [stats, setStats] = useState({
+    saldoMes: "00:00",
+    mediaEntrada: "09:00",
+    mediaSaida: "18:00",
+    diasIncompletos: 0,
+    percentualPontualidade: 100
+  });
 
   // Live clock
   useEffect(() => {
@@ -74,11 +81,133 @@ export default function Ponto() {
       if (error) throw error;
       setTodayPunches((data as PunchRecord[]) || []);
     } catch (error) {
-      console.error('Erro ao buscar registros:', error);
-    } finally {
-      setLoading(false);
+      console.error('Erro ao buscar registros de hoje:', error);
     }
   }, [user]);
+
+  const fetchMonthlyStats = useCallback(async () => {
+    if (!user) return;
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from('registros_ponto')
+        .select('tipo, data_hora')
+        .eq('user_id', user.id)
+        .gte('data_hora', monthStart.toISOString())
+        .lte('data_hora', monthEnd.toISOString());
+
+      if (error) throw error;
+
+      const punches = data || [];
+      const daysWithPunches = new Set(punches.map(p => p.data_hora.split('T')[0])).size;
+      
+      // Calculate Average Arrival (mediaEntrada)
+      const entradas = punches.filter(p => p.tipo === 'entrada');
+      let avgEntradaStr = "09:00";
+      if (entradas.length > 0) {
+        const totalMinutes = entradas.reduce((acc, p) => {
+          const date = new Date(p.data_hora);
+          return acc + (date.getHours() * 60 + date.getMinutes());
+        }, 0);
+        const avgMinutes = Math.floor(totalMinutes / entradas.length);
+        avgEntradaStr = `${String(Math.floor(avgMinutes / 60)).padStart(2, '0')}:${String(avgMinutes % 60).padStart(2, '0')}`;
+      }
+
+      // Calculate Average Exit (mediaSaida)
+      const saidas = punches.filter(p => p.tipo === 'saida');
+      let avgSaidaStr = "18:00";
+      if (saidas.length > 0) {
+        const totalMinutes = saidas.reduce((acc, p) => {
+          const date = new Date(p.data_hora);
+          return acc + (date.getHours() * 60 + date.getMinutes());
+        }, 0);
+        const avgMinutes = Math.floor(totalMinutes / saidas.length);
+        avgSaidaStr = `${String(Math.floor(avgMinutes / 60)).padStart(2, '0')}:${String(avgMinutes % 60).padStart(2, '0')}`;
+      }
+
+      // Calculate incomplete days (diasIncompletos)
+      // Group by day and check if there are 4 punches (standard)
+      const dailyGroups: Record<string, string[]> = {};
+      punches.forEach(p => {
+        const day = p.data_hora.split('T')[0];
+        if (!dailyGroups[day]) dailyGroups[day] = [];
+        dailyGroups[day].push(p.tipo);
+      });
+      
+      let incompleteDaysCount = 0;
+      Object.keys(dailyGroups).forEach(day => {
+        // Only count full days that have passed (not today)
+        if (day !== new Date().toISOString().split('T')[0]) {
+          if (dailyGroups[day].length < 4) incompleteDaysCount++;
+        }
+      });
+
+      // Simple calculation for monthly balance (saldoMes)
+      // Assume 8h per day. Calculate total worked duration.
+      // This is a simplified version.
+      let totalWorkedMinutes = 0;
+      Object.keys(dailyGroups).forEach(day => {
+        const dayPunches = punches.filter(p => p.data_hora.split('T')[0] === day).sort((a, b) => a.data_hora.localeCompare(b.data_hora));
+        
+        let dayWorked = 0;
+        // Basic calculation: Entry -> Lunch Start, Lunch End -> Exit
+        const entry = dayPunches.find(p => p.tipo === 'entrada');
+        const lunchStart = dayPunches.find(p => p.tipo === 'saida_almoco');
+        const lunchEnd = dayPunches.find(p => p.tipo === 'retorno_almoco');
+        const exit = dayPunches.find(p => p.tipo === 'saida');
+
+        if (entry && lunchStart) {
+          dayWorked += (new Date(lunchStart.data_hora).getTime() - new Date(entry.data_hora).getTime()) / 60000;
+        }
+        if (lunchEnd && exit) {
+          dayWorked += (new Date(exit.data_hora).getTime() - new Date(lunchEnd.data_hora).getTime()) / 60000;
+        } else if (entry && exit && !lunchStart && !lunchEnd) {
+          // Continuous shift
+          dayWorked += (new Date(exit.data_hora).getTime() - new Date(entry.data_hora).getTime()) / 60000;
+        }
+        
+        totalWorkedMinutes += dayWorked;
+      });
+
+      const expectedMinutes = daysWithPunches * 8 * 60; // 8h/day
+      const balanceMinutes = totalWorkedMinutes - expectedMinutes;
+      const balanceSign = balanceMinutes >= 0 ? '+' : '-';
+      const absMinutes = Math.abs(Math.floor(balanceMinutes));
+      const balanceStr = `${balanceSign}${String(Math.floor(absMinutes / 60)).padStart(2, '0')}:${String(absMinutes % 60).padStart(2, '0')}`;
+
+      // Punctuality (percentualPontualidade)
+      // Consider "on time" if entry is before 09:15
+      const onTimeEntradas = entradas.filter(p => {
+        const date = new Date(p.data_hora);
+        return (date.getHours() < 9) || (date.getHours() === 9 && date.getMinutes() <= 15);
+      }).length;
+      
+      const punctuality = entradas.length > 0 ? Math.round((onTimeEntradas / entradas.length) * 100) : 100;
+
+      setStats({
+        saldoMes: balanceStr,
+        mediaEntrada: avgEntradaStr,
+        mediaSaida: avgSaidaStr,
+        diasIncompletos: incompleteDaysCount,
+        percentualPontualidade: punctuality
+      });
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas mensais:', error);
+    }
+  }, [user]);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([fetchTodayPunches(), fetchMonthlyStats()]);
+    setLoading(false);
+  }, [fetchTodayPunches, fetchMonthlyStats]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const getLocation = (): Promise<{ lat: number; lng: number } | null> => {
     return new Promise((resolve) => {
@@ -167,7 +296,7 @@ export default function Ponto() {
         navigator.vibrate([100, 30, 100]);
       }
       
-      await fetchTodayPunches();
+      await loadData();
     } catch (error) {
       console.error('Erro ao registrar ponto:', error);
       toast.error('Erro ao registrar ponto. Tente novamente.');
@@ -177,7 +306,7 @@ export default function Ponto() {
   }, [user, punching, todayPunches, fetchTodayPunches]);
 
   useEffect(() => {
-    fetchTodayPunches();
+    loadData();
 
     const handleAction = (e: any) => {
       const { type } = e.detail;
@@ -189,14 +318,14 @@ export default function Ponto() {
 
     window.addEventListener('app-action', handleAction);
     return () => window.removeEventListener('app-action', handleAction);
-  }, [fetchTodayPunches, handlePunch]);
+  }, [loadData, handlePunch]);
 
   const isPunched = (tipo: PunchType) => todayPunches.some((p) => p.tipo === tipo);
 
   const nextPunchIndex = punchConfig.findIndex((p) => !isPunched(p.tipo));
 
   return (
-    <PullToRefresh onRefresh={async () => { await fetchTodayPunches(); }}>
+    <PullToRefresh onRefresh={async () => { await loadData(); }}>
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <ModuleHeader 
         title="Ponto Eletrônico Digital" 
@@ -204,15 +333,7 @@ export default function Ponto() {
         icon={Clock}
       />
 
-      <PontoAnalytics 
-        stats={{
-          saldoMes: "+04:20",
-          mediaEntrada: "08:58",
-          mediaSaida: "18:05",
-          diasIncompletos: 2,
-          percentualPontualidade: 94
-        }}
-      />
+      <PontoAnalytics stats={stats} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Clock & Map Preview */}
