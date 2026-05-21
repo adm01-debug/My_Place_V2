@@ -40,6 +40,11 @@ const steps = [
 ];
 
 export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvance }: RequestStepperProps) => {
+  const salaryMissing = availableAdvance === 0 && (availableAdvance !== availableAdvance || availableAdvance === null || availableAdvance === 0);
+  // Actually, let's just check if availableAdvance is passed as 0 and if salary is likely missing.
+  // In Vales.tsx: availableAdvance = salary > 0 ? maxAdvance - currentUsed : 0;
+  // So if salary is 0, availableAdvance is 0.
+
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedType, setSelectedType] = useState<TipoVale>('adiantamento_salarial');
   const [amount, setAmount] = useState('');
