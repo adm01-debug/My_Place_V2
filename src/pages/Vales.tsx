@@ -185,6 +185,7 @@ export default function Vales() {
           valor: valor,
           data_solicitacao: item.created_at,
           status: status,
+          anexo_url: item.anexo_url,
           justificativa: item.descricao?.split('Justificativa: ')[1] || item.descricao || '',
           etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
         };
