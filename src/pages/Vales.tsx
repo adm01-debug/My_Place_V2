@@ -90,9 +90,12 @@ export default function Vales() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [vales, setVales] = useState<ValeRequest[]>([]);
+  const [faqs, setFaqs] = useState<{ id: string; pergunta: string; resposta: string }[]>([]);
+  const [globalLimit, setGlobalLimit] = useState(40);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
+  const [valeHistory, setValeHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -103,9 +106,9 @@ export default function Vales() {
   const [amount, setAmount] = useState('');
   const [justification, setJustification] = useState('');
 
-  // Simulated Limits
-  const salary = profile?.salario_base || 3500;
-  const maxAdvance = salary * 0.4;
+  // Config & Limits
+  const salary = profile?.salario_base || 0;
+  const maxAdvance = salary * (globalLimit / 100);
   
   const currentUsed = useMemo(() => {
     return vales
@@ -113,7 +116,7 @@ export default function Vales() {
       .reduce((acc, curr) => acc + curr.valor, 0);
   }, [vales]);
 
-  const availableAdvance = maxAdvance - currentUsed;
+  const availableAdvance = salary > 0 ? maxAdvance - currentUsed : 0;
 
   const chartData = useMemo(() => {
     const months = [5, 4, 3, 2, 1, 0].map(m => subMonths(new Date(), m));
