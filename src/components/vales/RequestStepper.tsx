@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DollarSign, 
@@ -9,15 +9,12 @@ import {
   ArrowLeft,
   Info,
   CheckCircle2,
-  Calendar,
   Wallet,
   AlertCircle,
   Paperclip,
   X,
   Loader2
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TipoVale, valeLabels } from '@/pages/Vales';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface RequestStepperProps {
   onClose: () => void;
@@ -40,7 +39,6 @@ const steps = [
   { id: 'success', title: 'Sucesso', description: 'Tudo pronto!' }
 ];
 
-
 export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvance }: RequestStepperProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedType, setSelectedType] = useState<TipoVale>('adiantamento_salarial');
@@ -48,40 +46,6 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
   const [justification, setJustification] = useState('');
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Arquivo muito grande', { description: 'O limite é de 5MB.' });
-      return;
-    }
-
-    setIsUploading(true);
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `solicitacoes/${fileName}`;
-
-    try {
-      const { error: uploadError, data } = await supabase.storage
-        .from('anexos')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('anexos')
-        .getPublicUrl(filePath);
-
-      setAttachmentUrl(publicUrl);
-      toast.success('Arquivo enviado!');
-    } catch (error: any) {
-      toast.error('Erro no upload', { description: error.message });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const typeOptions: { id: TipoVale; label: string; icon: any; color: string; description: string }[] = [
     { 
@@ -114,15 +78,53 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
     },
   ];
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo muito grande', { description: 'O limite é de 5MB.' });
+      return;
+    }
+
+    setIsUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `solicitacoes/${fileName}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('anexos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('anexos')
+        .getPublicUrl(filePath);
+
+      setAttachmentUrl(publicUrl);
+      toast.success('Arquivo enviado!');
+    } catch (error: any) {
+      toast.error('Erro no upload', { description: error.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleNext = async () => {
     if (currentStep === 2) {
-      await onSubmit({ type: selectedType, amount, justification, attachmentUrl: attachmentUrl || undefined });
+      await onSubmit({ 
+        type: selectedType, 
+        amount, 
+        justification, 
+        attachmentUrl: attachmentUrl || undefined 
+      });
       setCurrentStep(3);
     } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
-
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -232,63 +234,8 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                           setAmount('');
                         }
                       }}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Paperclip className="w-4 h-4 text-primary" />
-                    Anexar Comprovante ou Justificativa (Opcional)
-                  </Label>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-12 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all group"
-                      disabled={isUploading}
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : attachmentUrl ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2" />
-                      ) : (
-                        <Paperclip className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
-                      )}
-                      {attachmentUrl ? 'Arquivo Carregado' : 'Clique para enviar'}
-                    </Button>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      accept=".pdf,.jpg,.jpeg,.png"
                     />
-                    {attachmentUrl && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => setAttachmentUrl(null)}
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
-                    )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground italic">
-                    Formatos aceitos: PDF, PNG, JPG (Máx. 5MB)
-                    </p>
-                  </div>
-                  {attachmentUrl && (
-                    <div className="flex justify-between items-center bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/20">
-                      <div className="flex items-center gap-2">
-                        <Paperclip className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Anexo Vinculado</span>
-                      </div>
-                      <Badge variant="outline" className="text-[9px] border-emerald-500/30 text-emerald-600 bg-white">OK</Badge>
-                    </div>
-                  )}
-                </div>
                   
                   {selectedType === 'adiantamento_salarial' && (
                     <motion.div 
@@ -329,10 +276,35 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                   </Label>
                   <Textarea
                     placeholder="Descreva brevemente o motivo da solicitação..."
-                    className="min-h-[120px] bg-muted/30 border-2 border-border/50 focus:border-primary transition-all rounded-xl"
+                    className="min-h-[100px] bg-muted/30 border-2 border-border/50 focus:border-primary transition-all rounded-xl"
                     value={justification}
                     onChange={(e) => setJustification(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Paperclip className="w-4 h-4 text-primary" />
+                    Anexar Comprovante (Opcional)
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 h-12 border-dashed border-2 hover:border-primary/50 transition-all"
+                      disabled={isUploading}
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Paperclip className="w-4 h-4 mr-2" />}
+                      {attachmentUrl ? 'Arquivo Pronto' : 'Selecionar Arquivo'}
+                    </Button>
+                    <input id="file-upload" type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.jpg,.jpeg,.png" />
+                    {attachmentUrl && (
+                      <Button variant="ghost" size="icon" onClick={() => setAttachmentUrl(null)} className="text-red-500">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -356,13 +328,18 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                       "{justification || 'Nenhuma justificativa informada.'}"
                     </p>
                   </div>
+                  {attachmentUrl && (
+                    <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-[10px] font-bold uppercase">Comprovante em anexo</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
                   <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-[11px] text-amber-700 leading-tight">
-                    Ao confirmar, sua solicitação entrará em fluxo de aprovação. 
-                    Você poderá acompanhar o status em tempo real e gerar o comprovante após a aprovação.
+                    Ao confirmar, sua solicitação entrará em fluxo de aprovação.
                   </p>
                 </div>
               </div>
@@ -373,7 +350,7 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                 <motion.div 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-500/20"
+                  className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-xl"
                 >
                   <CheckCircle2 className="w-10 h-10" />
                 </motion.div>
@@ -383,52 +360,42 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                     Sua solicitação de {valeLabels[selectedType]} no valor de R$ {amount} foi registrada com sucesso.
                   </p>
                 </div>
-                <div className="bg-muted/30 p-4 rounded-xl border border-border/50 w-full flex items-center gap-3">
-                  <Info className="w-5 h-5 text-primary" />
-                  <p className="text-[10px] text-left text-muted-foreground font-medium">
-                    Você pode acompanhar o status na tela inicial e baixar o comprovante assim que for aprovado.
-                  </p>
-                </div>
                 <Button onClick={onClose} className="w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
-                  Entendi, Voltar ao Dashboard
+                  Voltar ao Dashboard
                 </Button>
               </div>
             )}
           </motion.div>
-
         </AnimatePresence>
       </div>
 
       {/* Stepper Footer */}
       {currentStep < 3 && (
         <div className="flex gap-3 pt-8 mt-auto px-2">
-
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="flex-1 h-12 rounded-xl border-border/50 font-bold uppercase text-[10px] tracking-widest transition-all"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {currentStep === 0 ? 'Cancelar' : 'Voltar'}
-        </Button>
-        <Button
-          onClick={handleNext}
-          disabled={isSubmitting || (currentStep === 1 && !isAmountValid)}
-          className="flex-[2] h-12 rounded-xl shadow-lg shadow-primary/20 font-bold uppercase text-[10px] tracking-widest transition-all"
-        >
-          {isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <>
-              {currentStep === steps.length - 1 ? 'Confirmar Solicitação' : 'Continuar'}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </>
-          )}
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="flex-1 h-12 rounded-xl border-border/50 font-bold uppercase text-[10px] tracking-widest transition-all"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {currentStep === 0 ? 'Cancelar' : 'Voltar'}
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={isSubmitting || isUploading || (currentStep === 1 && !isAmountValid)}
+            className="flex-[2] h-12 rounded-xl shadow-lg shadow-primary/20 font-bold uppercase text-[10px] tracking-widest transition-all"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                {currentStep === 2 ? 'Confirmar Solicitação' : 'Continuar'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
       )}
     </div>
-
   );
 };
-
