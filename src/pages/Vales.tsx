@@ -313,6 +313,26 @@ export default function Vales() {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredVales.map(v => ({
+      'ID': v.id.slice(0, 8).toUpperCase(),
+      'Tipo': valeLabels[v.tipo],
+      'Valor': v.valor,
+      'Data Solicitação': format(new Date(v.data_solicitacao), 'dd/MM/yyyy HH:mm'),
+      'Status': v.status.toUpperCase(),
+      'Justificativa': v.justificativa
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Vales");
+    XLSX.writeFile(wb, `Vales_${format(new Date(), 'ddMMyyyy')}.xlsx`);
+    
+    toast.success('Excel gerado com sucesso!', {
+      description: 'O download começará automaticamente.'
+    });
+  };
+
   return (
     <PullToRefresh onRefresh={fetchData}>
       <div className="w-full max-w-5xl mx-auto space-y-6 pb-12">
