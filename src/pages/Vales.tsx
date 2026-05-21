@@ -156,16 +156,36 @@ export default function Vales() {
   const fetchData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('solicitacoes')
-      .select('*')
-      .eq('user_id', user.id)
-      .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
-      .order('created_at', { ascending: false });
+    
+    // Parallel fetches for efficiency
+    const [solicitacoesRes, configRes, faqRes] = await Promise.all([
+      supabase
+        .from('solicitacoes')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('configuracoes_globais')
+        .select('limite_adiantamento_percentual')
+        .single(),
+      supabase
+        .from('faq')
+        .select('*')
+        .eq('categoria', 'Financeiro')
+        .order('prioridade', { ascending: true })
+    ]);
 
-    if (data) {
-      const mappedVales: ValeRequest[] = data.map(item => {
-        // Use real column 'valor' if available, otherwise try to parse (for legacy data)
+    if (configRes.data) {
+      setGlobalLimit(Number(configRes.data.limite_adiantamento_percentual) || 40);
+    }
+
+    if (faqRes.data) {
+      setFaqs(faqRes.data);
+    }
+
+    if (solicitacoesRes.data) {
+      const mappedVales: ValeRequest[] = solicitacoesRes.data.map(item => {
         let valor = item.valor ? Number(item.valor) : 0;
         
         if (valor === 0 && item.descricao) {
@@ -173,7 +193,6 @@ export default function Vales() {
           valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
         }
         
-        // Map the status from DB enum to our local UI status type
         let status: StatusVale = 'pendente';
         if (item.status === 'aprovada') status = 'aprovado';
         else if (item.status === 'recusada') status = 'recusado';
@@ -198,6 +217,24 @@ export default function Vales() {
     }
     setLoading(false);
   }, [user]);
+
+  const fetchValeHistory = useCallback(async (valeId: string) => {
+    const { data, error } = await supabase
+      .from('solicitacoes_historico')
+      .select('*, profiles:alterado_por(display_name)')
+      .eq('solicitacao_id', valeId)
+      .order('created_at', { ascending: false });
+    
+    if (data) setValeHistory(data);
+  }, []);
+
+  useEffect(() => {
+    if (selectedVale) {
+      fetchValeHistory(selectedVale.id);
+    } else {
+      setValeHistory([]);
+    }
+  }, [selectedVale, fetchValeHistory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
