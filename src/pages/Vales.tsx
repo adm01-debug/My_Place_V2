@@ -155,25 +155,30 @@ export default function Vales() {
       .from('solicitacoes')
       .select('*')
       .eq('user_id', user.id)
-      .in('tipo', ['adiantamento_salarial', 'outros'])
+      .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
       .order('created_at', { ascending: false });
 
     if (data) {
       const mappedVales: ValeRequest[] = data.map(item => {
-        // Simple heuristic to extract value from description if stored there
-        const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
-        const valor = valorMatch ? parseFloat(valorMatch[1].replace(',', '.')) : 0;
+        // Use real column 'valor' if available, otherwise try to parse (for legacy data)
+        let valor = item.valor ? parseFloat(item.valor.toString()) : 0;
+        
+        if (valor === 0) {
+          const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
+          valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+        }
+        
+        // Map the type correctly using the new database enum values
+        const tipoMapped = item.tipo as TipoVale;
         
         return {
           id: item.id,
-          tipo: item.descricao.includes('Vale Refeição') ? 'vale_refeicao' : 
-                item.descricao.includes('Vale Transporte') ? 'vale_transporte' : 
-                item.descricao.includes('Combustível') ? 'vale_combustivel' : 'adiantamento_salarial',
+          tipo: tipoMapped,
           valor: valor,
           data_solicitacao: item.created_at,
           status: (item.status === 'aprovada' ? 'aprovado' : item.status === 'recusada' ? 'recusado' : item.status === 'cancelada' ? 'cancelado' : item.status) as StatusVale,
           justificativa: item.descricao.split('Justificativa: ')[1] || item.descricao,
-          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
+          etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' || item.status === 'aprovado' ? 3 : 4
         };
       });
       setVales(mappedVales);
