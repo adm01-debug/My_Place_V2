@@ -242,7 +242,8 @@ export default function Vales() {
     try {
       const { error } = await supabase.from('solicitacoes').insert({
         user_id: user.id,
-        tipo: data.type === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        tipo: data.type,
+        valor: numAmount,
         descricao: `[${valeLabels[data.type]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${data.justification}`,
         status: 'pendente',
         prioridade: 'normal'
