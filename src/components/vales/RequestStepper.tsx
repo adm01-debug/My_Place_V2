@@ -46,6 +46,42 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
   const [selectedType, setSelectedType] = useState<TipoVale>('adiantamento_salarial');
   const [amount, setAmount] = useState('');
   const [justification, setJustification] = useState('');
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo muito grande', { description: 'O limite é de 5MB.' });
+      return;
+    }
+
+    setIsUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `solicitacoes/${fileName}`;
+
+    try {
+      const { error: uploadError, data } = await supabase.storage
+        .from('anexos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('anexos')
+        .getPublicUrl(filePath);
+
+      setAttachmentUrl(publicUrl);
+      toast.success('Arquivo enviado!');
+    } catch (error: any) {
+      toast.error('Erro no upload', { description: error.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const typeOptions: { id: TipoVale; label: string; icon: any; color: string; description: string }[] = [
     { 
