@@ -549,8 +549,17 @@ export default function Vales() {
              </div>
              <Button variant="outline" className="h-11 px-4 rounded-xl border-border/50 hidden md:flex">
                 <Filter className="w-4 h-4 mr-2" />
-                Filtros
-             </Button>
+                 Filtros
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-11 px-4 rounded-xl border-border/50 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                onClick={handleExportExcel}
+              >
+                 <FileText className="w-4 h-4 mr-2" />
+                 Excel
+              </Button>
+
            </div>
         </div>
 
