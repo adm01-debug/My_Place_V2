@@ -90,9 +90,12 @@ export default function Vales() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [vales, setVales] = useState<ValeRequest[]>([]);
+  const [faqs, setFaqs] = useState<{ id: string; pergunta: string; resposta: string }[]>([]);
+  const [globalLimit, setGlobalLimit] = useState(40);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
+  const [valeHistory, setValeHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -103,9 +106,9 @@ export default function Vales() {
   const [amount, setAmount] = useState('');
   const [justification, setJustification] = useState('');
 
-  // Simulated Limits
-  const salary = profile?.salario_base || 3500;
-  const maxAdvance = salary * 0.4;
+  // Config & Limits
+  const salary = profile?.salario_base || 0;
+  const maxAdvance = salary * (globalLimit / 100);
   
   const currentUsed = useMemo(() => {
     return vales
@@ -113,7 +116,7 @@ export default function Vales() {
       .reduce((acc, curr) => acc + curr.valor, 0);
   }, [vales]);
 
-  const availableAdvance = maxAdvance - currentUsed;
+  const availableAdvance = salary > 0 ? maxAdvance - currentUsed : 0;
 
   const chartData = useMemo(() => {
     const months = [5, 4, 3, 2, 1, 0].map(m => subMonths(new Date(), m));
@@ -153,16 +156,36 @@ export default function Vales() {
   const fetchData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('solicitacoes')
-      .select('*')
-      .eq('user_id', user.id)
-      .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
-      .order('created_at', { ascending: false });
+    
+    // Parallel fetches for efficiency
+    const [solicitacoesRes, configRes, faqRes] = await Promise.all([
+      supabase
+        .from('solicitacoes')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('configuracoes_globais')
+        .select('limite_adiantamento_percentual')
+        .single(),
+      supabase
+        .from('faq')
+        .select('*')
+        .eq('categoria', 'Financeiro')
+        .order('prioridade', { ascending: true })
+    ]);
 
-    if (data) {
-      const mappedVales: ValeRequest[] = data.map(item => {
-        // Use real column 'valor' if available, otherwise try to parse (for legacy data)
+    if (configRes.data) {
+      setGlobalLimit(Number(configRes.data.limite_adiantamento_percentual) || 40);
+    }
+
+    if (faqRes.data) {
+      setFaqs(faqRes.data);
+    }
+
+    if (solicitacoesRes.data) {
+      const mappedVales: ValeRequest[] = solicitacoesRes.data.map(item => {
         let valor = item.valor ? Number(item.valor) : 0;
         
         if (valor === 0 && item.descricao) {
@@ -170,7 +193,6 @@ export default function Vales() {
           valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
         }
         
-        // Map the status from DB enum to our local UI status type
         let status: StatusVale = 'pendente';
         if (item.status === 'aprovada') status = 'aprovado';
         else if (item.status === 'recusada') status = 'recusado';
@@ -195,6 +217,24 @@ export default function Vales() {
     }
     setLoading(false);
   }, [user]);
+
+  const fetchValeHistory = useCallback(async (valeId: string) => {
+    const { data, error } = await supabase
+      .from('solicitacoes_historico')
+      .select('*, profiles:alterado_por(display_name)')
+      .eq('solicitacao_id', valeId)
+      .order('created_at', { ascending: false });
+    
+    if (data) setValeHistory(data);
+  }, []);
+
+  useEffect(() => {
+    if (selectedVale) {
+      fetchValeHistory(selectedVale.id);
+    } else {
+      setValeHistory([]);
+    }
+  }, [selectedVale, fetchValeHistory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -695,30 +735,20 @@ export default function Vales() {
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Período de Solicitação
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    As solicitações são processadas prioritariamente entre os dias 01 e 15 de cada mês. Pedidos fora deste prazo podem sofrer atrasos na análise.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Limite de 40%
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    O sistema bloqueia automaticamente valores que excedam 40% do seu salário base bruto para garantir sua saúde financeira.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3" className="border-border/50">
-                  <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline">
-                    Canais de Aprovação
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
-                    A jornada passa pelo RH (Análise), Financeiro (Aprovação) e Bancário (Pagamento). O tempo médio é de 48h úteis.
-                  </AccordionContent>
-                </AccordionItem>
+                {faqs.length > 0 ? (
+                  faqs.map((faq) => (
+                    <AccordionItem key={faq.id} value={faq.id} className="border-border/50">
+                      <AccordionTrigger className="text-[11px] font-bold uppercase tracking-tight py-3 hover:no-underline text-left">
+                        {faq.pergunta}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-[11px] text-muted-foreground leading-relaxed">
+                        {faq.resposta}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-muted-foreground py-4">Carregando políticas atualizadas...</p>
+                )}
               </Accordion>
             </CardContent>
           </Card>
@@ -855,6 +885,37 @@ export default function Vales() {
                     ) : (
                       <div className="flex items-center gap-3 p-4 bg-muted/10 border border-dashed border-border rounded-xl col-span-2 justify-center">
                         <p className="text-[10px] text-muted-foreground uppercase font-bold">Nenhum anexo disponível</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Audit Logs Section */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Histórico de Auditoria</h4>
+                  <div className="bg-muted/30 rounded-xl overflow-hidden border border-border/50">
+                    {valeHistory.length > 0 ? (
+                      <div className="divide-y divide-border/30">
+                        {valeHistory.map((log) => (
+                          <div key={log.id} className="p-3 flex items-start gap-3 hover:bg-muted/50 transition-all">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                            <div className="flex-1 space-y-1">
+                              <div className="flex justify-between items-center">
+                                <p className="text-[10px] font-black uppercase text-foreground">
+                                  {log.status_anterior ? `${log.status_anterior} → ${log.status_novo}` : `Início: ${log.status_novo}`}
+                                </p>
+                                <p className="text-[9px] text-muted-foreground">{format(new Date(log.created_at), 'dd/MM/yyyy HH:mm')}</p>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground leading-tight">
+                                {log.observacao} • <span className="font-bold text-foreground/80">{log.profiles?.display_name || 'Sistema'}</span>
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Nenhuma alteração registrada ainda</p>
                       </div>
                     )}
                   </div>

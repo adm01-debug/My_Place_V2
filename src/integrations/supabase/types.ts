@@ -129,6 +129,7 @@ export type Database = {
         Row: {
           cor_primaria: string | null
           id: string
+          limite_adiantamento_percentual: number | null
           logo_url: string | null
           nome_empresa: string | null
           updated_at: string | null
@@ -137,6 +138,7 @@ export type Database = {
         Insert: {
           cor_primaria?: string | null
           id?: string
+          limite_adiantamento_percentual?: number | null
           logo_url?: string | null
           nome_empresa?: string | null
           updated_at?: string | null
@@ -145,6 +147,7 @@ export type Database = {
         Update: {
           cor_primaria?: string | null
           id?: string
+          limite_adiantamento_percentual?: number | null
           logo_url?: string | null
           nome_empresa?: string | null
           updated_at?: string | null
@@ -230,6 +233,36 @@ export type Database = {
           updated_at?: string
           url?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      faq: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          id: string
+          pergunta: string
+          prioridade: number | null
+          resposta: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          pergunta: string
+          prioridade?: number | null
+          resposta: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          pergunta?: string
+          prioridade?: number | null
+          resposta?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -749,6 +782,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      solicitacoes_historico: {
+        Row: {
+          alterado_por: string | null
+          created_at: string
+          id: string
+          observacao: string | null
+          solicitacao_id: string | null
+          status_anterior: string | null
+          status_novo: string | null
+        }
+        Insert: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          solicitacao_id?: string | null
+          status_anterior?: string | null
+          status_novo?: string | null
+        }
+        Update: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          solicitacao_id?: string | null
+          status_anterior?: string | null
+          status_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_historico_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_2fa: {
         Row: {
