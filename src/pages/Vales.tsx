@@ -246,7 +246,8 @@ export default function Vales() {
         valor: numAmount,
         descricao: `[${valeLabels[data.type]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${data.justification}`,
         status: 'pendente',
-        prioridade: 'normal'
+        prioridade: 'normal',
+        anexo_url: data.attachmentUrl
       });
 
       if (error) throw error;
