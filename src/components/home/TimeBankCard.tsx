@@ -3,9 +3,11 @@ import { Badge } from '@/components/ui/badge';
 import { History, TrendingUp, TrendingDown, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNavigate } from 'react-router-dom';
 
 export function TimeBankCard() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   
   const saldo = profile?.saldo_horas || 0;
   const valorHoraExtra = profile?.valor_hora_extra || 0;
@@ -54,7 +56,12 @@ export function TimeBankCard() {
             </p>
           </div>
           
-          <button className="text-xs font-semibold text-primary hover:underline pb-1">Ver Extrato</button>
+          <button 
+            onClick={() => navigate('/ponto')}
+            className="text-xs font-semibold text-primary hover:underline pb-1"
+          >
+            Ver Extrato
+          </button>
         </div>
 
         {/* Mini visualization */}
