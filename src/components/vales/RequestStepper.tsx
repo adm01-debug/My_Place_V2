@@ -116,7 +116,7 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
 
   const handleNext = async () => {
     if (currentStep === 2) {
-      await onSubmit({ type: selectedType, amount, justification });
+      await onSubmit({ type: selectedType, amount, justification, attachmentUrl: attachmentUrl || undefined });
       setCurrentStep(3);
     } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
