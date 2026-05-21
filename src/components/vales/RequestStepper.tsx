@@ -277,7 +277,17 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                   </div>
                   <p className="text-[10px] text-muted-foreground italic">
                     Formatos aceitos: PDF, PNG, JPG (Máx. 5MB)
-                  </p>
+                    </p>
+                  </div>
+                  {attachmentUrl && (
+                    <div className="flex justify-between items-center bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/20">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="w-4 h-4 text-emerald-500" />
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Anexo Vinculado</span>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] border-emerald-500/30 text-emerald-600 bg-white">OK</Badge>
+                    </div>
+                  )}
                 </div>
                   
                   {selectedType === 'adiantamento_salarial' && (
