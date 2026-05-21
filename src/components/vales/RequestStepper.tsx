@@ -227,6 +227,7 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                       placeholder="0,00"
                       className="pl-12 h-14 text-2xl font-black bg-muted/30 border-2 border-border/50 focus:border-primary transition-all"
                       value={amount}
+                      disabled={selectedType === 'adiantamento_salarial' && availableAdvance <= 0}
                       onChange={(e) => {
                         let value = e.target.value.replace(/\D/g, '');
                         if (value) {
@@ -246,29 +247,43 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-primary/5 border border-primary/20 p-4 rounded-xl space-y-2"
+                      className={`border p-4 rounded-xl space-y-2 ${availableAdvance <= 0 ? 'bg-red-50 border-red-200' : 'bg-primary/5 border-primary/20'}`}
                     >
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground font-bold uppercase tracking-wider">Simulador de Impacto</span>
-                        <Badge variant="outline" className="text-[10px] font-black uppercase">Próximo Holerite</Badge>
-                      </div>
-                      <div className="flex justify-between items-end">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Dedução Estimada</p>
-                          <p className={`text-lg font-black ${numAmount > availableAdvance ? 'text-red-500' : 'text-primary'}`}>
-                            - R$ {numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </p>
+                      {availableAdvance <= 0 ? (
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-red-700 uppercase font-black">Salário não configurado</p>
+                            <p className="text-[11px] text-red-600">
+                              Não identificamos seu salário base no sistema. Entre em contato com o RH para liberar solicitações de adiantamento.
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Limite Disponível</p>
-                          <p className="text-sm font-bold">R$ {availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                        </div>
-                      </div>
-                      {numAmount > availableAdvance && (
-                        <div className="flex items-center gap-2 pt-2 text-[10px] text-red-500 font-bold uppercase">
-                          <AlertCircle className="w-3 h-3" />
-                          Valor excede o limite permitido
-                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground font-bold uppercase tracking-wider">Simulador de Impacto</span>
+                            <Badge variant="outline" className="text-[10px] font-black uppercase">Próximo Holerite</Badge>
+                          </div>
+                          <div className="flex justify-between items-end">
+                            <div className="space-y-1">
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold">Dedução Estimada</p>
+                              <p className={`text-lg font-black ${numAmount > availableAdvance ? 'text-red-500' : 'text-primary'}`}>
+                                - R$ {numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold">Limite Disponível</p>
+                              <p className="text-sm font-bold">R$ {availableAdvance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            </div>
+                          </div>
+                          {numAmount > availableAdvance && (
+                            <div className="flex items-center gap-2 pt-2 text-[10px] text-red-500 font-bold uppercase">
+                              <AlertCircle className="w-3 h-3" />
+                              Valor excede o limite permitido
+                            </div>
+                          )}
+                        </>
                       )}
                     </motion.div>
                   )}
