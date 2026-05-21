@@ -232,8 +232,53 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
                           setAmount('');
                         }
                       }}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Paperclip className="w-4 h-4 text-primary" />
+                    Anexar Comprovante ou Justificativa (Opcional)
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-12 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                      disabled={isUploading}
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : attachmentUrl ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2" />
+                      ) : (
+                        <Paperclip className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
+                      )}
+                      {attachmentUrl ? 'Arquivo Carregado' : 'Clique para enviar'}
+                    </Button>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      accept=".pdf,.jpg,.jpeg,.png"
                     />
+                    {attachmentUrl && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => setAttachmentUrl(null)}
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    )}
                   </div>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Formatos aceitos: PDF, PNG, JPG (Máx. 5MB)
+                  </p>
+                </div>
                   
                   {selectedType === 'adiantamento_salarial' && (
                     <motion.div 
