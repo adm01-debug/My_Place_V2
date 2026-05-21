@@ -231,7 +231,7 @@ export default function Vales() {
     };
   }, [fetchData, user?.id]);
 
-  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string }) => {
+  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string; attachmentUrl?: string }) => {
     if (!user) return;
 
     const numAmount = parseFloat(data.amount.replace(/\./g, '').replace(',', '.'));
