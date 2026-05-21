@@ -28,7 +28,7 @@ import { TipoVale, valeLabels } from '@/pages/Vales';
 
 interface RequestStepperProps {
   onClose: () => void;
-  onSubmit: (data: { type: TipoVale; amount: string; justification: string }) => void;
+  onSubmit: (data: { type: TipoVale; amount: string; justification: string; attachmentUrl?: string }) => void;
   isSubmitting: boolean;
   availableAdvance: number;
 }
