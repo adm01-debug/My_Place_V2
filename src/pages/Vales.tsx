@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -58,6 +59,7 @@ export interface ValeRequest {
   justificativa: string;
   data_pagamento_prevista?: string;
   etapa_atual: number;
+  anexo_url?: string | null;
 }
 
 export const valeLabels: Record<TipoVale, string> = {
@@ -155,24 +157,37 @@ export default function Vales() {
       .from('solicitacoes')
       .select('*')
       .eq('user_id', user.id)
-      .in('tipo', ['adiantamento_salarial', 'outros'])
+      .in('tipo', ['adiantamento_salarial', 'vale_refeicao', 'vale_transporte', 'vale_combustivel', 'outros'])
       .order('created_at', { ascending: false });
 
     if (data) {
       const mappedVales: ValeRequest[] = data.map(item => {
-        // Simple heuristic to extract value from description if stored there
-        const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
-        const valor = valorMatch ? parseFloat(valorMatch[1].replace(',', '.')) : 0;
+        // Use real column 'valor' if available, otherwise try to parse (for legacy data)
+        let valor = item.valor ? Number(item.valor) : 0;
+        
+        if (valor === 0 && item.descricao) {
+          const valorMatch = item.descricao.match(/Valor: R\$ ([\d,.]+)/);
+          valor = valorMatch ? parseFloat(valorMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+        }
+        
+        // Map the status from DB enum to our local UI status type
+        let status: StatusVale = 'pendente';
+        if (item.status === 'aprovada') status = 'aprovado';
+        else if (item.status === 'recusada') status = 'recusado';
+        else if (item.status === 'cancelada') status = 'cancelado';
+        else if (item.status === 'em_analise') status = 'em_analise';
+        else if (item.status === 'pendente') status = 'pendente';
+
+        const tipoMapped = item.tipo as TipoVale;
         
         return {
           id: item.id,
-          tipo: item.descricao.includes('Vale Refeição') ? 'vale_refeicao' : 
-                item.descricao.includes('Vale Transporte') ? 'vale_transporte' : 
-                item.descricao.includes('Combustível') ? 'vale_combustivel' : 'adiantamento_salarial',
+          tipo: tipoMapped,
           valor: valor,
           data_solicitacao: item.created_at,
-          status: (item.status === 'aprovada' ? 'aprovado' : item.status === 'recusada' ? 'recusado' : item.status === 'cancelada' ? 'cancelado' : item.status) as StatusVale,
-          justificativa: item.descricao.split('Justificativa: ')[1] || item.descricao,
+          status: status,
+          anexo_url: item.anexo_url,
+          justificativa: item.descricao?.split('Justificativa: ')[1] || item.descricao || '',
           etapa_atual: item.status === 'pendente' ? 1 : item.status === 'em_analise' ? 2 : item.status === 'aprovada' ? 3 : 4
         };
       });
@@ -219,7 +234,7 @@ export default function Vales() {
     };
   }, [fetchData, user?.id]);
 
-  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string }) => {
+  const handleRequest = async (data: { type: TipoVale; amount: string; justification: string; attachmentUrl?: string }) => {
     if (!user) return;
 
     const numAmount = parseFloat(data.amount.replace(/\./g, '').replace(',', '.'));
@@ -230,10 +245,12 @@ export default function Vales() {
     try {
       const { error } = await supabase.from('solicitacoes').insert({
         user_id: user.id,
-        tipo: data.type === 'adiantamento_salarial' ? 'adiantamento_salarial' : 'outros',
+        tipo: data.type,
+        valor: numAmount,
         descricao: `[${valeLabels[data.type]}] Valor: R$ ${numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Justificativa: ${data.justification}`,
         status: 'pendente',
-        prioridade: 'normal'
+        prioridade: 'normal',
+        anexo_url: data.attachmentUrl
       });
 
       if (error) throw error;
@@ -294,6 +311,26 @@ export default function Vales() {
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const handleExportExcel = () => {
+    const exportData = filteredVales.map(v => ({
+      'ID': v.id.slice(0, 8).toUpperCase(),
+      'Tipo': valeLabels[v.tipo],
+      'Valor': v.valor,
+      'Data Solicitação': format(new Date(v.data_solicitacao), 'dd/MM/yyyy HH:mm'),
+      'Status': v.status.toUpperCase(),
+      'Justificativa': v.justificativa
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Vales");
+    XLSX.writeFile(wb, `Vales_${format(new Date(), 'ddMMyyyy')}.xlsx`);
+    
+    toast.success('Excel gerado com sucesso!', {
+      description: 'O download começará automaticamente.'
+    });
   };
 
   return (
@@ -512,8 +549,17 @@ export default function Vales() {
              </div>
              <Button variant="outline" className="h-11 px-4 rounded-xl border-border/50 hidden md:flex">
                 <Filter className="w-4 h-4 mr-2" />
-                Filtros
-             </Button>
+                 Filtros
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-11 px-4 rounded-xl border-border/50 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                onClick={handleExportExcel}
+              >
+                 <FileText className="w-4 h-4 mr-2" />
+                 Excel
+              </Button>
+
            </div>
         </div>
 
@@ -791,15 +837,26 @@ export default function Vales() {
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex items-center gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl hover:bg-muted/40 transition-all cursor-pointer group">
-                      <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
-                        <FileText className="w-4 h-4 text-primary" />
+                    {selectedVale.anexo_url ? (
+                      <a 
+                        href={selectedVale.anexo_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-all cursor-pointer group"
+                      >
+                        <div className="p-2 bg-background rounded-lg border border-border/50 group-hover:border-primary/30 transition-all">
+                          <FileText className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">Comprovante Anexado</p>
+                          <p className="text-[9px] text-muted-foreground uppercase">Clique para visualizar</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-3 p-4 bg-muted/10 border border-dashed border-border rounded-xl col-span-2 justify-center">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Nenhum anexo disponível</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">comprovante_justificativa.pdf</p>
-                        <p className="text-[9px] text-muted-foreground">PDF • 1.2 MB</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 

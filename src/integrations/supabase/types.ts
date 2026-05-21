@@ -671,6 +671,7 @@ export type Database = {
           tipo: Database["public"]["Enums"]["tipo_solicitacao"]
           updated_at: string
           user_id: string
+          valor: number | null
         }
         Insert: {
           anexo_url?: string | null
@@ -685,6 +686,7 @@ export type Database = {
           tipo: Database["public"]["Enums"]["tipo_solicitacao"]
           updated_at?: string
           user_id: string
+          valor?: number | null
         }
         Update: {
           anexo_url?: string | null
@@ -699,6 +701,7 @@ export type Database = {
           tipo?: Database["public"]["Enums"]["tipo_solicitacao"]
           updated_at?: string
           user_id?: string
+          valor?: number | null
         }
         Relationships: []
       }
@@ -905,6 +908,9 @@ export type Database = {
         | "adiantamento_salarial"
         | "carta_recomendacao"
         | "outros"
+        | "vale_refeicao"
+        | "vale_transporte"
+        | "vale_combustivel"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1051,6 +1057,9 @@ export const Constants = {
         "adiantamento_salarial",
         "carta_recomendacao",
         "outros",
+        "vale_refeicao",
+        "vale_transporte",
+        "vale_combustivel",
       ],
     },
   },
