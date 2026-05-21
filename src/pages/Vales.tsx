@@ -890,6 +890,37 @@ export default function Vales() {
                   </div>
                 </div>
 
+                {/* Audit Logs Section */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Histórico de Auditoria</h4>
+                  <div className="bg-muted/30 rounded-xl overflow-hidden border border-border/50">
+                    {valeHistory.length > 0 ? (
+                      <div className="divide-y divide-border/30">
+                        {valeHistory.map((log) => (
+                          <div key={log.id} className="p-3 flex items-start gap-3 hover:bg-muted/50 transition-all">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                            <div className="flex-1 space-y-1">
+                              <div className="flex justify-between items-center">
+                                <p className="text-[10px] font-black uppercase text-foreground">
+                                  {log.status_anterior ? `${log.status_anterior} → ${log.status_novo}` : `Início: ${log.status_novo}`}
+                                </p>
+                                <p className="text-[9px] text-muted-foreground">{format(new Date(log.created_at), 'dd/MM/yyyy HH:mm')}</p>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground leading-tight">
+                                {log.observacao} • <span className="font-bold text-foreground/80">{log.profiles?.display_name || 'Sistema'}</span>
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Nenhuma alteração registrada ainda</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="pt-6 border-t border-border/20 flex flex-col sm:flex-row gap-3">
                   {/* Etapa 7: Exportação e Compartilhamento Premium */}
                   <Button 
