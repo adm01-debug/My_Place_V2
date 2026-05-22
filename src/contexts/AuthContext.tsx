@@ -88,10 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const role = useMemo((): UserRole => {
     if (!profile) return 'colaborador';
-    if (userRoles?.includes('admin')) return 'admin';
-    if (userRoles?.includes('gestor')) return 'gestor';
-    if (userRoles?.includes('rh')) return 'rh';
-    if (userRoles?.includes('diretor')) return 'diretor';
+    const roles = (userRoles || []) as string[];
+    if (roles.includes('admin')) return 'admin';
+    if (roles.includes('gestor')) return 'gestor';
+    if (roles.includes('rh')) return 'rh';
+    if (roles.includes('diretor')) return 'diretor';
     return 'colaborador';
   }, [profile, userRoles]);
 
@@ -262,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, [checkAccountLocked, recordLoginAttempt, fetchProfile, fetchUserRole]);
+  }, [checkAccountLocked, recordLoginAttempt, fetchProfile, refetchUserRoles]);
 
   const signUp = useCallback(async (email: string, password: string, nome: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -373,7 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (event === 'SIGNED_OUT') {
           setProfile(null);
-          setDbRole(null);
+          queryClient.clear();
         }
       }
     );
@@ -382,7 +383,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfile, fetchUserRole]);
+  }, [fetchProfile, refetchUserRoles, queryClient]);
 
   const value = useMemo(
     () => ({
