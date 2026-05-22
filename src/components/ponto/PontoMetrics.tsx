@@ -110,7 +110,7 @@ export function PontoMetrics({ punches, expectedHours = 8 }: PontoMetricsProps) 
               </p>
             </div>
             <span className={`text-2xl font-bold tabular-nums tracking-tighter ${isOvertime ? 'text-amber-500' : 'text-foreground'}`}>
-              {formatTime(currentTotalSeconds)}
+              {formatTime(currentTotalSeconds || 0)}
             </span>
           </div>
 
