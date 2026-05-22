@@ -113,7 +113,7 @@ export default function PontoHistory() {
     fetchHistory();
   }, [fetchHistory]);
 
-  const navigate = (dir: 'prev' | 'next') => {
+  const handlePeriodNavigate = (dir: 'prev' | 'next') => {
     if (tab === 'semana') {
       setReferenceDate((d) => (dir === 'prev' ? subWeeks(d, 1) : addWeeks(d, 1)));
     } else if (tab === 'mes') {
@@ -154,10 +154,10 @@ export default function PontoHistory() {
 
           {/* Period navigation */}
           <TabsContent value="semana" className="mt-3">
-            <PeriodNav label={periodLabel()} onPrev={() => navigate('prev')} onNext={() => navigate('next')} />
+            <PeriodNav label={periodLabel()} onPrev={() => handlePeriodNavigate('prev')} onNext={() => handlePeriodNavigate('next')} />
           </TabsContent>
           <TabsContent value="mes" className="mt-3">
-            <PeriodNav label={periodLabel()} onPrev={() => navigate('prev')} onNext={() => navigate('next')} />
+            <PeriodNav label={periodLabel()} onPrev={() => handlePeriodNavigate('prev')} onNext={() => handlePeriodNavigate('next')} />
           </TabsContent>
           <TabsContent value="data" className="mt-3">
             <Popover>
