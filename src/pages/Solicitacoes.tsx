@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Plus, Clock, CheckCircle2, XCircle, Loader2, Paperclip, X, Filter, CalendarIcon, Inbox } from 'lucide-react';
@@ -68,6 +69,7 @@ const prioridadeLabels: Record<Prioridade, string> = {
 
 export default function Solicitacoes() {
   const { user } = useAuth();
+  const location = useLocation();
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -103,6 +105,16 @@ export default function Solicitacoes() {
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (location.state && location.state.tipo) {
+      setTipo(location.state.tipo);
+      setDescricao(location.state.descricao || '');
+      setDialogOpen(true);
+      // Limpar state após carregar para não abrir toda vez que voltar à página
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const filteredSolicitacoes = useMemo(() => {
     return solicitacoes.filter((s) => {
