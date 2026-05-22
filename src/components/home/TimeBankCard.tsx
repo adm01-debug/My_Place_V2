@@ -4,6 +4,7 @@ import { History, TrendingUp, TrendingDown, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function TimeBankCard() {
   const { profile } = useAuth();

@@ -339,12 +339,13 @@ export default function Vales() {
 
   const handleShareWhatsApp = (vale: ValeRequest) => {
     const text = `*Solicitação de Vale - Portal do Colaborador*\n\n` +
+      `*ID da Operação:* \`${vale.id.toUpperCase().slice(0, 8)}\`\n` +
       `*Tipo:* ${valeLabels[vale.tipo]}\n` +
       `*Valor:* ${formatCurrency(vale.valor)}\n` +
       `*Data:* ${new Date(vale.data_solicitacao).toLocaleDateString('pt-BR')}\n` +
       `*Status:* ${vale.status.toUpperCase()}\n` +
-      `*Justificativa:* ${vale.justificativa}\n\n` +
-      `ID da Operação: ${vale.id.toUpperCase()}`;
+      `*Justificativa:* _${vale.justificativa}_\n\n` +
+      `_Enviado via Portal Digital do Colaborador_`;
     
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
