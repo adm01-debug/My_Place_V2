@@ -57,8 +57,11 @@ export function TimeBankCard() {
           </div>
           
           <button 
-            onClick={() => navigate('/ponto')}
-            className="text-xs font-semibold text-primary hover:underline pb-1"
+            onClick={() => {
+              navigate('/ponto');
+              toast.info('Abrindo extrato detalhado do Banco de Horas...');
+            }}
+            className="text-xs font-semibold text-primary hover:underline pb-1 transition-all active:scale-95"
           >
             Ver Extrato
           </button>

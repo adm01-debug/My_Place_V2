@@ -46,11 +46,11 @@ export default function Ponto() {
   const [loading, setLoading] = useState(true);
   const [punching, setPunching] = useState<PunchType | null>(null);
   const [stats, setStats] = useState({
-    saldoMes: "00:00",
-    mediaEntrada: "09:00",
-    mediaSaida: "18:00",
+    saldoMes: "--:--",
+    mediaEntrada: "--:--",
+    mediaSaida: "--:--",
     diasIncompletos: 0,
-    percentualPontualidade: 100
+    percentualPontualidade: 0
   });
 
   // Live clock

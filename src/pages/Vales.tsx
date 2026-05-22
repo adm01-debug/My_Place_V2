@@ -858,11 +858,53 @@ export default function Vales() {
                   </div>
                 </div>
 
-                {/* Etapa 5: Gestão de Documentos e Anexos (Placeholder UI) */}
+                {/* Etapa 5: Gestão de Documentos e Anexos */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Documentação Vinculada</h4>
-                    <Button variant="ghost" size="sm" className="h-7 text-[9px] uppercase font-bold gap-1.5">
+                    <input
+                      type="file"
+                      id="detail-attachment"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !selectedVale) return;
+                        
+                        const loadingToast = toast.loading('Fazendo upload do anexo...');
+                        try {
+                          const fileExt = file.name.split('.').pop();
+                          const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
+                          
+                          const { error: uploadError } = await supabase.storage
+                            .from('solicitacoes_anexos')
+                            .upload(filePath, file);
+
+                          if (uploadError) throw uploadError;
+
+                          const { data: { publicUrl } } = supabase.storage
+                            .from('solicitacoes_anexos')
+                            .getPublicUrl(filePath);
+
+                          const { error: updateError } = await supabase
+                            .from('solicitacoes')
+                            .update({ anexo_url: publicUrl })
+                            .eq('id', selectedVale.id);
+
+                          if (updateError) throw updateError;
+
+                          toast.success('Anexo adicionado com sucesso!', { id: loadingToast });
+                          fetchData();
+                        } catch (error: any) {
+                          toast.error('Erro no upload: ' + error.message, { id: loadingToast });
+                        }
+                      }}
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-[9px] uppercase font-bold gap-1.5"
+                      onClick={() => document.getElementById('detail-attachment')?.click()}
+                    >
                       <Plus className="w-3 h-3" /> Adicionar Anexo
                     </Button>
                   </div>
