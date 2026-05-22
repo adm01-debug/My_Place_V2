@@ -12,6 +12,7 @@ interface SolicitacaoRequest {
   descricao: string;
   status: string;
   prioridade: string;
+  valor?: number | null;
   anexo_url: string | null;
   created_at: string;
   profile?: ProfileInfo;
@@ -21,6 +22,9 @@ const tipoSolicitacaoLabels: Record<string, string> = {
   declaracao_vinculo: 'Declaração de Vínculo',
   alteracao_dados: 'Alteração de Dados',
   adiantamento_salarial: 'Adiantamento Salarial',
+  vale_refeicao: 'Vale Refeição',
+  vale_transporte: 'Vale Transporte',
+  vale_combustivel: 'Vale Combustível',
   carta_recomendacao: 'Carta de Recomendação',
   outros: 'Outros',
 };
@@ -58,9 +62,16 @@ export function AprovacaoSolicitacaoCard({ solicitacao: s, onAction }: Props) {
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
-          <p className="text-sm text-foreground line-clamp-2">{s.descricao}</p>
-          {s.anexo_url && <AttachmentPreview url={s.anexo_url} className="mt-1" />}
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary/80">{tipoSolicitacaoLabels[s.tipo] || s.tipo}</p>
+            {s.valor && (
+              <p className="text-sm font-black text-foreground">
+                {s.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            )}
+          </div>
+          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">{s.descricao}</p>
+          {s.anexo_url && <AttachmentPreview url={s.anexo_url} className="mt-2" />}
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString('pt-BR')}</span>

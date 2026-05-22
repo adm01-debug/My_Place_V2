@@ -76,20 +76,25 @@ export function PontoMetrics({ punches, expectedHours = 8 }: PontoMetricsProps) 
   const getEstimatedExit = () => {
     if (!entrada) return null;
     
-    // Simplificado: entrada + 8h + 1h almoço (se não bateu retorno ainda)
+    // Simplificado: entrada + 8h + 1h almoço
     const totalWorkMs = expectedHours * 3600000;
-    const lunchMs = 3600000; // 1h padrão
     
-    let exitDate = new Date(new Date(entrada.data_hora).getTime() + totalWorkMs + lunchMs);
+    // Se ainda não bateu o almoço, estima 1h de almoço
+    // Se já bateu entrada e saída do almoço, usa o tempo real de almoço
+    // Se bateu só entrada do almoço, assume que vai voltar daqui a 1h
     
-    // Se já bateu o almoço, podemos ser mais precisos
+    let lunchDurationMs = 3600000; // 1h default
+    
     if (saidaAlmoco && retornoAlmoco) {
-      const morningMs = new Date(saidaAlmoco.data_hora).getTime() - new Date(entrada.data_hora).getTime();
-      const remainingMs = totalWorkMs - morningMs;
-      exitDate = new Date(new Date(retornoAlmoco.data_hora).getTime() + remainingMs);
+      lunchDurationMs = new Date(retornoAlmoco.data_hora).getTime() - new Date(saidaAlmoco.data_hora).getTime();
+    } else if (saidaAlmoco) {
+      // No almoço agora, estima volta em 1h
+      const now = new Date();
+      const timeSinceLunchStarted = now.getTime() - new Date(saidaAlmoco.data_hora).getTime();
+      lunchDurationMs = Math.max(3600000, timeSinceLunchStarted);
     }
 
-    return exitDate;
+    return new Date(new Date(entrada.data_hora).getTime() + totalWorkMs + lunchDurationMs);
   };
 
   const estimatedExit = getEstimatedExit();

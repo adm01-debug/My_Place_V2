@@ -9,6 +9,8 @@ import { CalendarIcon, Clock, LogIn, LogOut, Coffee, DoorOpen, Loader2, ChevronL
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, addMonths, subWeeks, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -64,6 +66,7 @@ function groupByDay(punches: PunchRecord[]): Map<string, PunchRecord[]> {
 
 export default function PontoHistory() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'semana' | 'mes' | 'data'>('semana');
   const [referenceDate, setReferenceDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -110,7 +113,7 @@ export default function PontoHistory() {
     fetchHistory();
   }, [fetchHistory]);
 
-  const navigate = (dir: 'prev' | 'next') => {
+  const handlePeriodNavigate = (dir: 'prev' | 'next') => {
     if (tab === 'semana') {
       setReferenceDate((d) => (dir === 'prev' ? subWeeks(d, 1) : addWeeks(d, 1)));
     } else if (tab === 'mes') {
@@ -151,10 +154,10 @@ export default function PontoHistory() {
 
           {/* Period navigation */}
           <TabsContent value="semana" className="mt-3">
-            <PeriodNav label={periodLabel()} onPrev={() => navigate('prev')} onNext={() => navigate('next')} />
+            <PeriodNav label={periodLabel()} onPrev={() => handlePeriodNavigate('prev')} onNext={() => handlePeriodNavigate('next')} />
           </TabsContent>
           <TabsContent value="mes" className="mt-3">
-            <PeriodNav label={periodLabel()} onPrev={() => navigate('prev')} onNext={() => navigate('next')} />
+            <PeriodNav label={periodLabel()} onPrev={() => handlePeriodNavigate('prev')} onNext={() => handlePeriodNavigate('next')} />
           </TabsContent>
           <TabsContent value="data" className="mt-3">
             <Popover>
@@ -284,7 +287,13 @@ export default function PontoHistory() {
                                     <MapPin className="w-2 h-2" />
                                     Ver no mapa
                                   </a>
-                                  <button className="text-amber-500 hover:underline mt-1.5 pt-1.5 border-t border-border/50 flex items-center gap-1">
+                                  <button 
+                                    onClick={() => {
+                                      navigate('/solicitacoes', { state: { tipo: 'outros', descricao: `Solicitação de ajuste de ponto para o dia ${format(dayDate, 'dd/MM/yyyy')}` } });
+                                      toast.info('Redirecionando para abertura de solicitação de ajuste...');
+                                    }}
+                                    className="text-amber-500 hover:underline mt-1.5 pt-1.5 border-t border-border/50 flex items-center gap-1 transition-all active:scale-95"
+                                  >
                                     <PencilLine className="w-2 h-2" />
                                     Solicitar Ajuste
                                   </button>

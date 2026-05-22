@@ -36,9 +36,9 @@ export function PontoAnalytics({ stats }: PontoAnalyticsProps) {
           <div className="space-y-3 flex-1">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-bold uppercase text-muted-foreground">Status da Jornada Mensal</span>
-              <span className="text-[10px] font-bold text-primary">{stats.percentualPontualidade}% completa</span>
+              <span className="text-[10px] font-bold text-primary">{stats.percentualPontualidade || 0}% completa</span>
             </div>
-            <Progress value={stats.percentualPontualidade} className="h-1.5" />
+            <Progress value={stats.percentualPontualidade || 0} className="h-1.5" />
             <div className="flex justify-between text-[9px] font-medium text-muted-foreground uppercase">
               <div className="flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-500" />
