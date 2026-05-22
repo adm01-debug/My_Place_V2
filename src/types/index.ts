@@ -29,33 +29,56 @@ export interface DateRange {
   to: Date | undefined;
 }
 
-export interface User {
+export interface UserProfile {
   id: string;
   email: string;
   nome: string;
-  avatar_url?: string;
-  cargo?: string;
-  departamento?: string;
+  avatar_url?: string | null;
+  cargo?: string | null;
+  departamento?: string | null;
+  data_admissao?: string | null;
+  matricula?: string | null;
+  cpf?: string | null;
+  telefone?: string | null;
+  salario_base?: number | null;
+  valor_hora_extra?: number | null;
+  saldo_horas?: number | null;
 }
 
 export interface Notification {
   id: string;
-  tipo: 'info' | 'success' | 'warning' | 'error';
+  tipo: 'info' | 'sucesso' | 'alerta' | 'erro';
   titulo: string;
   mensagem: string;
   lida: boolean;
+  link?: string | null;
   created_at: string;
 }
 
-export type Status = 'pendente' | 'aprovado' | 'rejeitado' | 'cancelado';
+export type Status = 'pendente' | 'aprovado' | 'rejeitado' | 'cancelado' | 'em_analise';
 
 export interface AuditLog {
   id: string;
-  entity_type: string;
-  entity_id: string;
-  action: 'create' | 'update' | 'delete';
-  old_data?: Record<string, unknown>;
-  new_data?: Record<string, unknown>;
-  user_id: string;
-  created_at: string;
+  table_name: string;
+  record_id: string | null;
+  operation: string;
+  old_data?: any;
+  new_data?: any;
+  changed_by: string | null;
+  changed_at: string;
+}
+
+export type TipoVale = 'adiantamento_salarial' | 'vale_refeicao' | 'vale_transporte' | 'vale_combustivel';
+export type StatusVale = 'pendente' | 'em_analise' | 'aprovado' | 'pago' | 'recusado' | 'cancelado';
+
+export interface ValeRequest {
+  id: string;
+  tipo: TipoVale;
+  valor: number;
+  data_solicitacao: string;
+  status: StatusVale;
+  justificativa: string;
+  data_pagamento_prevista?: string;
+  etapa_atual: number;
+  anexo_url?: string | null;
 }
