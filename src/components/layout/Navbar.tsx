@@ -155,7 +155,7 @@ export default function Navbar() {
 
       {/* Mobile Bottom Nav - Optimized with Horizontal Scroll if needed */}
       <nav aria-label="Navegação mobile" className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-1 h-16 px-2 safe-area-pb overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 h-16 px-2 safe-area-pb overflow-x-auto no-scrollbar scroll-smooth">
           {/* Mobile Back Button (only shown when not on home) */}
           {location.pathname !== '/' && (
             <button
