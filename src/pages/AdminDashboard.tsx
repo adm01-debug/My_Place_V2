@@ -55,7 +55,7 @@ export default function AdminDashboard() {
         supabase.from("user_roles").select("role"),
         supabase.from("registros_ponto").select("id").gte("data_hora", today),
         supabase.from("registros_ponto")
-          .select("id, tipo, data_hora, profiles(full_name)")
+          .select("id, tipo, data_hora, profiles(nome)")
           .order("data_hora", { ascending: false })
           .limit(5)
       ]);
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
         roleChartData,
         recentActivity: (recentActivity || []).map((a: any) => ({
           id: a.id,
-          user: a.profiles?.full_name || "Sistema",
+          user: a.profiles?.nome || "Sistema",
           type: a.tipo,
           time: a.data_hora
         }))
