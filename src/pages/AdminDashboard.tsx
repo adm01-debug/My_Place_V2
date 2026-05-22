@@ -184,8 +184,14 @@ export default function AdminDashboard() {
               <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Saúde Operacional</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span className="text-lg font-bold">Excelente</span>
+                  {(stats?.pendingFerias || 0) + (stats?.pendingSolicitacoes || 0) > 10 ? (
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  )}
+                  <span className="text-lg font-bold">
+                    {(stats?.pendingFerias || 0) + (stats?.pendingSolicitacoes || 0) > 10 ? 'Atenção' : 'Excelente'}
+                  </span>
                 </div>
               </div>
               <div className="p-4 rounded-xl bg-accent/30 border border-border/50">
