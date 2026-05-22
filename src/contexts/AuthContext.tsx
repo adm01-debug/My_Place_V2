@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const role = useMemo((): UserRole => {
     if (!profile) return 'colaborador';
-    const roles = (userRoles || []) as string[];
+    const roles = (userRoles || []) as any[];
     if (roles.includes('admin')) return 'admin';
     if (roles.includes('gestor')) return 'gestor';
     if (roles.includes('rh')) return 'rh';
