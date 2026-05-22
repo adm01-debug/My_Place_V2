@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -10,7 +10,6 @@ import {
   Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon,
   Bell, User, ChevronRight, HeartHandshake, HelpCircle
 } from 'lucide-react';
-import { HoursChart, SalaryChart, GoalsProgress } from '@/components/home/DashboardCharts';
 import { RecentActivity } from '@/components/home/RecentActivity';
 import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
 import { SupportSection } from '@/components/home/SupportSection';
@@ -19,6 +18,11 @@ import { CompanyAnnouncements } from '@/components/home/CompanyAnnouncements';
 import { supabase } from '@/integrations/supabase/client';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
+import { SkeletonCard } from '@/components/portal/Skeleton';
+
+const HoursChart = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.HoursChart })));
+const SalaryChart = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.SalaryChart })));
+const GoalsProgress = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.GoalsProgress })));
 
 function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
@@ -293,16 +297,22 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div className="md:col-span-3">
-              <HoursChart />
+              <Suspense fallback={<SkeletonCard />}>
+                <HoursChart />
+              </Suspense>
             </div>
             <div className="md:col-span-3">
               <TimeBankCard />
             </div>
             <div className="md:col-span-3">
-              <SalaryChart />
+              <Suspense fallback={<SkeletonCard />}>
+                <SalaryChart />
+              </Suspense>
             </div>
             <div className="md:col-span-3">
-              <GoalsProgress />
+              <Suspense fallback={<SkeletonCard />}>
+                <GoalsProgress />
+              </Suspense>
             </div>
             <div className="md:col-span-6">
               <RecentActivity />

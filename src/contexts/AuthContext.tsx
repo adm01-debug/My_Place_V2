@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { createLogger } from '@/lib/logger';
 import { UserRole, PermissionAction, ResourceType, ROLE_PERMISSIONS, ROUTE_ACCESS } from './auth-permissions';
@@ -63,47 +64,37 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [dbRole, setDbRole] = useState<'admin' | 'gestor' | 'user' | null>(null);
 
-  const fetchUserRole = useCallback(async (userId: string) => {
-    try {
+  const { data: userRoles, refetch: refetchUserRoles } = useQuery({
+    queryKey: ['user-roles', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId);
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return (data || []).map(r => r.role);
+    },
+    enabled: !!user,
+    staleTime: Infinity,
+  });
 
-      if (error) {
-        log.error('Erro ao buscar roles:', error);
-        setDbRole(null);
-        return;
-      }
-
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      if (roles.includes('admin')) {
-        setDbRole('admin');
-      } else if (roles.includes('gestor')) {
-        setDbRole('gestor');
-      } else {
-        setDbRole('user');
-      }
-    } catch (error) {
-      log.error('Erro ao buscar roles:', error);
-      setDbRole(null);
-    }
-  }, []);
-
-  const detectRole = useCallback((profile: Profile | null): UserRole => {
+  const role = useMemo((): UserRole => {
     if (!profile) return 'colaborador';
-    if (dbRole === 'admin') return 'admin';
-    if (dbRole === 'gestor') return 'gestor';
+    const roles = (userRoles || []) as any[];
+    if (roles.includes('admin')) return 'admin';
+    if (roles.includes('gestor')) return 'gestor';
+    if (roles.includes('rh')) return 'rh';
+    if (roles.includes('diretor')) return 'diretor';
     return 'colaborador';
-  }, [dbRole]);
-
-  const role = useMemo(() => detectRole(profile), [profile, detectRole]);
+  }, [profile, userRoles]);
 
   const isAdmin = role === 'admin';
   const isGestor = role === 'gestor' || role === 'admin' || role === 'diretor';
@@ -262,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         const profileData = await fetchProfile(data.user.id);
         setProfile(profileData);
-        await fetchUserRole(data.user.id);
+        await refetchUserRoles();
       }
 
       return { success: true };
@@ -272,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, [checkAccountLocked, recordLoginAttempt, fetchProfile, fetchUserRole]);
+  }, [checkAccountLocked, recordLoginAttempt, fetchProfile, refetchUserRoles]);
 
   const signUp = useCallback(async (email: string, password: string, nome: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -321,23 +312,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setSession(null);
       setProfile(null);
-      setDbRole(null);
+      queryClient.clear();
     } catch (error) {
       log.error('Erro ao sair:', error);
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     let mounted = true;
     let initDone = false;
 
     const loadProfileAndRole = async (userId: string) => {
-      const [profileData] = await Promise.all([
-        fetchProfile(userId),
-        fetchUserRole(userId),
-      ]);
+      const profileData = await fetchProfile(userId);
       if (mounted) {
         setProfile(profileData);
+        refetchUserRoles();
       }
     };
 
@@ -356,7 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(null);
           setUser(null);
           setProfile(null);
-          setDbRole(null);
+          queryClient.clear();
         }
       } finally {
         initDone = true;
@@ -385,7 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (event === 'SIGNED_OUT') {
           setProfile(null);
-          setDbRole(null);
+          queryClient.clear();
         }
       }
     );
@@ -394,7 +383,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfile, fetchUserRole]);
+  }, [fetchProfile, refetchUserRoles, queryClient]);
 
   const value = useMemo(
     () => ({

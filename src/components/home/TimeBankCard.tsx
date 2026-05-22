@@ -11,7 +11,7 @@ export function TimeBankCard() {
   
   const saldo = profile?.saldo_horas || 0;
   const valorHoraExtra = profile?.valor_hora_extra || 0;
-  const valorEstimado = saldo > 0 ? saldo * valorHoraExtra : 0;
+  const valorEstimado = saldo > 0 ? saldo * (valorHoraExtra / 160) * 1.5 : 0;
   const isPositive = saldo >= 0;
 
   return (

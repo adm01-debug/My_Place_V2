@@ -108,7 +108,7 @@ export function HoursChart() {
             </p>
             {valorExtra > 0 && totalHours > 0 && (
               <p className="text-[10px] text-emerald-600 font-bold">
-                Estimativa Extra: R$ {(totalHours * (valorExtra / 160) * 0.5).toFixed(2)}
+                Estimativa Extra: R$ {((totalHours > 44 ? (totalHours - 44) : 0) * (valorExtra / 160) * 1.5).toFixed(2)}
               </p>
             )}
           </div>

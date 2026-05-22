@@ -73,6 +73,7 @@ export function GlobalSearch() {
       <button
         onClick={() => setOpen(true)}
         className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 bg-muted/30 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+        aria-label="Abrir busca global (Atalho: Ctrl+K ou Cmd+K)"
       >
         <Search className="w-3.5 h-3.5" />
         <span>Buscar...</span>
