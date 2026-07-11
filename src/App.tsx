@@ -46,6 +46,7 @@ const Clima = lazy(() => import("./pages/Clima"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Ideias = lazy(() => import("./pages/Ideias"));
 const Reembolsos = lazy(() => import("./pages/Reembolsos"));
+const Atestados = lazy(() => import("./pages/Atestados"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -127,6 +128,7 @@ const App = () => (
                 <Route path="/calendario" element={<Page name="Calendário Corporativo"><Calendario /></Page>} />
                 <Route path="/ideias" element={<Page name="Central de Ideias"><Ideias /></Page>} />
                 <Route path="/reembolsos" element={<Page name="Reembolsos"><Reembolsos /></Page>} />
+                <Route path="/atestados" element={<Page name="Atestados & Afastamentos"><Atestados /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
