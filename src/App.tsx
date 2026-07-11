@@ -49,6 +49,7 @@ const Reembolsos = lazy(() => import("./pages/Reembolsos"));
 const Atestados = lazy(() => import("./pages/Atestados"));
 const ExitInterview = lazy(() => import("./pages/ExitInterview"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Reservas = lazy(() => import("./pages/Reservas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -133,6 +134,7 @@ const App = () => (
                 <Route path="/atestados" element={<Page name="Atestados & Afastamentos"><Atestados /></Page>} />
                 <Route path="/exit-interview" element={<Page name="Pesquisa de Desligamento"><ExitInterview /></Page>} />
                 <Route path="/onboarding" element={<Page name="Onboarding"><Onboarding /></Page>} />
+                <Route path="/reservas" element={<Page name="Reservas de Salas & Recursos"><Reservas /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
