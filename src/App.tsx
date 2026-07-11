@@ -37,6 +37,7 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const AdminAuditoria = lazy(() => import("./pages/AdminAuditoria"));
 const Calculadoras = lazy(() => import("./pages/Calculadoras"));
 const Kudos = lazy(() => import("./pages/Kudos"));
+const Trilhas = lazy(() => import("./pages/Trilhas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
