@@ -46,6 +46,7 @@ const Clima = lazy(() => import("./pages/Clima"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Ideias = lazy(() => import("./pages/Ideias"));
 const Reembolsos = lazy(() => import("./pages/Reembolsos"));
+const Atestados = lazy(() => import("./pages/Atestados"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
