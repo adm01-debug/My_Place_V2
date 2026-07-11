@@ -47,14 +47,18 @@ export default function Feedback360() {
     if (!user) return;
     const [{ data: tf }, { data: rs }] = await Promise.all([
       supabase.from("feedback_avaliadores")
-        .select("id, ciclo_id, avaliado_id, relacao, concluido, profiles!feedback_avaliadores_avaliado_id_fkey(nome)")
+        .select("id, ciclo_id, avaliado_id, relacao, concluido")
         .eq("ciclo_id", cicloId).eq("avaliador_id", user.id),
       supabase.rpc("fn_meus_resultados_360", { p_ciclo_id: cicloId }),
     ]);
-    setTarefas((tf ?? []).map((t: { id: string; ciclo_id: string; avaliado_id: string; relacao: string; concluido: boolean; profiles?: { nome?: string } | null }) => ({
-      id: t.id, ciclo_id: t.ciclo_id, avaliado_id: t.avaliado_id, relacao: t.relacao,
-      concluido: t.concluido, avaliado_nome: t.profiles?.nome ?? "Colaborador",
-    })));
+    const rows = (tf ?? []) as Array<{ id: string; ciclo_id: string; avaliado_id: string; relacao: string; concluido: boolean }>;
+    const ids = Array.from(new Set(rows.map((r) => r.avaliado_id)));
+    const nomes: Record<string, string> = {};
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, nome").in("id", ids);
+      for (const p of profs ?? []) nomes[p.id] = p.nome ?? "Colaborador";
+    }
+    setTarefas(rows.map((t) => ({ ...t, avaliado_nome: nomes[t.avaliado_id] ?? "Colaborador" })));
     setResultados((rs ?? []) as Resultado[]);
   }
 
