@@ -320,6 +320,130 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_avaliadores: {
+        Row: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          concluido: boolean
+          concluido_em: string | null
+          created_at: string
+          id: string
+          relacao: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Insert: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          relacao: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Update: {
+          avaliado_id?: string
+          avaliador_id?: string
+          ciclo_id?: string
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          relacao?: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_avaliadores_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_ciclos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_ciclos: {
+        Row: {
+          competencias: Json
+          created_at: string
+          created_by: string | null
+          data_fim: string
+          data_inicio: string
+          descricao: string | null
+          id: string
+          status: Database["public"]["Enums"]["feedback_ciclo_status"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          competencias?: Json
+          created_at?: string
+          created_by?: string | null
+          data_fim: string
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["feedback_ciclo_status"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          competencias?: Json
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["feedback_ciclo_status"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      feedback_respostas: {
+        Row: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          comentario: string | null
+          competencia: string
+          created_at: string
+          id: string
+          nota: number
+          relacao: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Insert: {
+          avaliado_id: string
+          avaliador_id: string
+          ciclo_id: string
+          comentario?: string | null
+          competencia: string
+          created_at?: string
+          id?: string
+          nota: number
+          relacao: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Update: {
+          avaliado_id?: string
+          avaliador_id?: string
+          ciclo_id?: string
+          comentario?: string | null
+          competencia?: string
+          created_at?: string
+          id?: string
+          nota?: number
+          relacao?: Database["public"]["Enums"]["feedback_relacao"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_respostas_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_ciclos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       holerites: {
         Row: {
           arquivo_url: string | null
@@ -1288,7 +1412,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      feedback_resultados_agg: {
+        Row: {
+          avaliado_id: string | null
+          ciclo_id: string | null
+          competencia: string | null
+          media: number | null
+          relacao: Database["public"]["Enums"]["feedback_relacao"] | null
+          respondentes: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_respostas_ciclo_id_fkey"
+            columns: ["ciclo_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_ciclos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_2fa_enabled: { Args: { p_user_id: string }; Returns: boolean }
@@ -1318,6 +1460,15 @@ export type Database = {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
       }
+      fn_meus_resultados_360: {
+        Args: { p_ciclo_id: string }
+        Returns: {
+          competencia: string
+          media: number
+          relacao: Database["public"]["Enums"]["feedback_relacao"]
+          respondentes: number
+        }[]
+      }
       fn_validar_ponto_no_raio: {
         Args: { p_latitude: number; p_longitude: number }
         Returns: {
@@ -1341,6 +1492,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
+      feedback_relacao: "auto" | "gestor" | "par" | "subordinado"
       kudos_categoria:
         | "colaboracao"
         | "inovacao"
@@ -1504,6 +1657,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
+      feedback_relacao: ["auto", "gestor", "par", "subordinado"],
       kudos_categoria: [
         "colaboracao",
         "inovacao",
