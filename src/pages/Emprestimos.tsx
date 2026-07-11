@@ -163,7 +163,7 @@ export default function Emprestimos() {
         icon={Landmark}
         title="Empréstimos Consignados"
         description="Solicite adiantamentos com desconto direto em folha."
-        action={
+        actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
