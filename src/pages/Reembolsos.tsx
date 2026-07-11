@@ -95,8 +95,8 @@ export default function Reembolsos() {
         const path = `${user.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('anexos').upload(path, anexo);
         if (upErr) throw upErr;
-        const { data } = supabase.storage.from('anexos').createSignedUrl(path, 60 * 60 * 24 * 365);
-        anexoUrl = (await data)?.signedUrl ?? path;
+        const { data: signed } = await supabase.storage.from('anexos').createSignedUrl(path, 60 * 60 * 24 * 365);
+        anexoUrl = signed?.signedUrl ?? path;
       }
 
       const { error } = await supabase.from('reembolsos').insert({
