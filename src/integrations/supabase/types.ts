@@ -1197,6 +1197,57 @@ export type Database = {
         }
         Relationships: []
       }
+      reembolsos: {
+        Row: {
+          analisado_em: string | null
+          anexo_url: string | null
+          aprovador_id: string | null
+          categoria: Database["public"]["Enums"]["reembolso_categoria"]
+          created_at: string
+          data_despesa: string
+          descricao: string
+          id: string
+          observacao_gestor: string | null
+          pago_em: string | null
+          status: Database["public"]["Enums"]["reembolso_status"]
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          analisado_em?: string | null
+          anexo_url?: string | null
+          aprovador_id?: string | null
+          categoria: Database["public"]["Enums"]["reembolso_categoria"]
+          created_at?: string
+          data_despesa: string
+          descricao: string
+          id?: string
+          observacao_gestor?: string | null
+          pago_em?: string | null
+          status?: Database["public"]["Enums"]["reembolso_status"]
+          updated_at?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          analisado_em?: string | null
+          anexo_url?: string | null
+          aprovador_id?: string | null
+          categoria?: Database["public"]["Enums"]["reembolso_categoria"]
+          created_at?: string
+          data_despesa?: string
+          descricao?: string
+          id?: string
+          observacao_gestor?: string | null
+          pago_em?: string | null
+          status?: Database["public"]["Enums"]["reembolso_status"]
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       registros_ponto: {
         Row: {
           created_at: string
@@ -1821,6 +1872,20 @@ export type Database = {
         | "gratidao"
       prioridade_solicitacao: "baixa" | "normal" | "alta"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
+      reembolso_categoria:
+        | "viagem"
+        | "alimentacao"
+        | "transporte"
+        | "hospedagem"
+        | "material"
+        | "outros"
+      reembolso_status:
+        | "pendente"
+        | "em_analise"
+        | "aprovado"
+        | "pago"
+        | "recusado"
+        | "cancelado"
       status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
       status_justificativa: "pendente" | "aprovada" | "recusada"
       status_solicitacao:
@@ -1998,6 +2063,22 @@ export const Constants = {
       ],
       prioridade_solicitacao: ["baixa", "normal", "alta"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
+      reembolso_categoria: [
+        "viagem",
+        "alimentacao",
+        "transporte",
+        "hospedagem",
+        "material",
+        "outros",
+      ],
+      reembolso_status: [
+        "pendente",
+        "em_analise",
+        "aprovado",
+        "pago",
+        "recusado",
+        "cancelado",
+      ],
       status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
       status_justificativa: ["pendente", "aprovada", "recusada"],
       status_solicitacao: [
