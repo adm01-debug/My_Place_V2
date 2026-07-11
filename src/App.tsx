@@ -136,6 +136,7 @@ const App = () => (
                 <Route path="/exit-interview" element={<Page name="Pesquisa de Desligamento"><ExitInterview /></Page>} />
                 <Route path="/onboarding" element={<Page name="Onboarding"><Onboarding /></Page>} />
                 <Route path="/reservas" element={<Page name="Reservas de Salas & Recursos"><Reservas /></Page>} />
+                <Route path="/chamados" element={<Page name="Central de Chamados"><Chamados /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
