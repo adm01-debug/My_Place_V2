@@ -368,6 +368,62 @@ export type Database = {
         }
         Relationships: []
       }
+      justificativas_ponto: {
+        Row: {
+          anexo_url: string | null
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          data_referencia: string
+          descricao: string
+          id: string
+          observacao_admin: string | null
+          registro_ponto_id: string | null
+          status: Database["public"]["Enums"]["status_justificativa"]
+          tipo: Database["public"]["Enums"]["tipo_justificativa"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anexo_url?: string | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_referencia: string
+          descricao: string
+          id?: string
+          observacao_admin?: string | null
+          registro_ponto_id?: string | null
+          status?: Database["public"]["Enums"]["status_justificativa"]
+          tipo: Database["public"]["Enums"]["tipo_justificativa"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anexo_url?: string | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_referencia?: string
+          descricao?: string
+          id?: string
+          observacao_admin?: string | null
+          registro_ponto_id?: string | null
+          status?: Database["public"]["Enums"]["status_justificativa"]
+          tipo?: Database["public"]["Enums"]["tipo_justificativa"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "justificativas_ponto_registro_ponto_id_fkey"
+            columns: ["registro_ponto_id"]
+            isOneToOne: false
+            referencedRelation: "registros_ponto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kudos: {
         Row: {
           categoria: Database["public"]["Enums"]["kudos_categoria"]
@@ -1228,6 +1284,7 @@ export type Database = {
       prioridade_solicitacao: "baixa" | "normal" | "alta"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
       status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
+      status_justificativa: "pendente" | "aprovada" | "recusada"
       status_solicitacao:
         | "pendente"
         | "em_analise"
@@ -1235,6 +1292,13 @@ export type Database = {
         | "recusada"
         | "cancelada"
       tipo_ferias: "regular" | "abono_pecuniario" | "fracionada"
+      tipo_justificativa:
+        | "esquecimento"
+        | "atestado_medico"
+        | "problema_tecnico"
+        | "transporte"
+        | "folga_compensada"
+        | "outros"
       tipo_notificacao: "info" | "sucesso" | "alerta" | "erro"
       tipo_solicitacao:
         | "declaracao_vinculo"
@@ -1384,6 +1448,7 @@ export const Constants = {
       prioridade_solicitacao: ["baixa", "normal", "alta"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
       status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
+      status_justificativa: ["pendente", "aprovada", "recusada"],
       status_solicitacao: [
         "pendente",
         "em_analise",
@@ -1392,6 +1457,14 @@ export const Constants = {
         "cancelada",
       ],
       tipo_ferias: ["regular", "abono_pecuniario", "fracionada"],
+      tipo_justificativa: [
+        "esquecimento",
+        "atestado_medico",
+        "problema_tecnico",
+        "transporte",
+        "folga_compensada",
+        "outros",
+      ],
       tipo_notificacao: ["info", "sucesso", "alerta", "erro"],
       tipo_solicitacao: [
         "declaracao_vinculo",
