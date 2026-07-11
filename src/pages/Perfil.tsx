@@ -159,6 +159,8 @@ export default function Perfil() {
           </Card>
         )}
 
+        <TwoFactorSetup />
+
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
           <div className="flex items-center gap-2 text-primary">
             <ShieldCheck className="w-4 h-4" />
