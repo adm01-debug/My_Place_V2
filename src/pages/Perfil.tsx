@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Cal
 import { useNavigate } from 'react-router-dom';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { TwoFactorSetup } from '@/components/security/TwoFactorSetup';
+import { BiometricSetup } from '@/components/security/BiometricSetup';
 
 export default function Perfil() {
   const { user, profile } = useAuth();
