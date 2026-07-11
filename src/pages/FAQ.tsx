@@ -58,7 +58,7 @@ export default function FAQ() {
       <ModuleHeader
         icon={HelpCircle}
         title="Perguntas Frequentes"
-        subtitle="Encontre respostas rápidas para as dúvidas mais comuns."
+        description="Encontre respostas rápidas para as dúvidas mais comuns."
       />
 
       <div className="relative">
