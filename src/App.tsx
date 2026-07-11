@@ -124,6 +124,7 @@ const App = () => (
                 <Route path="/metas" element={<Page name="Metas & OKRs"><Metas /></Page>} />
                 <Route path="/clima" element={<Page name="Clima Organizacional"><Clima /></Page>} />
                 <Route path="/calendario" element={<Page name="Calendário Corporativo"><Calendario /></Page>} />
+                <Route path="/ideias" element={<Page name="Central de Ideias"><Ideias /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
