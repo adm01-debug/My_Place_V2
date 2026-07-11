@@ -57,11 +57,20 @@ export default function Kudos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("kudos")
-        .select("*, remetente:profiles!kudos_remetente_id_fkey(nome), destinatario:profiles!kudos_destinatario_id_fkey(nome)")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as unknown as KudosRow[];
+      const rows = (data ?? []) as Array<Omit<KudosRow, "remetente" | "destinatario">>;
+      const ids = Array.from(new Set(rows.flatMap(r => [r.remetente_id, r.destinatario_id])));
+      if (ids.length === 0) return [] as KudosRow[];
+      const { data: profs } = await supabase.from("profiles").select("id, nome").in("id", ids);
+      const map = new Map((profs ?? []).map(p => [p.id, p.nome as string | null]));
+      return rows.map(r => ({
+        ...r,
+        remetente: { nome: map.get(r.remetente_id) ?? null },
+        destinatario: { nome: map.get(r.destinatario_id) ?? null },
+      })) as KudosRow[];
     },
   });
 
