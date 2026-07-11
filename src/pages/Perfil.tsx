@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Calendar, Hash, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
+import { TwoFactorSetup } from '@/components/security/TwoFactorSetup';
 
 export default function Perfil() {
   const { user, profile } = useAuth();
@@ -157,6 +158,8 @@ export default function Perfil() {
             </div>
           </Card>
         )}
+
+        <TwoFactorSetup />
 
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
           <div className="flex items-center gap-2 text-primary">
