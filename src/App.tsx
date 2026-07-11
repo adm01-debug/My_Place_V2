@@ -34,6 +34,7 @@ const AdminConfiguracoes = lazy(() => import("./pages/AdminConfiguracoes"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const Documentos = lazy(() => import("./pages/Documentos"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const AdminAuditoria = lazy(() => import("./pages/AdminAuditoria"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,6 +104,7 @@ const App = () => (
                 <Route path="/notificacoes" element={<Page name="Notificacoes"><Notificacoes /></Page>} />
                 <Route path="/documentos" element={<Page name="Documentos"><Documentos /></Page>} />
                 <Route path="/faq" element={<Page name="FAQ"><FAQ /></Page>} />
+                <Route path="/admin/auditoria" element={<Page name="Auditoria"><AdminAuditoria /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
