@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      atestados: {
+        Row: {
+          anexo_url: string | null
+          cid: string | null
+          created_at: string
+          data_inicial: string
+          dias_afastamento: number
+          id: string
+          medico_crm: string | null
+          medico_nome: string | null
+          observacao: string | null
+          observacao_rh: string | null
+          status: Database["public"]["Enums"]["atestado_status"]
+          tipo: Database["public"]["Enums"]["atestado_tipo"]
+          updated_at: string
+          user_id: string
+          validado_em: string | null
+          validador_id: string | null
+        }
+        Insert: {
+          anexo_url?: string | null
+          cid?: string | null
+          created_at?: string
+          data_inicial: string
+          dias_afastamento: number
+          id?: string
+          medico_crm?: string | null
+          medico_nome?: string | null
+          observacao?: string | null
+          observacao_rh?: string | null
+          status?: Database["public"]["Enums"]["atestado_status"]
+          tipo: Database["public"]["Enums"]["atestado_tipo"]
+          updated_at?: string
+          user_id: string
+          validado_em?: string | null
+          validador_id?: string | null
+        }
+        Update: {
+          anexo_url?: string | null
+          cid?: string | null
+          created_at?: string
+          data_inicial?: string
+          dias_afastamento?: number
+          id?: string
+          medico_crm?: string | null
+          medico_nome?: string | null
+          observacao?: string | null
+          observacao_rh?: string | null
+          status?: Database["public"]["Enums"]["atestado_status"]
+          tipo?: Database["public"]["Enums"]["atestado_tipo"]
+          updated_at?: string
+          user_id?: string
+          validado_em?: string | null
+          validador_id?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           changed_at: string
@@ -1851,6 +1908,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      atestado_status: "pendente" | "validado" | "recusado" | "cancelado"
+      atestado_tipo:
+        | "medico"
+        | "odontologico"
+        | "acompanhamento"
+        | "maternidade"
+        | "paternidade"
+        | "luto"
+        | "casamento"
+        | "outros"
       clima_tipo: "enps" | "pulse" | "custom"
       evento_tipo: "treinamento" | "reuniao" | "confraternizacao" | "outro"
       feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
@@ -2040,6 +2107,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      atestado_status: ["pendente", "validado", "recusado", "cancelado"],
+      atestado_tipo: [
+        "medico",
+        "odontologico",
+        "acompanhamento",
+        "maternidade",
+        "paternidade",
+        "luto",
+        "casamento",
+        "outros",
+      ],
       clima_tipo: ["enps", "pulse", "custom"],
       evento_tipo: ["treinamento", "reuniao", "confraternizacao", "outro"],
       feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
