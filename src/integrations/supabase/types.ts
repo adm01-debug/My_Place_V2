@@ -1493,6 +1493,153 @@ export type Database = {
           },
         ]
       }
+      politicas: {
+        Row: {
+          ativa: boolean
+          categoria: Database["public"]["Enums"]["politica_categoria"]
+          created_at: string
+          descricao: string | null
+          id: string
+          obrigatoria: boolean
+          titulo: string
+          updated_at: string
+          versao_vigente_id: string | null
+        }
+        Insert: {
+          ativa?: boolean
+          categoria?: Database["public"]["Enums"]["politica_categoria"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          obrigatoria?: boolean
+          titulo: string
+          updated_at?: string
+          versao_vigente_id?: string | null
+        }
+        Update: {
+          ativa?: boolean
+          categoria?: Database["public"]["Enums"]["politica_categoria"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          obrigatoria?: boolean
+          titulo?: string
+          updated_at?: string
+          versao_vigente_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_versao_vigente"
+            columns: ["versao_vigente_id"]
+            isOneToOne: false
+            referencedRelation: "politicas_versoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_versao_vigente"
+            columns: ["versao_vigente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_politicas_pendentes"
+            referencedColumns: ["versao_vigente_id"]
+          },
+        ]
+      }
+      politicas_aceites: {
+        Row: {
+          aceito_em: string
+          hash_integridade: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+          versao_id: string
+        }
+        Insert: {
+          aceito_em?: string
+          hash_integridade: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+          versao_id: string
+        }
+        Update: {
+          aceito_em?: string
+          hash_integridade?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+          versao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "politicas_aceites_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: false
+            referencedRelation: "politicas_versoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "politicas_aceites_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: false
+            referencedRelation: "vw_politicas_pendentes"
+            referencedColumns: ["versao_vigente_id"]
+          },
+        ]
+      }
+      politicas_versoes: {
+        Row: {
+          arquivo_url: string | null
+          changelog: string | null
+          conteudo: string
+          created_at: string
+          id: string
+          politica_id: string
+          publicada_em: string | null
+          publicada_por: string | null
+          versao: number
+        }
+        Insert: {
+          arquivo_url?: string | null
+          changelog?: string | null
+          conteudo: string
+          created_at?: string
+          id?: string
+          politica_id: string
+          publicada_em?: string | null
+          publicada_por?: string | null
+          versao: number
+        }
+        Update: {
+          arquivo_url?: string | null
+          changelog?: string | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          politica_id?: string
+          publicada_em?: string | null
+          publicada_por?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "politicas_versoes_politica_id_fkey"
+            columns: ["politica_id"]
+            isOneToOne: false
+            referencedRelation: "politicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "politicas_versoes_politica_id_fkey"
+            columns: ["politica_id"]
+            isOneToOne: false
+            referencedRelation: "vw_politicas_pendentes"
+            referencedColumns: ["politica_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           apoio_departamento: string | null
@@ -2318,6 +2465,18 @@ export type Database = {
           },
         ]
       }
+      vw_politicas_pendentes: {
+        Row: {
+          categoria: Database["public"]["Enums"]["politica_categoria"] | null
+          obrigatoria: boolean | null
+          politica_id: string | null
+          publicada_em: string | null
+          titulo: string | null
+          versao_numero: number | null
+          versao_vigente_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_2fa_enabled: { Args: { p_user_id: string }; Returns: boolean }
@@ -2451,6 +2610,14 @@ export type Database = {
         | "lideranca"
         | "proatividade"
         | "gratidao"
+      politica_categoria:
+        | "codigo_conduta"
+        | "lgpd"
+        | "seguranca"
+        | "beneficios"
+        | "home_office"
+        | "compliance"
+        | "outros"
       prioridade_solicitacao: "baixa" | "normal" | "alta"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
       reembolso_categoria:
@@ -2675,6 +2842,15 @@ export const Constants = {
         "lideranca",
         "proatividade",
         "gratidao",
+      ],
+      politica_categoria: [
+        "codigo_conduta",
+        "lgpd",
+        "seguranca",
+        "beneficios",
+        "home_office",
+        "compliance",
+        "outros",
       ],
       prioridade_solicitacao: ["baixa", "normal", "alta"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
