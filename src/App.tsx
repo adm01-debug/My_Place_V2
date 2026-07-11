@@ -42,6 +42,7 @@ const Emprestimos = lazy(() => import("./pages/Emprestimos"));
 const Justificativas = lazy(() => import("./pages/Justificativas"));
 const Feedback360 = lazy(() => import("./pages/Feedback360"));
 const Metas = lazy(() => import("./pages/Metas"));
+const Clima = lazy(() => import("./pages/Clima"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
