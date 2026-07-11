@@ -657,6 +657,106 @@ export type Database = {
         }
         Relationships: []
       }
+      ideias: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          descricao: string
+          id: string
+          impacto: Database["public"]["Enums"]["ideia_impacto"]
+          status: Database["public"]["Enums"]["ideia_status"]
+          status_observacao: string | null
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          impacto?: Database["public"]["Enums"]["ideia_impacto"]
+          status?: Database["public"]["Enums"]["ideia_status"]
+          status_observacao?: string | null
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          impacto?: Database["public"]["Enums"]["ideia_impacto"]
+          status?: Database["public"]["Enums"]["ideia_status"]
+          status_observacao?: string | null
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ideias_comentarios: {
+        Row: {
+          comentario: string
+          created_at: string
+          id: string
+          ideia_id: string
+          user_id: string
+        }
+        Insert: {
+          comentario: string
+          created_at?: string
+          id?: string
+          ideia_id: string
+          user_id: string
+        }
+        Update: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          ideia_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideias_comentarios_ideia_id_fkey"
+            columns: ["ideia_id"]
+            isOneToOne: false
+            referencedRelation: "ideias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideias_votos: {
+        Row: {
+          created_at: string
+          id: string
+          ideia_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ideia_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ideia_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideias_votos_ideia_id_fkey"
+            columns: ["ideia_id"]
+            isOneToOne: false
+            referencedRelation: "ideias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       justificativas_ponto: {
         Row: {
           anexo_url: string | null
@@ -1705,6 +1805,13 @@ export type Database = {
       feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
       feedback_relacao: "auto" | "gestor" | "par" | "subordinado"
       feriado_tipo: "nacional" | "estadual" | "municipal" | "facultativo"
+      ideia_impacto: "baixo" | "medio" | "alto"
+      ideia_status:
+        | "nova"
+        | "em_analise"
+        | "aprovada"
+        | "implementada"
+        | "recusada"
       kudos_categoria:
         | "colaboracao"
         | "inovacao"
@@ -1873,6 +1980,14 @@ export const Constants = {
       feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
       feedback_relacao: ["auto", "gestor", "par", "subordinado"],
       feriado_tipo: ["nacional", "estadual", "municipal", "facultativo"],
+      ideia_impacto: ["baixo", "medio", "alto"],
+      ideia_status: [
+        "nova",
+        "em_analise",
+        "aprovada",
+        "implementada",
+        "recusada",
+      ],
       kudos_categoria: [
         "colaboracao",
         "inovacao",
