@@ -42,6 +42,7 @@ const Emprestimos = lazy(() => import("./pages/Emprestimos"));
 const Justificativas = lazy(() => import("./pages/Justificativas"));
 const Feedback360 = lazy(() => import("./pages/Feedback360"));
 const Metas = lazy(() => import("./pages/Metas"));
+const Clima = lazy(() => import("./pages/Clima"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -119,6 +120,7 @@ const App = () => (
                 <Route path="/justificativas" element={<Page name="Justificativas"><Justificativas /></Page>} />
                 <Route path="/feedback-360" element={<Page name="Feedback 360º"><Feedback360 /></Page>} />
                 <Route path="/metas" element={<Page name="Metas & OKRs"><Metas /></Page>} />
+                <Route path="/clima" element={<Page name="Clima Organizacional"><Clima /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
