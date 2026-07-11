@@ -854,6 +854,134 @@ export type Database = {
           },
         ]
       }
+      trilhas_desenvolvimento: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          duracao_estimada_min: number | null
+          id: string
+          imagem_url: string | null
+          nivel: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_estimada_min?: number | null
+          id?: string
+          imagem_url?: string | null
+          nivel?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_estimada_min?: number | null
+          id?: string
+          imagem_url?: string | null
+          nivel?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trilhas_etapas: {
+        Row: {
+          conteudo_url: string | null
+          created_at: string
+          descricao: string | null
+          duracao_min: number | null
+          id: string
+          obrigatoria: boolean
+          ordem: number
+          tipo: string
+          titulo: string
+          trilha_id: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_min?: number | null
+          id?: string
+          obrigatoria?: boolean
+          ordem?: number
+          tipo?: string
+          titulo: string
+          trilha_id: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao_min?: number | null
+          id?: string
+          obrigatoria?: boolean
+          ordem?: number
+          tipo?: string
+          titulo?: string
+          trilha_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trilhas_etapas_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas_desenvolvimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trilhas_etapas_concluidas: {
+        Row: {
+          concluida_em: string
+          etapa_id: string
+          id: string
+          trilha_id: string
+          user_id: string
+        }
+        Insert: {
+          concluida_em?: string
+          etapa_id: string
+          id?: string
+          trilha_id: string
+          user_id: string
+        }
+        Update: {
+          concluida_em?: string
+          etapa_id?: string
+          id?: string
+          trilha_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trilhas_etapas_concluidas_etapa_id_fkey"
+            columns: ["etapa_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas_etapas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trilhas_etapas_concluidas_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas_desenvolvimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_2fa: {
         Row: {
           backup_codes: string[] | null
