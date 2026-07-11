@@ -143,6 +143,104 @@ export type Database = {
         }
         Relationships: []
       }
+      chamados: {
+        Row: {
+          assunto: string
+          atendente_id: string | null
+          avaliacao_comentario: string | null
+          avaliacao_nota: number | null
+          categoria: Database["public"]["Enums"]["chamado_categoria"]
+          created_at: string
+          descricao: string
+          fechado_em: string | null
+          id: string
+          numero: number
+          primeira_resposta_em: string | null
+          prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          resolvido_em: string | null
+          sla_prazo: string | null
+          status: Database["public"]["Enums"]["chamado_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assunto: string
+          atendente_id?: string | null
+          avaliacao_comentario?: string | null
+          avaliacao_nota?: number | null
+          categoria: Database["public"]["Enums"]["chamado_categoria"]
+          created_at?: string
+          descricao: string
+          fechado_em?: string | null
+          id?: string
+          numero?: number
+          primeira_resposta_em?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          resolvido_em?: string | null
+          sla_prazo?: string | null
+          status?: Database["public"]["Enums"]["chamado_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string
+          atendente_id?: string | null
+          avaliacao_comentario?: string | null
+          avaliacao_nota?: number | null
+          categoria?: Database["public"]["Enums"]["chamado_categoria"]
+          created_at?: string
+          descricao?: string
+          fechado_em?: string | null
+          id?: string
+          numero?: number
+          primeira_resposta_em?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          resolvido_em?: string | null
+          sla_prazo?: string | null
+          status?: Database["public"]["Enums"]["chamado_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chamados_mensagens: {
+        Row: {
+          anexo_url: string | null
+          autor_id: string
+          chamado_id: string
+          created_at: string
+          id: string
+          interna: boolean
+          mensagem: string
+        }
+        Insert: {
+          anexo_url?: string | null
+          autor_id: string
+          chamado_id: string
+          created_at?: string
+          id?: string
+          interna?: boolean
+          mensagem: string
+        }
+        Update: {
+          anexo_url?: string | null
+          autor_id?: string
+          chamado_id?: string
+          created_at?: string
+          id?: string
+          interna?: boolean
+          mensagem?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_mensagens_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "chamados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clima_enquetes: {
         Row: {
           anonima: boolean
@@ -2152,6 +2250,17 @@ export type Database = {
           },
         ]
       }
+      vw_chamados_metrics: {
+        Row: {
+          categoria: Database["public"]["Enums"]["chamado_categoria"] | null
+          dentro_sla: number | null
+          fora_sla: number | null
+          horas_medias_resolucao: number | null
+          status: Database["public"]["Enums"]["chamado_status"] | null
+          total: number | null
+        }
+        Relationships: []
+      }
       vw_exit_interviews_stats: {
         Row: {
           enps_score: number | null
@@ -2303,6 +2412,14 @@ export type Database = {
         | "luto"
         | "casamento"
         | "outros"
+      chamado_categoria: "rh" | "ti" | "facilities" | "financeiro" | "outros"
+      chamado_prioridade: "baixa" | "media" | "alta" | "urgente"
+      chamado_status:
+        | "aberto"
+        | "em_andamento"
+        | "aguardando_solicitante"
+        | "resolvido"
+        | "fechado"
       clima_tipo: "enps" | "pulse" | "custom"
       evento_tipo: "treinamento" | "reuniao" | "confraternizacao" | "outro"
       exit_motivo:
@@ -2515,6 +2632,15 @@ export const Constants = {
         "luto",
         "casamento",
         "outros",
+      ],
+      chamado_categoria: ["rh", "ti", "facilities", "financeiro", "outros"],
+      chamado_prioridade: ["baixa", "media", "alta", "urgente"],
+      chamado_status: [
+        "aberto",
+        "em_andamento",
+        "aguardando_solicitante",
+        "resolvido",
+        "fechado",
       ],
       clima_tipo: ["enps", "pulse", "custom"],
       evento_tipo: ["treinamento", "reuniao", "confraternizacao", "outro"],
