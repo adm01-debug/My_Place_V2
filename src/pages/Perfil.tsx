@@ -161,6 +161,7 @@ export default function Perfil() {
         )}
 
         <TwoFactorSetup />
+        <BiometricSetup />
 
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
           <div className="flex items-center gap-2 text-primary">
