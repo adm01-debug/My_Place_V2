@@ -314,6 +314,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kudos: {
+        Row: {
+          categoria: Database["public"]["Enums"]["kudos_categoria"]
+          created_at: string
+          destinatario_id: string
+          icone: string
+          id: string
+          mensagem: string
+          remetente_id: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: Database["public"]["Enums"]["kudos_categoria"]
+          created_at?: string
+          destinatario_id: string
+          icone?: string
+          id?: string
+          mensagem: string
+          remetente_id: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: Database["public"]["Enums"]["kudos_categoria"]
+          created_at?: string
+          destinatario_id?: string
+          icone?: string
+          id?: string
+          mensagem?: string
+          remetente_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       locais_permitidos: {
         Row: {
           ativo: boolean
@@ -962,6 +995,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      kudos_categoria:
+        | "colaboracao"
+        | "inovacao"
+        | "excelencia"
+        | "lideranca"
+        | "proatividade"
+        | "gratidao"
       prioridade_solicitacao: "baixa" | "normal" | "alta"
       punch_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida"
       status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
@@ -1110,6 +1150,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      kudos_categoria: [
+        "colaboracao",
+        "inovacao",
+        "excelencia",
+        "lideranca",
+        "proatividade",
+        "gratidao",
+      ],
       prioridade_solicitacao: ["baixa", "normal", "alta"],
       punch_type: ["entrada", "saida_almoco", "retorno_almoco", "saida"],
       status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
