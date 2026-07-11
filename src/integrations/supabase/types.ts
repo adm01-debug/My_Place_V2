@@ -1613,6 +1613,98 @@ export type Database = {
         }
         Relationships: []
       }
+      reservas_recursos: {
+        Row: {
+          cancelada_em: string | null
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string | null
+          id: string
+          motivo_cancelamento: string | null
+          participantes: number | null
+          recurso_id: string
+          status: Database["public"]["Enums"]["reserva_status"]
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancelada_em?: string | null
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          motivo_cancelamento?: string | null
+          participantes?: number | null
+          recurso_id: string
+          status?: Database["public"]["Enums"]["reserva_status"]
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancelada_em?: string | null
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          motivo_cancelamento?: string | null
+          participantes?: number | null
+          recurso_id?: string
+          status?: Database["public"]["Enums"]["reserva_status"]
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_recursos_recurso_id_fkey"
+            columns: ["recurso_id"]
+            isOneToOne: false
+            referencedRelation: "salas_recursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salas_recursos: {
+        Row: {
+          ativo: boolean
+          capacidade: number | null
+          created_at: string
+          descricao: string | null
+          id: string
+          localizacao: string | null
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          capacidade?: number | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          localizacao?: string | null
+          nome: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          capacidade?: number | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          localizacao?: string | null
+          nome?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       solicitacoes: {
         Row: {
           anexo_url: string | null
@@ -2258,6 +2350,7 @@ export type Database = {
         | "pago"
         | "recusado"
         | "cancelado"
+      reserva_status: "confirmada" | "cancelada" | "concluida"
       status_ferias: "pendente" | "aprovada" | "recusada" | "cancelada"
       status_justificativa: "pendente" | "aprovada" | "recusada"
       status_solicitacao:
@@ -2475,6 +2568,7 @@ export const Constants = {
         "recusado",
         "cancelado",
       ],
+      reserva_status: ["confirmada", "cancelada", "concluida"],
       status_ferias: ["pendente", "aprovada", "recusada", "cancelada"],
       status_justificativa: ["pendente", "aprovada", "recusada"],
       status_solicitacao: [
