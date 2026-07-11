@@ -1220,6 +1220,72 @@ export type Database = {
         }
         Relationships: []
       }
+      webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          counter: number
+          created_at: string
+          credential_id: string
+          device_name: string
+          id: string
+          last_used_at: string | null
+          public_key: string
+          transports: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          counter?: number
+          created_at?: string
+          credential_id: string
+          device_name?: string
+          id?: string
+          last_used_at?: string | null
+          public_key: string
+          transports?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          device_name?: string
+          id?: string
+          last_used_at?: string | null
+          public_key?: string
+          transports?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1235,6 +1301,7 @@ export type Database = {
         }[]
       }
       cleanup_old_login_attempts: { Args: never; Returns: number }
+      cleanup_webauthn_challenges: { Args: never; Returns: number }
       fn_calcular_saldo_ferias: {
         Args: { p_user_id: string }
         Returns: {
