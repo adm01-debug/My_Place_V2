@@ -86,6 +86,96 @@ export type Database = {
         }
         Relationships: []
       }
+      clima_enquetes: {
+        Row: {
+          anonima: boolean
+          ativa: boolean
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          id: string
+          perguntas: Json
+          tipo: Database["public"]["Enums"]["clima_tipo"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          anonima?: boolean
+          ativa?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          perguntas?: Json
+          tipo?: Database["public"]["Enums"]["clima_tipo"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          anonima?: boolean
+          ativa?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          perguntas?: Json
+          tipo?: Database["public"]["Enums"]["clima_tipo"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clima_respostas: {
+        Row: {
+          comentario: string | null
+          created_at: string
+          enquete_id: string
+          id: string
+          respostas: Json
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string
+          enquete_id: string
+          id?: string
+          respostas?: Json
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string
+          enquete_id?: string
+          id?: string
+          respostas?: Json
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clima_respostas_enquete_id_fkey"
+            columns: ["enquete_id"]
+            isOneToOne: false
+            referencedRelation: "clima_enquetes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clima_respostas_enquete_id_fkey"
+            columns: ["enquete_id"]
+            isOneToOne: false
+            referencedRelation: "clima_resultados_agg"
+            referencedColumns: ["enquete_id"]
+          },
+        ]
+      }
       comunicados: {
         Row: {
           autor_id: string | null
@@ -1418,6 +1508,20 @@ export type Database = {
       }
     }
     Views: {
+      clima_resultados_agg: {
+        Row: {
+          detratores: number | null
+          enps_score: number | null
+          enquete_id: string | null
+          media_score: number | null
+          neutros: number | null
+          promotores: number | null
+          tipo: Database["public"]["Enums"]["clima_tipo"] | null
+          titulo: string | null
+          total_respostas: number | null
+        }
+        Relationships: []
+      }
       feedback_resultados_agg: {
         Row: {
           avaliado_id: string | null
@@ -1462,6 +1566,20 @@ export type Database = {
           proximo_vencimento: string
         }[]
       }
+      fn_clima_resultados: {
+        Args: { p_enquete_id: string }
+        Returns: {
+          detratores: number
+          enps_score: number
+          enquete_id: string
+          media_score: number
+          neutros: number
+          promotores: number
+          tipo: Database["public"]["Enums"]["clima_tipo"]
+          titulo: string
+          total_respostas: number
+        }[]
+      }
       fn_haversine_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -1498,6 +1616,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "user"
+      clima_tipo: "enps" | "pulse" | "custom"
       feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
       feedback_relacao: "auto" | "gestor" | "par" | "subordinado"
       kudos_categoria:
@@ -1663,6 +1782,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "user"],
+      clima_tipo: ["enps", "pulse", "custom"],
       feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
       feedback_relacao: ["auto", "gestor", "par", "subordinado"],
       kudos_categoria: [
