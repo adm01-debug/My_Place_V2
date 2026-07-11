@@ -1131,6 +1131,182 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_colaborador: {
+        Row: {
+          concluido: boolean
+          concluido_em: string | null
+          created_at: string
+          data_inicio: string
+          id: string
+          template_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          data_inicio?: string
+          id?: string
+          template_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          concluido?: boolean
+          concluido_em?: string | null
+          created_at?: string
+          data_inicio?: string
+          id?: string
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_colaborador_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_progresso: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          id: string
+          observacao: string | null
+          onboarding_id: string
+          tarefa_id: string
+          updated_at: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          onboarding_id: string
+          tarefa_id: string
+          updated_at?: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          onboarding_id?: string
+          tarefa_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_progresso_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_colaborador"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_progresso_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "vw_onboarding_progresso"
+            referencedColumns: ["onboarding_id"]
+          },
+          {
+            foreignKeyName: "onboarding_progresso_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_tarefas: {
+        Row: {
+          area: string
+          created_at: string
+          descricao: string | null
+          dias_apos_admissao: number
+          id: string
+          link: string | null
+          obrigatoria: boolean
+          ordem: number
+          template_id: string
+          titulo: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          descricao?: string | null
+          dias_apos_admissao?: number
+          id?: string
+          link?: string | null
+          obrigatoria?: boolean
+          ordem?: number
+          template_id: string
+          titulo: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          descricao?: string | null
+          dias_apos_admissao?: number
+          id?: string
+          link?: string | null
+          obrigatoria?: boolean
+          ordem?: number
+          template_id?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_tarefas_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_templates: {
+        Row: {
+          area: string | null
+          ativo: boolean
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parcelas_emprestimo: {
         Row: {
           created_at: string
@@ -1896,6 +2072,50 @@ export type Database = {
           total_respostas: number | null
         }
         Relationships: []
+      }
+      vw_onboarding_progresso: {
+        Row: {
+          concluidas: number | null
+          concluido: boolean | null
+          concluido_em: string | null
+          data_inicio: string | null
+          onboarding_id: string | null
+          percentual: number | null
+          template_id: string | null
+          total_tarefas: number | null
+          user_id: string | null
+        }
+        Insert: {
+          concluidas?: never
+          concluido?: boolean | null
+          concluido_em?: string | null
+          data_inicio?: string | null
+          onboarding_id?: string | null
+          percentual?: never
+          template_id?: string | null
+          total_tarefas?: never
+          user_id?: string | null
+        }
+        Update: {
+          concluidas?: never
+          concluido?: boolean | null
+          concluido_em?: string | null
+          data_inicio?: string | null
+          onboarding_id?: string | null
+          percentual?: never
+          template_id?: string | null
+          total_tarefas?: never
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_colaborador_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

@@ -48,6 +48,7 @@ const Ideias = lazy(() => import("./pages/Ideias"));
 const Reembolsos = lazy(() => import("./pages/Reembolsos"));
 const Atestados = lazy(() => import("./pages/Atestados"));
 const ExitInterview = lazy(() => import("./pages/ExitInterview"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,6 +132,7 @@ const App = () => (
                 <Route path="/reembolsos" element={<Page name="Reembolsos"><Reembolsos /></Page>} />
                 <Route path="/atestados" element={<Page name="Atestados & Afastamentos"><Atestados /></Page>} />
                 <Route path="/exit-interview" element={<Page name="Pesquisa de Desligamento"><ExitInterview /></Page>} />
+                <Route path="/onboarding" element={<Page name="Onboarding"><Onboarding /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
