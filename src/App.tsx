@@ -44,6 +44,7 @@ const Feedback360 = lazy(() => import("./pages/Feedback360"));
 const Metas = lazy(() => import("./pages/Metas"));
 const Clima = lazy(() => import("./pages/Clima"));
 const Calendario = lazy(() => import("./pages/Calendario"));
+const Ideias = lazy(() => import("./pages/Ideias"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
