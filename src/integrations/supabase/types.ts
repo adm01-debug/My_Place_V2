@@ -236,6 +236,60 @@ export type Database = {
         }
         Relationships: []
       }
+      emprestimos: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          id: string
+          motivo: string | null
+          num_parcelas: number
+          observacao_admin: string | null
+          quitado_em: string | null
+          status: string
+          taxa_mensal: number
+          updated_at: string
+          user_id: string
+          valor_parcela: number
+          valor_solicitado: number
+          valor_total: number
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          id?: string
+          motivo?: string | null
+          num_parcelas: number
+          observacao_admin?: string | null
+          quitado_em?: string | null
+          status?: string
+          taxa_mensal?: number
+          updated_at?: string
+          user_id: string
+          valor_parcela: number
+          valor_solicitado: number
+          valor_total: number
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          id?: string
+          motivo?: string | null
+          num_parcelas?: number
+          observacao_admin?: string | null
+          quitado_em?: string | null
+          status?: string
+          taxa_mensal?: number
+          updated_at?: string
+          user_id?: string
+          valor_parcela?: number
+          valor_solicitado?: number
+          valor_total?: number
+        }
+        Relationships: []
+      }
       faq: {
         Row: {
           categoria: string | null
@@ -508,6 +562,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      parcelas_emprestimo: {
+        Row: {
+          created_at: string
+          emprestimo_id: string
+          id: string
+          numero: number
+          paga_em: string | null
+          status: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          created_at?: string
+          emprestimo_id: string
+          id?: string
+          numero: number
+          paga_em?: string | null
+          status?: string
+          valor: number
+          vencimento: string
+        }
+        Update: {
+          created_at?: string
+          emprestimo_id?: string
+          id?: string
+          numero?: number
+          paga_em?: string | null
+          status?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcelas_emprestimo_emprestimo_id_fkey"
+            columns: ["emprestimo_id"]
+            isOneToOne: false
+            referencedRelation: "emprestimos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plano_saude_gastos: {
         Row: {

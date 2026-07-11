@@ -38,6 +38,7 @@ const AdminAuditoria = lazy(() => import("./pages/AdminAuditoria"));
 const Calculadoras = lazy(() => import("./pages/Calculadoras"));
 const Kudos = lazy(() => import("./pages/Kudos"));
 const Trilhas = lazy(() => import("./pages/Trilhas"));
+const Emprestimos = lazy(() => import("./pages/Emprestimos"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,6 +112,7 @@ const App = () => (
                 <Route path="/calculadoras" element={<Page name="Calculadoras"><Calculadoras /></Page>} />
                 <Route path="/kudos" element={<Page name="Kudos"><Kudos /></Page>} />
                 <Route path="/trilhas" element={<Page name="Trilhas"><Trilhas /></Page>} />
+                <Route path="/emprestimos" element={<Page name="Empréstimos"><Emprestimos /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
