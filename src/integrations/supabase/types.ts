@@ -479,6 +479,66 @@ export type Database = {
         }
         Relationships: []
       }
+      exit_interviews: {
+        Row: {
+          comentario_final: string | null
+          created_at: string
+          data_desligamento: string | null
+          enviada_em: string | null
+          id: string
+          motivo_principal: Database["public"]["Enums"]["exit_motivo"]
+          nota_ambiente: number | null
+          nota_crescimento: number | null
+          nota_ferramentas: number | null
+          nota_lideranca: number | null
+          nota_remuneracao: number | null
+          o_que_gostou: string | null
+          o_que_melhoraria: string | null
+          recomendaria: number | null
+          status: Database["public"]["Enums"]["exit_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comentario_final?: string | null
+          created_at?: string
+          data_desligamento?: string | null
+          enviada_em?: string | null
+          id?: string
+          motivo_principal: Database["public"]["Enums"]["exit_motivo"]
+          nota_ambiente?: number | null
+          nota_crescimento?: number | null
+          nota_ferramentas?: number | null
+          nota_lideranca?: number | null
+          nota_remuneracao?: number | null
+          o_que_gostou?: string | null
+          o_que_melhoraria?: string | null
+          recomendaria?: number | null
+          status?: Database["public"]["Enums"]["exit_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comentario_final?: string | null
+          created_at?: string
+          data_desligamento?: string | null
+          enviada_em?: string | null
+          id?: string
+          motivo_principal?: Database["public"]["Enums"]["exit_motivo"]
+          nota_ambiente?: number | null
+          nota_crescimento?: number | null
+          nota_ferramentas?: number | null
+          nota_lideranca?: number | null
+          nota_remuneracao?: number | null
+          o_que_gostou?: string | null
+          o_que_melhoraria?: string | null
+          recomendaria?: number | null
+          status?: Database["public"]["Enums"]["exit_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       faq: {
         Row: {
           categoria: string | null
@@ -1824,6 +1884,19 @@ export type Database = {
           },
         ]
       }
+      vw_exit_interviews_stats: {
+        Row: {
+          enps_score: number | null
+          media_ambiente: number | null
+          media_crescimento: number | null
+          media_ferramentas: number | null
+          media_lideranca: number | null
+          media_recomendaria: number | null
+          media_remuneracao: number | null
+          total_respostas: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_2fa_enabled: { Args: { p_user_id: string }; Returns: boolean }
@@ -1920,6 +1993,18 @@ export type Database = {
         | "outros"
       clima_tipo: "enps" | "pulse" | "custom"
       evento_tipo: "treinamento" | "reuniao" | "confraternizacao" | "outro"
+      exit_motivo:
+        | "nova_oportunidade"
+        | "remuneracao"
+        | "lideranca"
+        | "ambiente"
+        | "crescimento"
+        | "pessoal"
+        | "mudanca"
+        | "saude"
+        | "aposentadoria"
+        | "outros"
+      exit_status: "rascunho" | "enviada" | "arquivada"
       feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
       feedback_relacao: "auto" | "gestor" | "par" | "subordinado"
       feriado_tipo: "nacional" | "estadual" | "municipal" | "facultativo"
@@ -2120,6 +2205,19 @@ export const Constants = {
       ],
       clima_tipo: ["enps", "pulse", "custom"],
       evento_tipo: ["treinamento", "reuniao", "confraternizacao", "outro"],
+      exit_motivo: [
+        "nova_oportunidade",
+        "remuneracao",
+        "lideranca",
+        "ambiente",
+        "crescimento",
+        "pessoal",
+        "mudanca",
+        "saude",
+        "aposentadoria",
+        "outros",
+      ],
+      exit_status: ["rascunho", "enviada", "arquivada"],
       feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
       feedback_relacao: ["auto", "gestor", "par", "subordinado"],
       feriado_tipo: ["nacional", "estadual", "municipal", "facultativo"],
