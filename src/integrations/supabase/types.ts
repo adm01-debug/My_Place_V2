@@ -645,7 +645,9 @@ export type Database = {
           data_inicio: string | null
           descricao: string | null
           id: string
+          prioridade: string
           progresso: number
+          tipo: string
           titulo: string
           updated_at: string
           user_id: string
@@ -656,7 +658,9 @@ export type Database = {
           data_inicio?: string | null
           descricao?: string | null
           id?: string
+          prioridade?: string
           progresso?: number
+          tipo?: string
           titulo: string
           updated_at?: string
           user_id: string
@@ -667,7 +671,9 @@ export type Database = {
           data_inicio?: string | null
           descricao?: string | null
           id?: string
+          prioridade?: string
           progresso?: number
+          tipo?: string
           titulo?: string
           updated_at?: string
           user_id?: string
