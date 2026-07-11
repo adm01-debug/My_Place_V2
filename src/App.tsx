@@ -49,6 +49,7 @@ const Reembolsos = lazy(() => import("./pages/Reembolsos"));
 const Atestados = lazy(() => import("./pages/Atestados"));
 const ExitInterview = lazy(() => import("./pages/ExitInterview"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Reservas = lazy(() => import("./pages/Reservas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
