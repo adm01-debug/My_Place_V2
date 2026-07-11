@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Camera, Loader2, User, Mail, Briefcase, Building2, Cal
 import { useNavigate } from 'react-router-dom';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { TwoFactorSetup } from '@/components/security/TwoFactorSetup';
+import { BiometricSetup } from '@/components/security/BiometricSetup';
 
 export default function Perfil() {
   const { user, profile } = useAuth();
@@ -160,6 +161,7 @@ export default function Perfil() {
         )}
 
         <TwoFactorSetup />
+        <BiometricSetup />
 
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
           <div className="flex items-center gap-2 text-primary">
