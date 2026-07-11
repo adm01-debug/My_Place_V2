@@ -380,6 +380,48 @@ export type Database = {
         }
         Relationships: []
       }
+      eventos_corporativos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          id: string
+          local: string | null
+          tipo: Database["public"]["Enums"]["evento_tipo"]
+          titulo: string
+          todos_convidados: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          tipo?: Database["public"]["Enums"]["evento_tipo"]
+          titulo: string
+          todos_convidados?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          tipo?: Database["public"]["Enums"]["evento_tipo"]
+          titulo?: string
+          todos_convidados?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faq: {
         Row: {
           categoria: string | null
@@ -533,6 +575,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feriados: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          nome: string
+          recorrente: boolean
+          tipo: Database["public"]["Enums"]["feriado_tipo"]
+          uf: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          id?: string
+          nome: string
+          recorrente?: boolean
+          tipo?: Database["public"]["Enums"]["feriado_tipo"]
+          uf?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          nome?: string
+          recorrente?: boolean
+          tipo?: Database["public"]["Enums"]["feriado_tipo"]
+          uf?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       holerites: {
         Row: {
@@ -1566,6 +1641,15 @@ export type Database = {
           proximo_vencimento: string
         }[]
       }
+      fn_calendario_mes: {
+        Args: { p_ano: number; p_mes: number }
+        Returns: {
+          data: string
+          detalhe: string
+          tipo: string
+          titulo: string
+        }[]
+      }
       fn_clima_resultados: {
         Args: { p_enquete_id: string }
         Returns: {
@@ -1617,8 +1701,10 @@ export type Database = {
     Enums: {
       app_role: "admin" | "gestor" | "user"
       clima_tipo: "enps" | "pulse" | "custom"
+      evento_tipo: "treinamento" | "reuniao" | "confraternizacao" | "outro"
       feedback_ciclo_status: "rascunho" | "ativo" | "encerrado" | "cancelado"
       feedback_relacao: "auto" | "gestor" | "par" | "subordinado"
+      feriado_tipo: "nacional" | "estadual" | "municipal" | "facultativo"
       kudos_categoria:
         | "colaboracao"
         | "inovacao"
@@ -1783,8 +1869,10 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "gestor", "user"],
       clima_tipo: ["enps", "pulse", "custom"],
+      evento_tipo: ["treinamento", "reuniao", "confraternizacao", "outro"],
       feedback_ciclo_status: ["rascunho", "ativo", "encerrado", "cancelado"],
       feedback_relacao: ["auto", "gestor", "par", "subordinado"],
+      feriado_tipo: ["nacional", "estadual", "municipal", "facultativo"],
       kudos_categoria: [
         "colaboracao",
         "inovacao",
