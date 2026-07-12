@@ -854,6 +854,21 @@ export default function NotificationBell() {
                 <PanelRightOpen className="w-3.5 h-3.5 text-muted-foreground" />
               )}
             </Button>
+            {showPreview && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden md:inline-flex h-7 w-7"
+                onClick={() => setAutoRead((v) => !v)}
+                aria-pressed={autoRead}
+                aria-label={autoRead ? 'Desativar auto-marcar como lida' : 'Ativar auto-marcar como lida'}
+                title={autoRead ? 'Auto-marcar lida: ativa (1.5s no preview)' : 'Auto-marcar lida: desativada'}
+              >
+                <CheckCircle2
+                  className={`w-3.5 h-3.5 ${autoRead ? 'text-emerald-500' : 'text-muted-foreground'}`}
+                />
+              </Button>
+            )}
             {canUseDesktop() && (
               <Button
                 variant="ghost"
