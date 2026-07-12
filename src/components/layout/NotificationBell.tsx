@@ -678,6 +678,13 @@ export default function NotificationBell() {
         return;
       }
 
+      // "?" abre a Central de Atalhos.
+      if (!inField && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
+        e.preventDefault();
+        setShowHelp((v) => !v);
+        return;
+      }
+
       if (flatList.length === 0) return;
 
       const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
