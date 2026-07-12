@@ -140,6 +140,7 @@ const App = () => (
                 <Route path="/reservas" element={<Page name="Reservas de Salas & Recursos"><Reservas /></Page>} />
                 <Route path="/chamados" element={<Page name="Central de Chamados"><Chamados /></Page>} />
                 <Route path="/politicas" element={<Page name="Políticas Corporativas"><Politicas /></Page>} />
+                <Route path="/treinamentos" element={<Page name="Treinamentos & Certificações"><Treinamentos /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
