@@ -316,9 +316,33 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      // Não sequestra teclas quando o usuário digita em campo (search futuro, etc.)
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      const inField =
+        !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      // Dentro do campo de busca: Escape limpa/desfoca; ↑↓/Enter navegam a lista.
+      if (inField) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          if (busca) setBusca('');
+          else buscaRef.current?.blur();
+          return;
+        }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+          // deixa cair no switch abaixo tratando navegação
+        } else {
+          return;
+        }
+      }
+
+      // "/" foca a busca (fora de campo).
+      if (!inField && e.key === '/') {
+        e.preventDefault();
+        buscaRef.current?.focus();
+        buscaRef.current?.select();
+        return;
+      }
+
       if (flatList.length === 0) return;
 
       const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
