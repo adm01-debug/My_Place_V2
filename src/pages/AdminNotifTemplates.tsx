@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Eye, Copy, Power } from "lucide-react";
+import { Plus, Eye, Copy, Power, BarChart3 } from "lucide-react";
 
 interface Template {
   id: string;
