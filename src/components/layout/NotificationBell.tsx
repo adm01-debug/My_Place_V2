@@ -637,7 +637,7 @@ export default function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className={`p-0 ${showPreview ? 'w-[min(94vw,720px)]' : 'w-80'}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
           <div className="flex items-center gap-1">
