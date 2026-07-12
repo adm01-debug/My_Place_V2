@@ -244,41 +244,109 @@ export default function NotificationBell() {
   const playSoundRef = useRef(playSound);
   useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
 
-  // Item 99: Quiet Hours — janela silenciosa configurável (som + desktop mute).
-  // Itens continuam chegando na lista; apenas alertas audíveis/visuais são suprimidos.
-  // Suporta janelas atravessando meia-noite (ex.: 22:00 → 07:00).
+  // Item 99 + 100: Quiet Hours — janela silenciosa, agora persistida no backend
+  // (tabela notificacao_quiet_hours) para sincronizar entre dispositivos.
+  // Estende com: dias da semana e "permitir críticos" (alerta/erro atravessam).
+  // Cache local (localStorage) mantém UX offline / primeiro paint sem flicker.
   const QUIET_KEY = 'notif_quiet_hours';
-  type QuietCfg = { enabled: boolean; start: string; end: string };
+  type QuietCfg = {
+    enabled: boolean;
+    start: string;         // HH:MM
+    end: string;           // HH:MM
+    permitirCriticos: boolean;
+    diasSemana: number[];  // 0=Dom ... 6=Sáb
+  };
+  const QUIET_DEFAULT: QuietCfg = {
+    enabled: false, start: '22:00', end: '07:00',
+    permitirCriticos: true, diasSemana: [0, 1, 2, 3, 4, 5, 6],
+  };
   const [quiet, setQuiet] = useState<QuietCfg>(() => {
-    if (typeof window === 'undefined') return { enabled: false, start: '22:00', end: '07:00' };
+    if (typeof window === 'undefined') return QUIET_DEFAULT;
     try {
       const raw = localStorage.getItem(QUIET_KEY);
-      if (!raw) return { enabled: false, start: '22:00', end: '07:00' };
+      if (!raw) return QUIET_DEFAULT;
       const p = JSON.parse(raw) as Partial<QuietCfg>;
       return {
         enabled: !!p.enabled,
-        start: /^\d{2}:\d{2}$/.test(p.start || '') ? p.start! : '22:00',
-        end: /^\d{2}:\d{2}$/.test(p.end || '') ? p.end! : '07:00',
+        start: /^\d{2}:\d{2}$/.test(p.start || '') ? p.start! : QUIET_DEFAULT.start,
+        end: /^\d{2}:\d{2}$/.test(p.end || '') ? p.end! : QUIET_DEFAULT.end,
+        permitirCriticos: p.permitirCriticos !== false,
+        diasSemana: Array.isArray(p.diasSemana) && p.diasSemana.length
+          ? p.diasSemana.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+          : QUIET_DEFAULT.diasSemana,
       };
-    } catch { return { enabled: false, start: '22:00', end: '07:00' }; }
+    } catch { return QUIET_DEFAULT; }
   });
   useEffect(() => {
     try { localStorage.setItem(QUIET_KEY, JSON.stringify(quiet)); } catch { /* quota */ }
   }, [quiet]);
+
+  // Item 100: hidrata do backend ao logar (uma vez) — servidor é fonte da verdade.
+  const quietHydratedRef = useRef(false);
+  useEffect(() => {
+    if (!user || quietHydratedRef.current) return;
+    quietHydratedRef.current = true;
+    let cancel = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('notificacao_quiet_hours')
+        .select('ativo, inicio, fim, permitir_criticos, dias_semana')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancel || error || !data) return;
+      const trim = (t: string | null | undefined) =>
+        typeof t === 'string' && t.length >= 5 ? t.slice(0, 5) : QUIET_DEFAULT.start;
+      setQuiet({
+        enabled: !!data.ativo,
+        start: trim(data.inicio),
+        end: trim(data.fim),
+        permitirCriticos: data.permitir_criticos !== false,
+        diasSemana: Array.isArray(data.dias_semana) && data.dias_semana.length
+          ? data.dias_semana as number[]
+          : QUIET_DEFAULT.diasSemana,
+      });
+    })();
+    return () => { cancel = true; };
+  }, [user]);
+
+  // Item 100: persiste no backend (debounced) para sync cross-device.
+  const quietSaveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!user || !quietHydratedRef.current) return;
+    if (quietSaveTimer.current) window.clearTimeout(quietSaveTimer.current);
+    quietSaveTimer.current = window.setTimeout(() => {
+      supabase.from('notificacao_quiet_hours').upsert({
+        user_id: user.id,
+        ativo: quiet.enabled,
+        inicio: `${quiet.start}:00`,
+        fim: `${quiet.end}:00`,
+        permitir_criticos: quiet.permitirCriticos,
+        dias_semana: quiet.diasSemana,
+      }, { onConflict: 'user_id' }).then(({ error }) => {
+        if (error) console.warn('[quiet-hours] sync falhou:', error.message);
+      });
+    }, 600);
+    return () => { if (quietSaveTimer.current) window.clearTimeout(quietSaveTimer.current); };
+  }, [quiet, user]);
+
   const isQuietNow = useCallback((cfg: QuietCfg = quiet): boolean => {
     if (!cfg.enabled) return false;
+    const now = new Date();
+    if (cfg.diasSemana.length && !cfg.diasSemana.includes(now.getDay())) return false;
     const [sh, sm] = cfg.start.split(':').map(Number);
     const [eh, em] = cfg.end.split(':').map(Number);
     if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return false;
-    const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
     const s = sh * 60 + sm;
     const e = eh * 60 + em;
-    if (s === e) return false; // janela vazia
-    return s < e ? cur >= s && cur < e : cur >= s || cur < e; // overnight
+    if (s === e) return false;
+    return s < e ? cur >= s && cur < e : cur >= s || cur < e;
   }, [quiet]);
   const quietRef = useRef(isQuietNow);
   useEffect(() => { quietRef.current = isQuietNow; }, [isQuietNow]);
+  // Bypass do quiet para tipos críticos, se o usuário optou.
+  const quietBypassRef = useRef(quiet.permitirCriticos);
+  useEffect(() => { quietBypassRef.current = quiet.permitirCriticos; }, [quiet.permitirCriticos]);
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -611,12 +679,15 @@ export default function NotificationBell() {
             supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
           }
           // Só dispara desktop e som se nenhuma regra pediu silenciamento
-          // e não estamos em Quiet Hours (janela silenciosa configurável).
+          // e não estamos em Quiet Hours — exceto tipos críticos (alerta/erro)
+          // quando o usuário optou por "permitir críticos" no Quiet Hours.
           const quietNow = quietRef.current();
-          if (!actions.has('silent') && !quietNow) {
+          const isCritical = nova.tipo === 'alerta' || nova.tipo === 'erro';
+          const bypass = quietBypassRef.current && isCritical;
+          if (!actions.has('silent') && (!quietNow || bypass)) {
             showDesktopRef.current(nova);
             // Modo foco: só toca em alerta/erro (reduz ruído).
-            if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
+            if (!focusModeRef.current || isCritical) {
               playSoundRef.current(nova.tipo);
             }
           }
@@ -1217,13 +1288,57 @@ export default function NotificationBell() {
                     />
                   </label>
                 </div>
-                <div className="text-[11px] text-muted-foreground leading-relaxed">
+                {/* Item 100: dias da semana em que o Quiet Hours vale */}
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">Dias da semana</div>
+                  <div className="flex items-center gap-1">
+                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((label, idx) => {
+                      const active = quiet.diasSemana.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={!quiet.enabled}
+                          onClick={() => setQuiet((q) => ({
+                            ...q,
+                            diasSemana: active
+                              ? q.diasSemana.filter((d) => d !== idx)
+                              : [...q.diasSemana, idx].sort((a, b) => a - b),
+                          }))}
+                          className={`h-7 w-7 rounded-md border text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                            active
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-muted-foreground border-input hover:bg-accent'
+                          }`}
+                          aria-pressed={active}
+                          aria-label={`${['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][idx]} ${active ? 'ativo' : 'inativo'}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Item 100: permitir tipos críticos atravessarem o silêncio */}
+                <label className="flex items-start justify-between gap-2 cursor-pointer">
+                  <div className="flex-1">
+                    <div className="text-xs font-medium">Permitir críticos</div>
+                    <div className="text-[11px] text-muted-foreground">Alertas e erros tocam mesmo em silêncio</div>
+                  </div>
+                  <Switch
+                    checked={quiet.permitirCriticos}
+                    onCheckedChange={(v) => setQuiet((q) => ({ ...q, permitirCriticos: !!v }))}
+                    disabled={!quiet.enabled}
+                    aria-label="Permitir notificações críticas durante Quiet Hours"
+                  />
+                </label>
+                <div className="text-[11px] text-muted-foreground leading-relaxed border-t border-border pt-2">
                   {quiet.enabled ? (
                     isQuietNow()
-                      ? <>🌙 <strong>Silêncio ativo agora.</strong> Notificações continuam chegando na lista — sem som/desktop.</>
-                      : <>Programado: <strong>{quiet.start} → {quiet.end}</strong>{quiet.start > quiet.end ? ' (atravessa meia-noite)' : ''}.</>
+                      ? <>🌙 <strong>Silêncio ativo agora.</strong> Notificações continuam chegando na lista{quiet.permitirCriticos ? ' — críticos ainda alertam' : ' sem som nem desktop'}.</>
+                      : <>Programado: <strong>{quiet.start} → {quiet.end}</strong>{quiet.start > quiet.end ? ' (atravessa meia-noite)' : ''}. Sincroniza entre dispositivos.</>
                   ) : (
-                    <>Ative para pausar sons e pop-ups desktop em horários específicos (ex.: madrugada).</>
+                    <>Ative para pausar sons e pop-ups desktop em horários específicos (ex.: madrugada). Configuração salva na nuvem.</>
                   )}
                 </div>
               </PopoverContent>
