@@ -1748,6 +1748,154 @@ export default function NotificationBell() {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Item 96: Dialog de Regras de Automação */}
+    <Dialog open={showRules} onOpenChange={setShowRules}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Wand2 className="w-4 h-4 text-primary" />
+            Regras de Automação
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Aplicadas automaticamente a cada nova notificação recebida. Combine filtros por tipo e conteúdo para silenciar, marcar como lida, adiar ou fixar.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+          {regras.length === 0 && (
+            <div className="text-center py-8 text-xs text-muted-foreground border border-dashed border-border/50 rounded-lg">
+              Nenhuma regra ainda. Clique em <span className="font-semibold text-foreground">Nova regra</span> para começar.
+            </div>
+          )}
+          {regras.map((r, idx) => (
+            <div key={r.id} className="p-3 rounded-lg border border-border/50 bg-card/50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={r.name}
+                  onChange={(e) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)))
+                  }
+                  placeholder="Nome da regra"
+                  className="h-8 text-xs flex-1"
+                />
+                <Switch
+                  checked={r.enabled}
+                  onCheckedChange={(v) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, enabled: !!v } : x)))
+                  }
+                  aria-label="Ativar regra"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive"
+                  onClick={() => setRegras((prev) => prev.filter((_, i) => i !== idx))}
+                  aria-label="Remover regra"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Tipos</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {TIPOS_ALL.map((t) => {
+                      const active = r.tipos.includes(t);
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() =>
+                            setRegras((prev) =>
+                              prev.map((x, i) =>
+                                i === idx
+                                  ? {
+                                      ...x,
+                                      tipos: active ? x.tipos.filter((y) => y !== t) : [...x.tipos, t],
+                                    }
+                                  : x
+                              )
+                            )
+                          }
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
+                            active
+                              ? 'bg-primary/15 border-primary/40 text-primary'
+                              : 'bg-transparent border-border/50 text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {tipoLabels[t]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Ação</Label>
+                  <Select
+                    value={r.action}
+                    onValueChange={(v) => {
+                      if (!isRuleAction(v)) return;
+                      setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, action: v } : x)));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(RULE_ACTION_LABELS) as RuleAction[]).map((a) => (
+                        <SelectItem key={a} value={a} className="text-xs">
+                          {RULE_ACTION_LABELS[a]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Contém (título ou mensagem)</Label>
+                <Input
+                  value={r.contains}
+                  onChange={(e) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, contains: e.target.value } : x)))
+                  }
+                  placeholder="ex.: aprovação, férias..."
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={() =>
+              setRegras((prev) => [
+                ...prev,
+                {
+                  id: (crypto?.randomUUID?.() ?? String(Date.now())),
+                  name: `Regra ${prev.length + 1}`,
+                  enabled: true,
+                  tipos: [],
+                  contains: '',
+                  action: 'auto_read',
+                },
+              ])
+            }
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nova regra
+          </Button>
+          <Button size="sm" onClick={() => setShowRules(false)}>Concluído</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
+
   );
 }
