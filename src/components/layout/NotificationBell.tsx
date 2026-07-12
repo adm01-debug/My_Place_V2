@@ -65,6 +65,15 @@ export default function NotificationBell() {
   }, [filtro]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [busca, setBusca] = useState('');
+  const buscaRef = useRef<HTMLInputElement>(null);
+
+  // Normaliza texto (case + acentos) para busca amigável em PT-BR.
+  const normalize = useCallback(
+    (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(),
+    []
+  );
+  const buscaNorm = useMemo(() => normalize(busca.trim()), [busca, normalize]);
 
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
