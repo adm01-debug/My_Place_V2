@@ -328,7 +328,7 @@ export default function NotificationBell() {
     if (!user) return;
     const { data } = await supabase
       .from('notificacoes')
-      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em')
+      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em, adiada_ate')
       .eq('user_id', user.id)
       .order('fixada_em', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
