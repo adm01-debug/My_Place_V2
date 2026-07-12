@@ -62,6 +62,7 @@ const AdminIntegracoes = lazy(() => import("./pages/AdminIntegracoes"));
 const AdminRateLimits = lazy(() => import("./pages/AdminRateLimits"));
 const NotificacaoPreferencias = lazy(() => import("./pages/NotificacaoPreferencias"));
 const NotificacaoHistorico = lazy(() => import("./pages/NotificacaoHistorico"));
+const AdminNotifTemplates = lazy(() => import("./pages/AdminNotifTemplates"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
