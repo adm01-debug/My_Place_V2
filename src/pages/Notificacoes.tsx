@@ -349,8 +349,13 @@ export default function Notificacoes() {
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
     }
+    if (ordenarPorRelevancia) {
+      for (const [, itens] of map) {
+        itens.sort((a, b) => relevanceScore(b) - relevanceScore(a));
+      }
+    }
     return Array.from(map.entries());
-  }, [filtradas]);
+  }, [filtradas, ordenarPorRelevancia]);
 
   // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
   type ThreadItem =
