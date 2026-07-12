@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -41,6 +41,7 @@ const DESKTOP_KEY = 'bell_desktop_v1';
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
 const FILTER_KEY = 'bell_filter_v1';
 const TIPOS_KEY = 'bell_tipos_v1';
+const PREVIEW_KEY = 'bell_preview_v1';
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
@@ -87,6 +88,19 @@ export default function NotificationBell() {
   // Undo: itens marcados como "pending delete" ficam ocultos por UNDO_MS antes do commit real no backend.
   const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() => new Set());
   const undoTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // Painel lateral de preview (md+): mostra a notificação ativa em detalhe.
+  const [showPreview, setShowPreview] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(PREVIEW_KEY) === '1';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREVIEW_KEY, showPreview ? '1' : '0');
+    } catch {
+      /* quota — ignore */
+    }
+  }, [showPreview]);
 
   useEffect(() => {
     const timers = undoTimers.current;
@@ -527,6 +541,11 @@ export default function NotificationBell() {
             togglePin(current.id, !!current.fixada_em);
           }
           break;
+        case 'v':
+          // Alterna painel lateral de preview (só faz sentido em md+, mas o estado persiste).
+          e.preventDefault();
+          setShowPreview((v) => !v);
+          break;
         case 'x':
         case 'Delete':
         case 'Backspace': {
@@ -582,8 +601,25 @@ export default function NotificationBell() {
     },
     [buscaNorm, normalize]
   );
+  // Item ativo para o painel lateral: preferencialmente o "activeId"; senão o primeiro visível.
+  const activeItem = useMemo(
+    () => filtradas.find((n) => n.id === activeId) ?? filtradas[0] ?? null,
+    [filtradas, activeId]
+  );
 
-
+  const formatAbsolute = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return iso;
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -606,10 +642,25 @@ export default function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className={`p-0 ${showPreview ? 'w-[min(94vw,720px)]' : 'w-80'}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:inline-flex h-7 w-7"
+              onClick={() => setShowPreview((v) => !v)}
+              aria-pressed={showPreview}
+              aria-label={showPreview ? 'Ocultar painel de preview' : 'Mostrar painel de preview'}
+              title={showPreview ? 'Ocultar preview (v)' : 'Mostrar preview (v)'}
+            >
+              {showPreview ? (
+                <PanelRightClose className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <PanelRightOpen className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
+            </Button>
             {canUseDesktop() && (
               <Button
                 variant="ghost"
@@ -788,7 +839,8 @@ export default function NotificationBell() {
           </div>
         )}
 
-        <ScrollArea className="max-h-80">
+        <div className={showPreview ? 'flex' : 'block'}>
+        <ScrollArea className={`max-h-80 ${showPreview ? 'flex-1 border-r border-border/50' : ''}`}>
           {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-40" />
@@ -927,6 +979,108 @@ export default function NotificationBell() {
           )}
         </ScrollArea>
 
+        {showPreview && (
+          <aside
+            className="w-[320px] shrink-0 hidden md:flex flex-col max-h-80 overflow-hidden"
+            aria-label="Preview da notificação"
+          >
+            {activeItem ? (
+              (() => {
+                const Icon = tipoIcons[activeItem.tipo] || Info;
+                const fixada = !!activeItem.fixada_em;
+                return (
+                  <>
+                    <div className="flex items-start gap-2 px-4 py-3 border-b border-border/40">
+                      <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[activeItem.tipo]}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider ${tipoColors[activeItem.tipo]}`}>
+                            {tipoLabels[activeItem.tipo]}
+                          </span>
+                          {!activeItem.lida && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
+                              Não lida
+                            </span>
+                          )}
+                          {fixada && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary inline-flex items-center gap-0.5">
+                              <Pin className="w-2.5 h-2.5" /> Fixada
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-semibold text-foreground mt-1 leading-snug break-words">
+                          {activeItem.titulo}
+                        </h4>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {formatAbsolute(activeItem.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <ScrollArea className="flex-1">
+                      <p className="px-4 py-3 text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
+                        {activeItem.mensagem}
+                      </p>
+                    </ScrollArea>
+                    <div className="flex items-center gap-1 px-2 py-2 border-t border-border/40 bg-muted/10">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="flex-1 h-7 text-[11px] gap-1"
+                        onClick={() => handleClick(activeItem)}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Abrir
+                      </Button>
+                      {!activeItem.lida && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => markAsRead(activeItem.id)}
+                          aria-label="Marcar como lida"
+                          title="Marcar como lida (e)"
+                        >
+                          <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => togglePin(activeItem.id, fixada)}
+                        aria-label={fixada ? 'Desafixar' : 'Fixar'}
+                        title={fixada ? 'Desafixar (p)' : 'Fixar (p)'}
+                      >
+                        {fixada ? (
+                          <PinOff className="w-3.5 h-3.5 text-muted-foreground" />
+                        ) : (
+                          <Pin className="w-3.5 h-3.5 text-primary" />
+                        )}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 hover:bg-destructive/10"
+                        onClick={() => deleteNotif(activeItem.id)}
+                        aria-label="Excluir"
+                        title="Excluir (x)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center">
+                <Bell className="w-8 h-8 mb-2 opacity-30" />
+                <p className="text-xs">Selecione uma notificação para visualizar</p>
+              </div>
+            )}
+          </aside>
+        )}
+        </div>
+
         <div className="p-2 border-t border-border/50 space-y-1">
           <Button
             variant="ghost"
@@ -945,7 +1099,8 @@ export default function NotificationBell() {
             <kbd className="ml-1 px-1 rounded bg-muted/60">↵</kbd> abrir ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
-            <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir
+            <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">v</kbd> preview
           </p>
         </div>
       </PopoverContent>
