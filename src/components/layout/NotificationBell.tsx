@@ -88,6 +88,31 @@ export default function NotificationBell() {
   );
   const buscaNorm = useMemo(() => normalize(busca.trim()), [busca, normalize]);
 
+  // Filtro por tipo (multi-seleção). Set vazio = todos os tipos visíveis.
+  const [tiposAtivos, setTiposAtivos] = useState<Set<TipoNotif>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(TIPOS_KEY) || '[]');
+      if (Array.isArray(raw)) return new Set(raw.filter(isTipoNotif));
+    } catch { /* ignore */ }
+    return new Set();
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TIPOS_KEY, JSON.stringify([...tiposAtivos]));
+    } catch { /* quota — ignore */ }
+  }, [tiposAtivos]);
+
+  const toggleTipo = useCallback((t: TipoNotif) => {
+    setTiposAtivos((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
+      return next;
+    });
+  }, []);
+
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
     [notificacoes]
