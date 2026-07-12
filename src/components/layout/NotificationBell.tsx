@@ -596,8 +596,25 @@ export default function NotificationBell() {
     },
     [buscaNorm, normalize]
   );
+  // Item ativo para o painel lateral: preferencialmente o "activeId"; senão o primeiro visível.
+  const activeItem = useMemo(
+    () => filtradas.find((n) => n.id === activeId) ?? filtradas[0] ?? null,
+    [filtradas, activeId]
+  );
 
-
+  const formatAbsolute = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return iso;
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
