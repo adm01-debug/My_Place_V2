@@ -267,6 +267,48 @@ export default function NotificacaoPreferencias() {
         </CardContent>
       </Card>
 
+      {/* Digest global — aplica a todas as categorias */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Layers className="w-4 h-4" /> Agrupamento global (digest)
+          </CardTitle>
+          <CardDescription>
+            Defina uma frequência de resumo e aplique a todas as categorias de uma vez.
+            Alertas críticos são sempre entregues imediatamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1">
+              <Label className="text-xs">Frequência global</Label>
+              <Select value={bulkFreq} onValueChange={(v) => setBulkFreq(v as DigestFreq)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="imediato">Imediato (sem agrupar)</SelectItem>
+                  <SelectItem value="horario">A cada hora</SelectItem>
+                  <SelectItem value="diario">1x por dia (08:00 BRT)</SelectItem>
+                  <SelectItem value="semanal">1x por semana (Seg 08:00 BRT)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={aplicarDigestATodas} variant="secondary">
+              Aplicar a todas categorias
+            </Button>
+          </div>
+          {proximaEntrega.length > 0 && (
+            <div className="rounded-md bg-muted/50 p-3 space-y-1">
+              <p className="text-xs font-medium flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Próximas entregas previstas
+              </p>
+              {proximaEntrega.map((t, i) => (
+                <p key={i} className="text-xs text-muted-foreground">{t}</p>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Preferências por categoria */}
       <Card>
         <CardHeader>
