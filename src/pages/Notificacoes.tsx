@@ -64,6 +64,7 @@ import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
+import { LinkPreview } from '@/components/notificacoes/LinkPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
