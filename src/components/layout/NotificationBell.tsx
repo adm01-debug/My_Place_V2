@@ -874,9 +874,10 @@ export default function NotificationBell() {
         >
           {(
             [
-              { id: 'todas', label: 'Todas', count: notificacoes.length },
+              { id: 'todas', label: 'Todas', count: notificacoes.filter((n) => !isSnoozed(n)).length },
               { id: 'nao_lidas', label: 'Não lidas', count: unreadCount },
               { id: 'fixadas', label: 'Fixadas', count: fixadasCount },
+              { id: 'adiadas', label: 'Adiadas', count: snoozedCount },
             ] as { id: BellFilter; label: string; count: number }[]
           ).map((tab) => {
             const ativo = filtro === tab.id;
