@@ -1649,6 +1649,20 @@ export default function NotificationBell() {
                 </div>
               </PopoverContent>
             </Popover>
+            {/* Item 102: Toggle de agrupamento inteligente */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setAgruparSimilares((v) => !v)}
+              aria-pressed={agruparSimilares}
+              aria-label={agruparSimilares ? 'Desativar agrupamento' : 'Ativar agrupamento'}
+              title={agruparSimilares
+                ? 'Agrupamento de similares: ativo (clique para desativar)'
+                : 'Agrupamento de similares: desativado (clique para ativar)'}
+            >
+              <Layers className={`w-3.5 h-3.5 ${agruparSimilares ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
