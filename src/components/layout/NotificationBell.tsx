@@ -78,6 +78,8 @@ type BellFilter = 'todas' | 'nao_lidas' | 'fixadas' | 'adiadas';
 const FILTER_KEY = 'bell_filter_v2';
 const TIPOS_KEY = 'bell_tipos_v1';
 const PREVIEW_KEY = 'bell_preview_v1';
+const AUTO_READ_KEY = 'bell_auto_read_v1';
+const AUTO_READ_DELAY_MS = 1500;
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
