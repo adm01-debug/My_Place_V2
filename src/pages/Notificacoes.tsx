@@ -1221,6 +1221,19 @@ export default function Notificacoes() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className={`h-7 w-7 ${n.fixada_em ? 'text-amber-500 hover:text-amber-600' : 'text-muted-foreground hover:text-amber-500'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePin(n);
+                            }}
+                            aria-label={n.fixada_em ? 'Desafixar notificação' : 'Fixar notificação'}
+                            title={n.fixada_em ? 'Desafixar do topo' : 'Fixar no topo'}
+                          >
+                            {n.fixada_em ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-primary"
                             onClick={(e) => {
                               e.stopPropagation();
