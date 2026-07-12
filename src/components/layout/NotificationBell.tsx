@@ -2201,9 +2201,28 @@ export default function NotificationBell() {
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {highlight(n.mensagem)}
-                        </p>
+                        {(() => {
+                          const isLong = (n.mensagem?.length ?? 0) > MSG_PEEK_LIMIT;
+                          const isExpanded = expandedMsgs.has(n.id);
+                          return (
+                            <>
+                              <p className={`text-xs text-muted-foreground mt-0.5 ${isExpanded ? 'whitespace-pre-wrap break-words' : 'line-clamp-2'}`}>
+                                {highlight(n.mensagem)}
+                              </p>
+                              {isLong && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); toggleMsgExpand(n.id); }}
+                                  aria-expanded={isExpanded}
+                                  aria-label={isExpanded ? 'Recolher mensagem' : 'Expandir mensagem'}
+                                  className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded px-0.5 py-0.5 min-h-[20px]"
+                                >
+                                  {isExpanded ? (<><ChevronUp className="w-3 h-3" /> Recolher</>) : (<><ChevronDown className="w-3 h-3" /> Ver mais</>)}
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
                         {snoozed && n.adiada_ate && (
                           <p className="text-[10px] text-amber-500/90 mt-1 inline-flex items-center gap-1">
                             <Clock className="w-2.5 h-2.5" />
