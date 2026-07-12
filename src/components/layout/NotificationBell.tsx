@@ -246,6 +246,35 @@ export default function NotificationBell() {
     const startYesterday = startToday - 86400000;
     const startWeek = startToday - 6 * 86400000;
 
+    // Na aba "adiadas", agrupamos por horizonte do próprio adiamento.
+    if (filtro === 'adiadas') {
+      const startTomorrow = startToday + 86400000;
+      const startNextWeek = startToday + 7 * 86400000;
+      const b: Record<string, Notificacao[]> = {
+        'Ainda hoje': [],
+        Amanhã: [],
+        'Esta semana': [],
+        'Mais tarde': [],
+      };
+      for (const n of filtradas) {
+        if (!n.adiada_ate) continue;
+        const t = new Date(n.adiada_ate).getTime();
+        if (t < startTomorrow) b['Ainda hoje'].push(n);
+        else if (t < startTomorrow + 86400000) b.Amanhã.push(n);
+        else if (t < startNextWeek) b['Esta semana'].push(n);
+        else b['Mais tarde'].push(n);
+      }
+      // Ordena cada bucket por adiada_ate asc (mais próximo primeiro).
+      for (const k of Object.keys(b)) {
+        b[k].sort(
+          (a, x) => new Date(a.adiada_ate!).getTime() - new Date(x.adiada_ate!).getTime()
+        );
+      }
+      return (Object.entries(b) as [string, Notificacao[]][]).filter(
+        ([, items]) => items.length > 0
+      );
+    }
+
     const buckets: Record<string, Notificacao[]> = {
       Fixadas: [],
       Hoje: [],
