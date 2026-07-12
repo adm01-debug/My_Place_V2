@@ -230,19 +230,46 @@ export default function Notificacoes() {
           const nova = payload.new as Notificacao;
           setNotificacoes((prev) => {
             if (prev.some((n) => n.id === nova.id)) return prev;
-            // Alerta sonoro/tátil: alta para erro, média para alerta, silêncio para o resto.
             const prioridade =
               nova.tipo === 'erro' ? 'alta' : nova.tipo === 'alerta' ? 'media' : 'baixa';
             playAlert(prioridade);
             return [nova, ...prev];
           });
+
+          // Aplica regras automáticas (defer para o próximo tick para
+          // garantir que a linha já esteja no estado antes de mutá-la).
+          const match = matchRule(nova);
+          if (match) {
+            setTimeout(async () => {
+              try {
+                if (match.acao === 'marcar_lida') {
+                  await supabase.from('notificacoes').update({ lida: true }).eq('id', nova.id);
+                  setNotificacoes((prev) =>
+                    prev.map((n) => (n.id === nova.id ? { ...n, lida: true } : n))
+                  );
+                } else if (match.acao === 'excluir') {
+                  await supabase.from('notificacoes').delete().eq('id', nova.id);
+                  setNotificacoes((prev) => prev.filter((n) => n.id !== nova.id));
+                } else if (match.acao === 'fixar') {
+                  const fixada_em = new Date().toISOString();
+                  await supabase.from('notificacoes').update({ fixada_em }).eq('id', nova.id);
+                  setNotificacoes((prev) =>
+                    prev.map((n) => (n.id === nova.id ? { ...n, fixada_em } : n))
+                  );
+                }
+                toast.info(`Regra automática aplicada: ${match.acao.replace('_', ' ')}`);
+              } catch {
+                /* falha silenciosa — a linha permanece intocada */
+              }
+            }, 0);
+          }
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, playAlert]);
+  }, [user, playAlert, matchRule]);
 
   // Deep-linking: /notificacoes?focus=<id> — rola até o card, destaca, marca como lido
   // e expande a thread se o item estiver dentro de uma.
