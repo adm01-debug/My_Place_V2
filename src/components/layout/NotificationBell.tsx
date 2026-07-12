@@ -1477,6 +1477,22 @@ export default function NotificationBell() {
                                   {opt.label}
                                 </DropdownMenuItem>
                               ))}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => {
+                                  // Default: daqui a 2h arredondado ao próximo quarto de hora
+                                  const d = new Date(Date.now() + 2 * 60 * 60 * 1000);
+                                  d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+                                  const pad = (v: number) => String(v).padStart(2, '0');
+                                  const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                  setCustomSnoozeValue(local);
+                                  setCustomSnoozeFor(n.id);
+                                }}
+                                className="text-xs"
+                              >
+                                <Clock className="w-3.5 h-3.5 mr-2 text-primary" />
+                                Personalizado…
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
