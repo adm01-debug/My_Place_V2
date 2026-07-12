@@ -184,10 +184,14 @@ export default function NotificationBell() {
         /* alguns browsers exigem SW — ignora silenciosamente */
       }
     },
+    [desktopOn, navigate]
+  );
+
   const showDesktopRef = useRef(showDesktop);
   useEffect(() => {
     showDesktopRef.current = showDesktop;
   }, [showDesktop]);
+
 
   // Realtime: INSERT, UPDATE e DELETE — mantém o sino sincronizado
   // mesmo quando alterações acontecem na página /notificacoes ou em outro tab.
