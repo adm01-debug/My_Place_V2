@@ -1008,6 +1008,18 @@ export default function Notificacoes() {
                   Limpar
                 </Button>
               )}
+              {(busca || filtro !== 'todas' || dataInicio || dataFim || modoFoco) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetarFiltros}
+                  title="Restaurar todos os filtros"
+                  className="ml-auto"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" />
+                  Resetar filtros
+                </Button>
+              )}
             </div>
           </div>
 
