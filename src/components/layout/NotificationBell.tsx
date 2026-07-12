@@ -1099,7 +1099,8 @@ export default function NotificationBell() {
             <kbd className="ml-1 px-1 rounded bg-muted/60">↵</kbd> abrir ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
-            <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir
+            <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">v</kbd> preview
           </p>
         </div>
       </PopoverContent>
