@@ -243,6 +243,42 @@ export default function NotificationBell() {
   }, [soundEnabled]);
   const playSoundRef = useRef(playSound);
   useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
+
+  // Item 99: Quiet Hours — janela silenciosa configurável (som + desktop mute).
+  // Itens continuam chegando na lista; apenas alertas audíveis/visuais são suprimidos.
+  // Suporta janelas atravessando meia-noite (ex.: 22:00 → 07:00).
+  const QUIET_KEY = 'notif_quiet_hours';
+  type QuietCfg = { enabled: boolean; start: string; end: string };
+  const [quiet, setQuiet] = useState<QuietCfg>(() => {
+    if (typeof window === 'undefined') return { enabled: false, start: '22:00', end: '07:00' };
+    try {
+      const raw = localStorage.getItem(QUIET_KEY);
+      if (!raw) return { enabled: false, start: '22:00', end: '07:00' };
+      const p = JSON.parse(raw) as Partial<QuietCfg>;
+      return {
+        enabled: !!p.enabled,
+        start: /^\d{2}:\d{2}$/.test(p.start || '') ? p.start! : '22:00',
+        end: /^\d{2}:\d{2}$/.test(p.end || '') ? p.end! : '07:00',
+      };
+    } catch { return { enabled: false, start: '22:00', end: '07:00' }; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(QUIET_KEY, JSON.stringify(quiet)); } catch { /* quota */ }
+  }, [quiet]);
+  const isQuietNow = useCallback((cfg: QuietCfg = quiet): boolean => {
+    if (!cfg.enabled) return false;
+    const [sh, sm] = cfg.start.split(':').map(Number);
+    const [eh, em] = cfg.end.split(':').map(Number);
+    if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return false;
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const s = sh * 60 + sm;
+    const e = eh * 60 + em;
+    if (s === e) return false; // janela vazia
+    return s < e ? cur >= s && cur < e : cur >= s || cur < e; // overnight
+  }, [quiet]);
+  const quietRef = useRef(isQuietNow);
+  useEffect(() => { quietRef.current = isQuietNow; }, [isQuietNow]);
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
