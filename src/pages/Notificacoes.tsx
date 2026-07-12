@@ -758,6 +758,25 @@ export default function Notificacoes() {
                 {modoFoco ? 'Foco ativo' : 'Foco'}
               </Button>
               <Button
+                variant={alertasAtivos ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleAlertas}
+                title={
+                  alertasAtivos
+                    ? 'Silenciar alertas sonoros de novas notificações prioritárias'
+                    : 'Ativar alertas sonoros e vibração para novas notificações prioritárias'
+                }
+                aria-pressed={alertasAtivos}
+                aria-label={alertasAtivos ? 'Silenciar alertas' : 'Ativar alertas'}
+              >
+                {alertasAtivos ? (
+                  <Volume2 className="w-4 h-4 mr-1" />
+                ) : (
+                  <VolumeX className="w-4 h-4 mr-1" />
+                )}
+                {alertasAtivos ? 'Som' : 'Silenciado'}
+              </Button>
+              <Button
                 variant={agruparSimilares ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAgruparSimilares((v) => !v)}
