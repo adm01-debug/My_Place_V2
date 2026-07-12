@@ -769,6 +769,64 @@ export default function Notificacoes() {
             />
           </div>
 
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="flex flex-col">
+              <label htmlFor="notif-data-inicio" className="text-xs text-muted-foreground mb-1">De</label>
+              <Input
+                id="notif-data-inicio"
+                type="date"
+                value={dataInicio}
+                max={dataFim || undefined}
+                onChange={(e) => setDataInicio(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="notif-data-fim" className="text-xs text-muted-foreground mb-1">Até</label>
+              <Input
+                id="notif-data-fim"
+                type="date"
+                value={dataFim}
+                min={dataInicio || undefined}
+                onChange={(e) => setDataFim(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { label: 'Hoje', dias: 0 },
+                { label: '7 dias', dias: 6 },
+                { label: '30 dias', dias: 29 },
+                { label: '90 dias', dias: 89 },
+              ].map((p) => (
+                <Button
+                  key={p.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const hoje = new Date();
+                    const ini = new Date();
+                    ini.setDate(hoje.getDate() - p.dias);
+                    setDataInicio(format(ini, 'yyyy-MM-dd'));
+                    setDataFim(format(hoje, 'yyyy-MM-dd'));
+                  }}
+                >
+                  {p.label}
+                </Button>
+              ))}
+              {(dataInicio || dataFim) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setDataInicio(''); setDataFim(''); }}
+                  title="Limpar intervalo de datas"
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+
           <Tabs value={filtro} onValueChange={(v) => setFiltro(v as Filtro)}>
             <TabsList className="w-full flex-wrap h-auto">
               <TabsTrigger value="todas" className="flex-1 min-w-[80px]">
