@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,7 +27,35 @@ interface Notificacao {
   link: string | null;
   created_at: string;
   fixada_em: string | null;
+  adiada_ate: string | null;
 }
+
+// Opções de adiamento (snooze). "at" é uma função que recebe "agora" e devolve o alvo.
+type SnoozeOption = { id: string; label: string; at: (now: Date) => Date };
+const SNOOZE_OPTIONS: SnoozeOption[] = [
+  { id: '1h', label: 'Em 1 hora', at: (n) => new Date(n.getTime() + 60 * 60 * 1000) },
+  { id: '3h', label: 'Em 3 horas', at: (n) => new Date(n.getTime() + 3 * 60 * 60 * 1000) },
+  {
+    id: 'tomorrow',
+    label: 'Amanhã, 9h',
+    at: (n) => {
+      const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 9, 0, 0, 0);
+      return d;
+    },
+  },
+  {
+    id: 'nextweek',
+    label: 'Próxima semana',
+    at: (n) => {
+      // Próxima segunda-feira às 9h
+      const d = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 9, 0, 0, 0);
+      const dow = d.getDay(); // 0=dom
+      const daysUntilMon = ((8 - dow) % 7) || 7;
+      d.setDate(d.getDate() + daysUntilMon);
+      return d;
+    },
+  },
+];
 
 const tipoIcons = {
   info: Info,
