@@ -34,6 +34,7 @@ import {
   MailOpen,
   Pin,
   PinOff,
+  Wand2,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -61,7 +62,9 @@ import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
+import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
+import { useAutoRules } from '@/hooks/useAutoRules';
 
 interface Notificacao {
   id: string;
@@ -143,6 +146,8 @@ export default function Notificacoes() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
+  const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
+  const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
@@ -226,19 +231,46 @@ export default function Notificacoes() {
           const nova = payload.new as Notificacao;
           setNotificacoes((prev) => {
             if (prev.some((n) => n.id === nova.id)) return prev;
-            // Alerta sonoro/tátil: alta para erro, média para alerta, silêncio para o resto.
             const prioridade =
               nova.tipo === 'erro' ? 'alta' : nova.tipo === 'alerta' ? 'media' : 'baixa';
             playAlert(prioridade);
             return [nova, ...prev];
           });
+
+          // Aplica regras automáticas (defer para o próximo tick para
+          // garantir que a linha já esteja no estado antes de mutá-la).
+          const match = matchRule(nova);
+          if (match) {
+            setTimeout(async () => {
+              try {
+                if (match.acao === 'marcar_lida') {
+                  await supabase.from('notificacoes').update({ lida: true }).eq('id', nova.id);
+                  setNotificacoes((prev) =>
+                    prev.map((n) => (n.id === nova.id ? { ...n, lida: true } : n))
+                  );
+                } else if (match.acao === 'excluir') {
+                  await supabase.from('notificacoes').delete().eq('id', nova.id);
+                  setNotificacoes((prev) => prev.filter((n) => n.id !== nova.id));
+                } else if (match.acao === 'fixar') {
+                  const fixada_em = new Date().toISOString();
+                  await supabase.from('notificacoes').update({ fixada_em }).eq('id', nova.id);
+                  setNotificacoes((prev) =>
+                    prev.map((n) => (n.id === nova.id ? { ...n, fixada_em } : n))
+                  );
+                }
+                toast.info(`Regra automática aplicada: ${match.acao.replace('_', ' ')}`);
+              } catch {
+                /* falha silenciosa — a linha permanece intocada */
+              }
+            }, 0);
+          }
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, playAlert]);
+  }, [user, playAlert, matchRule]);
 
   // Deep-linking: /notificacoes?focus=<id> — rola até o card, destaca, marca como lido
   // e expande a thread se o item estiver dentro de uma.
@@ -826,6 +858,7 @@ export default function Notificacoes() {
     filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
 
   return (
+    <>
     <PullToRefresh onRefresh={fetchNotificacoes}>
       <div className="w-full max-w-4xl mx-auto p-4 space-y-6 pb-24">
         <ModuleHeader
@@ -848,6 +881,20 @@ export default function Notificacoes() {
               >
                 <Focus className="w-4 h-4 mr-1" />
                 {modoFoco ? 'Foco ativo' : 'Foco'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRulesDialogOpen(true)}
+                title="Regras automáticas: aplicar ações a novas notificações que casem com um padrão"
+                aria-label="Abrir regras automáticas"
+              >
+                <Wand2 className="w-4 h-4 mr-1" />
+                Regras {rules.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {rules.filter((r) => r.ativa).length}
+                  </Badge>
+                )}
               </Button>
               <Button
                 variant={alertasAtivos ? 'default' : 'outline'}
@@ -1459,5 +1506,14 @@ export default function Notificacoes() {
         </DialogContent>
       </Dialog>
     </PullToRefresh>
+    <AutoRulesDialog
+      open={rulesDialogOpen}
+      onOpenChange={setRulesDialogOpen}
+      rules={rules}
+      addRule={addRule}
+      removeRule={removeRule}
+      toggleRule={toggleRule}
+    />
+    </>
   );
 }
