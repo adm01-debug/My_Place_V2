@@ -130,6 +130,11 @@ export default function Notificacoes() {
     localStorage.setItem('notif_ordenar_relevancia', ordenarPorRelevancia ? '1' : '0');
   }, [ordenarPorRelevancia]);
 
+  useEffect(() => {
+    localStorage.setItem('notif_modo_foco', modoFoco ? '1' : '0');
+  }, [modoFoco]);
+
+
 
   const toggleThread = (key: string) => {
     setThreadsExpandidas((prev) => {
