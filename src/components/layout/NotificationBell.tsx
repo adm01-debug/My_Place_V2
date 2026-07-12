@@ -456,6 +456,68 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').update({ fixada_em: novoFixadaEm }).eq('id', id);
   };
 
+  // Adia (snooze) uma notificação até uma data futura. Optimista + Undo (5s).
+  const snoozeNotif = async (id: string, until: Date) => {
+    const n = notificacoes.find((x) => x.id === id);
+    if (!n) return;
+    const prevValue = n.adiada_ate;
+    const iso = until.toISOString();
+    // Optimista: atualiza estado local imediatamente.
+    setNotificacoes((prev) => prev.map((x) => (x.id === id ? { ...x, adiada_ate: iso } : x)));
+    const { error } = await supabase
+      .from('notificacoes')
+      .update({ adiada_ate: iso })
+      .eq('id', id);
+    if (error) {
+      // Rollback em falha.
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+      );
+      toast.error('Não foi possível adiar');
+      return;
+    }
+    const quando = until.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    toast(`Adiada até ${quando}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) =>
+            prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+          );
+          await supabase
+            .from('notificacoes')
+            .update({ adiada_ate: prevValue })
+            .eq('id', id);
+        },
+      },
+    });
+  };
+
+  const unsnoozeNotif = async (id: string) => {
+    const n = notificacoes.find((x) => x.id === id);
+    if (!n) return;
+    const prevValue = n.adiada_ate;
+    setNotificacoes((prev) => prev.map((x) => (x.id === id ? { ...x, adiada_ate: null } : x)));
+    const { error } = await supabase
+      .from('notificacoes')
+      .update({ adiada_ate: null })
+      .eq('id', id);
+    if (error) {
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+      );
+      toast.error('Não foi possível cancelar o adiamento');
+    }
+  };
+
+
+
   // Agenda o DELETE real no backend após UNDO_MS. Se o usuário desfizer,
   // o timer é cancelado e o item volta a aparecer instantaneamente.
   const scheduleDelete = useCallback((ids: string[], label: string) => {
