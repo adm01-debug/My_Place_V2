@@ -342,6 +342,28 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').delete().eq('id', id);
   };
 
+  // Marca como lidas apenas as notificações atualmente visíveis (aba + busca + tipos).
+  const markVisibleAsRead = async () => {
+    const ids = filtradas.filter((n) => !n.lida).map((n) => n.id);
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+    await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+  };
+
+  // Exclui em lote todas as notificações visíveis (respeita filtros ativos).
+  // Preserva fixadas por segurança — para excluir uma fixada, use a ação individual.
+  const deleteVisible = async () => {
+    const alvos = filtradas.filter((n) => !n.fixada_em);
+    if (alvos.length === 0) return;
+    const label = alvos.length === 1 ? '1 notificação' : `${alvos.length} notificações`;
+    if (!window.confirm(`Excluir ${label} visíveis? Fixadas serão preservadas.`)) return;
+    const ids = alvos.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.filter((n) => !idSet.has(n.id)));
+    await supabase.from('notificacoes').delete().in('id', ids);
+  };
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
@@ -655,6 +677,41 @@ export default function NotificationBell() {
             );
           })}
         </div>
+
+        {/* Barra de ações em massa para o recorte visível */}
+        {filtradas.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10">
+            <span className="text-[10px] text-muted-foreground">
+              {filtradas.length === notificacoes.length
+                ? `${filtradas.length} ${filtradas.length === 1 ? 'notificação' : 'notificações'}`
+                : `${filtradas.length} de ${notificacoes.length} visíveis`}
+            </span>
+            <div className="flex items-center gap-1">
+              {filtradas.some((n) => !n.lida) && (
+                <button
+                  type="button"
+                  onClick={markVisibleAsRead}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Marcar visíveis como lidas"
+                >
+                  <Check className="w-3 h-3" />
+                  Marcar visíveis
+                </button>
+              )}
+              {filtradas.some((n) => !n.fixada_em) && (
+                <button
+                  type="button"
+                  onClick={deleteVisible}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title="Excluir visíveis (preserva fixadas)"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Excluir visíveis
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <ScrollArea className="max-h-80">
           {filtradas.length === 0 ? (
