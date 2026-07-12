@@ -37,6 +37,8 @@ import {
   Wand2,
   Rows2,
   Rows3,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -390,6 +392,67 @@ export default function Notificacoes() {
       toast.error('Erro ao atualizar notificações');
     }
   };
+
+  const buildShareText = (n: Notificacao) => {
+    const linkAbs =
+      n.link && n.link.startsWith('http')
+        ? n.link
+        : n.link
+          ? `${window.location.origin}${n.link.startsWith('/') ? '' : '/'}${n.link}`
+          : '';
+    return `${n.titulo}\n\n${n.mensagem}${linkAbs ? `\n\n${linkAbs}` : ''}`;
+  };
+
+  const copiarNotificacao = async (n: Notificacao) => {
+    const texto = buildShareText(n);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(texto);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      toast.success('Notificação copiada para a área de transferência');
+    } catch (error) {
+      console.error('Erro ao copiar:', error);
+      toast.error('Não foi possível copiar');
+    }
+  };
+
+  const compartilharNotificacao = async (n: Notificacao) => {
+    const texto = buildShareText(n);
+    const linkAbs =
+      n.link && n.link.startsWith('http')
+        ? n.link
+        : n.link
+          ? `${window.location.origin}${n.link.startsWith('/') ? '' : '/'}${n.link}`
+          : undefined;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({
+          title: n.titulo,
+          text: n.mensagem,
+          ...(linkAbs ? { url: linkAbs } : {}),
+        });
+      } else {
+        await copiarNotificacao(n);
+      }
+    } catch (error: unknown) {
+      // AbortError = usuário cancelou o share nativo, não é falha
+      if (error instanceof Error && error.name === 'AbortError') return;
+      console.error('Erro ao compartilhar:', error);
+      // Fallback silencioso: copia para a área de transferência
+      await copiarNotificacao(n);
+    }
+  };
+
+
 
   // Restaura notificações excluídas via botão "Desfazer" do toast.
   const restaurarNotificacoes = async (snapshot: Notificacao[]) => {
@@ -1366,6 +1429,32 @@ export default function Notificacoes() {
                             title={n.lida ? 'Marcar como não lida (u)' : 'Marcar como lida (e)'}
                           >
                             {n.lida ? <Mail className="w-3.5 h-3.5" /> : <MailOpen className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copiarNotificacao(n);
+                            }}
+                            aria-label="Copiar notificação"
+                            title="Copiar título, mensagem e link"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              compartilharNotificacao(n);
+                            }}
+                            aria-label="Compartilhar notificação"
+                            title="Compartilhar (usa Web Share API quando disponível)"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
