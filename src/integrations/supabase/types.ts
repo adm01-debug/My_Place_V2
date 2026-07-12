@@ -1824,6 +1824,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao_rate_contadores: {
+        Row: {
+          atualizado_em: string
+          categoria: string
+          contador: number
+          janela_inicio: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria: string
+          contador?: number
+          janela_inicio?: string
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          categoria?: string
+          contador?: number
+          janela_inicio?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notificacao_rate_limits: {
+        Row: {
+          categoria: string
+          descricao: string | null
+          janela_minutos: number
+          max_por_janela: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          categoria: string
+          descricao?: string | null
+          janela_minutos?: number
+          max_por_janela?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          categoria?: string
+          descricao?: string | null
+          janela_minutos?: number
+          max_por_janela?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       notificacoes: {
         Row: {
           created_at: string
@@ -4021,6 +4072,10 @@ export type Database = {
       fn_processar_digests_devidos: {
         Args: { _freq?: Database["public"]["Enums"]["notif_digest_freq"] }
         Returns: number
+      }
+      fn_rate_limit_check: {
+        Args: { _categoria: string; _user_id: string }
+        Returns: boolean
       }
       fn_registrar_tentativa_entrega: {
         Args: {
