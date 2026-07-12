@@ -125,6 +125,28 @@ export default function NotificationBell() {
     );
   }, [filtradas, filtro]);
 
+  // Lista plana na ordem visual — base para navegação por teclado (j/k).
+  const flatList = useMemo(() => grupos.flatMap(([, items]) => items), [grupos]);
+
+  // Reseta o item ativo quando popover abre/fecha ou a lista muda.
+  useEffect(() => {
+    if (!open) {
+      setActiveId(null);
+      return;
+    }
+    setActiveId((prev) => {
+      if (prev && flatList.some((n) => n.id === prev)) return prev;
+      return flatList[0]?.id ?? null;
+    });
+  }, [open, flatList]);
+
+  // Rola o item ativo para dentro da viewport do ScrollArea.
+  useEffect(() => {
+    if (!activeId) return;
+    const el = document.querySelector<HTMLElement>(`[data-notif-id="${activeId}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [activeId]);
+
 
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
