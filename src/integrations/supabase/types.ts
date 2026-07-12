@@ -1611,6 +1611,87 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao_preferencias: {
+        Row: {
+          canal_email: boolean
+          canal_in_app: boolean
+          canal_push: boolean
+          canal_whatsapp: boolean
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at: string
+          id: string
+          nivel_minimo: Database["public"]["Enums"]["notif_nivel"]
+          silenciar_ate: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canal_email?: boolean
+          canal_in_app?: boolean
+          canal_push?: boolean
+          canal_whatsapp?: boolean
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          nivel_minimo?: Database["public"]["Enums"]["notif_nivel"]
+          silenciar_ate?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canal_email?: boolean
+          canal_in_app?: boolean
+          canal_push?: boolean
+          canal_whatsapp?: boolean
+          categoria?: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          nivel_minimo?: Database["public"]["Enums"]["notif_nivel"]
+          silenciar_ate?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notificacao_quiet_hours: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          dias_semana: number[]
+          fim: string
+          id: string
+          inicio: string
+          permitir_criticos: boolean
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          dias_semana?: number[]
+          fim?: string
+          id?: string
+          inicio?: string
+          permitir_criticos?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          dias_semana?: number[]
+          fim?: string
+          id?: string
+          inicio?: string
+          permitir_criticos?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notificacoes: {
         Row: {
           created_at: string
@@ -3766,6 +3847,16 @@ export type Database = {
           respondentes: number
         }[]
       }
+      fn_notif_prefs_reset: { Args: { _user_id: string }; Returns: number }
+      fn_pode_notificar: {
+        Args: {
+          _canal: string
+          _categoria: Database["public"]["Enums"]["notif_categoria"]
+          _nivel?: Database["public"]["Enums"]["notif_nivel"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       fn_validar_ponto_no_raio: {
         Args: { p_latitude: number; p_longitude: number }
         Returns: {
@@ -3838,6 +3929,23 @@ export type Database = {
         | "lideranca"
         | "proatividade"
         | "gratidao"
+      notif_categoria:
+        | "ponto"
+        | "ferias"
+        | "holerite"
+        | "solicitacao"
+        | "vale"
+        | "emprestimo"
+        | "treinamento"
+        | "feedback"
+        | "kudos"
+        | "comunicado"
+        | "chamado"
+        | "politica"
+        | "aniversario"
+        | "sistema"
+        | "seguranca"
+      notif_nivel: "info" | "aviso" | "critico"
       politica_categoria:
         | "codigo_conduta"
         | "lgpd"
@@ -4071,6 +4179,24 @@ export const Constants = {
         "proatividade",
         "gratidao",
       ],
+      notif_categoria: [
+        "ponto",
+        "ferias",
+        "holerite",
+        "solicitacao",
+        "vale",
+        "emprestimo",
+        "treinamento",
+        "feedback",
+        "kudos",
+        "comunicado",
+        "chamado",
+        "politica",
+        "aniversario",
+        "sistema",
+        "seguranca",
+      ],
+      notif_nivel: ["info", "aviso", "critico"],
       politica_categoria: [
         "codigo_conduta",
         "lgpd",
