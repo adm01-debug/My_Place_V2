@@ -89,6 +89,19 @@ export default function NotificationBell() {
   const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() => new Set());
   const undoTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
+  // Painel lateral de preview (md+): mostra a notificação ativa em detalhe.
+  const [showPreview, setShowPreview] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(PREVIEW_KEY) === '1';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREVIEW_KEY, showPreview ? '1' : '0');
+    } catch {
+      /* quota — ignore */
+    }
+  }, [showPreview]);
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
