@@ -323,6 +323,16 @@ export default function Notificacoes() {
           icon={Bell}
           actions={
             <div className="flex gap-2">
+              <Button
+                variant={agruparSimilares ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAgruparSimilares((v) => !v)}
+                title={agruparSimilares ? 'Desagrupar similares' : 'Agrupar similares'}
+                aria-pressed={agruparSimilares}
+              >
+                <Layers className="w-4 h-4 mr-1" />
+                {agruparSimilares ? 'Agrupadas' : 'Individuais'}
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
               </Button>
