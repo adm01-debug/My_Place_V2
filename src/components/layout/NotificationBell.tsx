@@ -86,6 +86,39 @@ export default function NotificationBell() {
     return ordenadas;
   }, [ordenadas, filtro]);
 
+  // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
+  const grupos = useMemo(() => {
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startYesterday = startToday - 86400000;
+    const startWeek = startToday - 6 * 86400000;
+
+    const buckets: Record<string, Notificacao[]> = {
+      Fixadas: [],
+      Hoje: [],
+      Ontem: [],
+      'Esta semana': [],
+      Anteriores: [],
+    };
+
+    for (const n of filtradas) {
+      if (n.fixada_em && filtro !== 'fixadas') {
+        buckets.Fixadas.push(n);
+        continue;
+      }
+      const t = new Date(n.created_at).getTime();
+      if (t >= startToday) buckets.Hoje.push(n);
+      else if (t >= startYesterday) buckets.Ontem.push(n);
+      else if (t >= startWeek) buckets['Esta semana'].push(n);
+      else buckets.Anteriores.push(n);
+    }
+
+    return (Object.entries(buckets) as [string, Notificacao[]][]).filter(
+      ([, items]) => items.length > 0
+    );
+  }, [filtradas, filtro]);
+
+
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
