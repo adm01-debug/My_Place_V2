@@ -2156,7 +2156,7 @@ export default function NotificationBell() {
                               role="toolbar"
                               aria-label="Ações rápidas"
                             >
-                              {!n.lida && (
+                              {!n.lida ? (
                                 <button
                                   type="button"
                                   onClick={async (e) => {
@@ -2169,6 +2169,16 @@ export default function NotificationBell() {
                                   aria-label="Marcar como lida"
                                 >
                                   <Check className="w-3 h-3" />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); markAsUnread(n.id); }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Marcar como não lida"
+                                  aria-label="Marcar como não lida"
+                                >
+                                  <MailOpen className="w-3 h-3" />
                                 </button>
                               )}
                               <button
