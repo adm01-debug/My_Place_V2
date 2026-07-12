@@ -59,6 +59,31 @@ export default function AdminNotifTemplates() {
     },
   });
 
+  const { data: stats = [] } = useQuery({
+    queryKey: ["notif-template-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("fn_notif_template_stats", { _periodo_dias: 30 });
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        template_id: string;
+        codigo: string;
+        canal: string;
+        versao: number;
+        total_envios: number;
+        entregues: number;
+        bloqueados: number;
+        taxa_sucesso: number;
+        ultimo_uso: string | null;
+      }>;
+    },
+  });
+
+  const statsById = useMemo(() => {
+    const m = new Map<string, (typeof stats)[number]>();
+    stats.forEach((s) => m.set(s.template_id, s));
+    return m;
+  }, [stats]);
+
   const filtered = useMemo(
     () => templates.filter((t) => filterCanal === "all" || t.canal === filterCanal),
     [templates, filterCanal]
