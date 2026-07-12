@@ -587,8 +587,75 @@ export default function NotificationBell() {
     );
   }, [filtradas, filtro]);
 
+  // ─── Item 102: Clusters por bucket ────────────────────────────────────────
+  // Para cada bucket, agrupa itens CONSECUTIVOS com mesma chave (tipo+título
+  // normalizado) desde que ≥ CLUSTER_MIN_SIZE e delta ≤ CLUSTER_WINDOW_MS
+  // entre líder e último membro. Cluster é ignorado se qualquer membro estiver
+  // selecionado (evita esconder seleção) ou se `agruparSimilares` = false.
+  type ClusterInfo = {
+    key: string;              // chave estável (idLíder) — sobrevive à ordenação
+    leaderId: string;
+    memberIds: string[];      // inclui o líder no índice 0
+    unreadCount: number;
+    totalCount: number;
+  };
+  const clustersByBucket = useMemo(() => {
+    const map = new Map<string, ClusterInfo[]>();
+    if (!agruparSimilares) return map;
+    for (const [nome, itens] of grupos) {
+      const clusters: ClusterInfo[] = [];
+      let i = 0;
+      while (i < itens.length) {
+        const leader = itens[i];
+        const leaderKey = `${leader.tipo}::${normalizeTitulo(leader.titulo)}`;
+        const leaderTs = new Date(leader.created_at).getTime();
+        const members: Notificacao[] = [leader];
+        let j = i + 1;
+        while (j < itens.length) {
+          const cand = itens[j];
+          const candKey = `${cand.tipo}::${normalizeTitulo(cand.titulo)}`;
+          if (candKey !== leaderKey) break;
+          const dt = Math.abs(leaderTs - new Date(cand.created_at).getTime());
+          if (dt > CLUSTER_WINDOW_MS) break;
+          members.push(cand);
+          j++;
+        }
+        if (members.length >= CLUSTER_MIN_SIZE && !members.some((m) => selected.has(m.id))) {
+          clusters.push({
+            key: leader.id,
+            leaderId: leader.id,
+            memberIds: members.map((m) => m.id),
+            unreadCount: members.filter((m) => !m.lida).length,
+            totalCount: members.length,
+          });
+        }
+        i = j;
+      }
+      if (clusters.length > 0) map.set(nome, clusters);
+    }
+    return map;
+  }, [grupos, agruparSimilares, normalizeTitulo, selected]);
+
+  // Set de ids "escondidos" (membros não-líder de clusters colapsados).
+  const hiddenByCluster = useMemo(() => {
+    const hidden = new Set<string>();
+    clustersByBucket.forEach((clusters) => {
+      for (const c of clusters) {
+        if (!clustersExpanded.has(c.key)) {
+          // Esconde todos menos o líder
+          for (let k = 1; k < c.memberIds.length; k++) hidden.add(c.memberIds[k]);
+        }
+      }
+    });
+    return hidden;
+  }, [clustersByBucket, clustersExpanded]);
+
   // Lista plana na ordem visual — base para navegação por teclado (j/k).
-  const flatList = useMemo(() => grupos.flatMap(([, items]) => items), [grupos]);
+  // Exclui membros escondidos por clusters colapsados.
+  const flatList = useMemo(
+    () => grupos.flatMap(([, items]) => items.filter((n) => !hiddenByCluster.has(n.id))),
+    [grupos, hiddenByCluster]
+  );
 
   // Reseta o item ativo quando popover abre/fecha ou a lista muda.
   useEffect(() => {
