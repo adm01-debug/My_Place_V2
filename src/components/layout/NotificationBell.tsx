@@ -868,6 +868,14 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').update({ lida: true }).eq('id', id);
   };
 
+  // Item 105: Marcar como não lida — reverte "lida" para false (útil quando o usuário
+  // clica sem querer ou quer reencontrar depois). Optimista + persistência.
+  const markAsUnread = async (id: string) => {
+    setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: false } : n)));
+    await supabase.from('notificacoes').update({ lida: false }).eq('id', id);
+  };
+
+
   const markAllAsRead = async () => {
     if (!user) return;
     const unreadIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
