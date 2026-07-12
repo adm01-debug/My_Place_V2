@@ -834,7 +834,8 @@ export default function NotificationBell() {
           </div>
         )}
 
-        <ScrollArea className="max-h-80">
+        <div className={showPreview ? 'flex' : 'block'}>
+        <ScrollArea className={`max-h-80 ${showPreview ? 'flex-1 border-r border-border/50' : ''}`}>
           {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-40" />
