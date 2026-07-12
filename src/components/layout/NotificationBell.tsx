@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -33,12 +33,17 @@ const tipoColors = {
 };
 
 const MAX_ITEMS = 30;
+const DESKTOP_KEY = 'bell_desktop_v1';
 
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
 const FILTER_KEY = 'bell_filter_v1';
 
 const isBellFilter = (v: unknown): v is BellFilter =>
   v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
+
+const canUseDesktop = () =>
+  typeof window !== 'undefined' && 'Notification' in window;
+
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -136,6 +141,58 @@ export default function NotificationBell() {
     fetchNotificacoes();
   }, [fetchNotificacoes]);
 
+  // Preferência de notificações desktop persistida
+  const [desktopOn, setDesktopOn] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(DESKTOP_KEY) === '1';
+  });
+
+  const toggleDesktop = useCallback(async () => {
+    if (!canUseDesktop()) return;
+    if (!desktopOn) {
+      const perm =
+        Notification.permission === 'granted'
+          ? 'granted'
+          : await Notification.requestPermission();
+      if (perm === 'granted') {
+        setDesktopOn(true);
+        localStorage.setItem(DESKTOP_KEY, '1');
+      }
+    } else {
+      setDesktopOn(false);
+      localStorage.setItem(DESKTOP_KEY, '0');
+    }
+  }, [desktopOn]);
+
+  const showDesktop = useCallback(
+    (n: Notificacao) => {
+      if (!desktopOn || !canUseDesktop() || Notification.permission !== 'granted') return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') return;
+      try {
+        const notif = new Notification(n.titulo, {
+          body: n.mensagem,
+          icon: '/favicon.ico',
+          tag: n.id,
+          silent: false,
+        });
+        notif.onclick = () => {
+          window.focus();
+          navigate(n.link || `/notificacoes?focus=${n.id}`);
+          notif.close();
+        };
+      } catch {
+        /* alguns browsers exigem SW — ignora silenciosamente */
+      }
+    },
+    [desktopOn, navigate]
+  );
+
+  const showDesktopRef = useRef(showDesktop);
+  useEffect(() => {
+    showDesktopRef.current = showDesktop;
+  }, [showDesktop]);
+
+
   // Realtime: INSERT, UPDATE e DELETE — mantém o sino sincronizado
   // mesmo quando alterações acontecem na página /notificacoes ou em outro tab.
   useEffect(() => {
@@ -151,6 +208,7 @@ export default function NotificationBell() {
             if (prev.some((n) => n.id === nova.id)) return prev;
             return [nova, ...prev].slice(0, MAX_ITEMS);
           });
+          showDesktopRef.current(nova);
         }
       )
       .on(
@@ -175,6 +233,7 @@ export default function NotificationBell() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
 
   const markAsRead = async (id: string) => {
     setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
@@ -234,13 +293,32 @@ export default function NotificationBell() {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" className="text-xs h-7 gap-1" onClick={markAllAsRead}>
-              <CheckCheck className="w-3.5 h-3.5" />
-              Marcar todas
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {canUseDesktop() && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={toggleDesktop}
+                aria-label={desktopOn ? 'Desativar notificações desktop' : 'Ativar notificações desktop'}
+                title={desktopOn ? 'Notificações desktop ativas' : 'Ativar notificações desktop'}
+              >
+                {desktopOn ? (
+                  <Bell className="w-3.5 h-3.5 text-primary" />
+                ) : (
+                  <BellOff className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1" onClick={markAllAsRead}>
+                <CheckCheck className="w-3.5 h-3.5" />
+                Marcar todas
+              </Button>
+            )}
+          </div>
         </div>
+
         <div
           role="tablist"
           aria-label="Filtro de notificações"
