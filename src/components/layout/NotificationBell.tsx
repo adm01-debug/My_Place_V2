@@ -82,6 +82,26 @@ const PREVIEW_KEY = 'bell_preview_v1';
 const AUTO_READ_KEY = 'bell_auto_read_v1';
 const AUTO_READ_DELAY_MS = 1500;
 const FOCUS_KEY = 'bell_focus_mode_v1';
+const RULES_KEY = 'bell_rules_v1';
+
+// ===== Item 96: Regras de Automação =====
+type RuleAction = 'silent' | 'auto_read' | 'auto_snooze_1h' | 'auto_pin';
+interface BellRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  tipos: TipoNotif[]; // vazio = qualquer tipo
+  contains: string;   // substring case/acento-insensível em titulo+mensagem; vazio = qualquer
+  action: RuleAction;
+}
+const RULE_ACTION_LABELS: Record<RuleAction, string> = {
+  silent: 'Silenciar (sem desktop)',
+  auto_read: 'Marcar como lida',
+  auto_snooze_1h: 'Adiar por 1 hora',
+  auto_pin: 'Fixar automaticamente',
+};
+const isRuleAction = (v: unknown): v is RuleAction =>
+  v === 'silent' || v === 'auto_read' || v === 'auto_snooze_1h' || v === 'auto_pin';
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
