@@ -498,7 +498,7 @@ export default function Notificacoes() {
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             </div>
-
+                          </div>
                         </CardContent>
                       </Card>
                     );
