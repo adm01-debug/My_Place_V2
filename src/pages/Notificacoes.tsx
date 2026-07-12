@@ -151,6 +151,34 @@ export default function Notificacoes() {
     }
   };
 
+  const adiarNotificacoes = async (ids: string[], minutos: number) => {
+    if (ids.length === 0) return;
+    const ate = new Date(Date.now() + minutos * 60_000).toISOString();
+    try {
+      const { error } = await supabase.rpc('fn_adiar_notificacoes', {
+        _ids: ids,
+        _ate: ate,
+      });
+      if (error) throw error;
+      setNotificacoes((prev) => prev.filter((n) => !ids.includes(n.id)));
+      setSelecionadas((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      const label =
+        minutos < 60
+          ? `${minutos} min`
+          : minutos < 1440
+            ? `${Math.round(minutos / 60)}h`
+            : `${Math.round(minutos / 1440)}d`;
+      toast.success(`Adiada${ids.length > 1 ? 's' : ''} por ${label}`);
+    } catch (error) {
+      console.error('Erro ao adiar notificação:', error);
+      toast.error('Não foi possível adiar');
+    }
+  };
+
   const acaoEmMassa = async (acao: 'ler' | 'excluir') => {
     const ids = Array.from(selecionadas);
     if (ids.length === 0) return;
