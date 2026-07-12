@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun, ChevronDown, ChevronUp, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -191,6 +191,59 @@ export default function NotificationBell() {
   }, [focusMode]);
   const focusModeRef = useRef(focusMode);
   useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
+
+  // Item 101 (state elevado): usado tanto por ações em lote quanto pelo
+  // clustering (Item 102), que precisa não esconder itens selecionados.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const lastSelectedIdRef = useRef<string | null>(null);
+
+  // ─── Item 102: Agrupamento inteligente (clustering) ───────────────────────
+  // Agrupa notificações consecutivas do mesmo tipo + título normalizado dentro
+  // do mesmo bucket temporal. Reduz ruído em bursts (ex.: 5 avisos de "novo
+  // comentário em X" viram 1 linha com "+4"). Toggle persistido; expansão por
+  // cluster também persiste até a próxima sessão.
+  const CLUSTER_KEY = 'notif_cluster_enabled';
+  const CLUSTER_EXPANDED_KEY = 'notif_cluster_expanded';
+  const CLUSTER_MIN_SIZE = 2;
+  const CLUSTER_WINDOW_MS = 6 * 60 * 60 * 1000; // 6h entre líder e último membro
+  const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(CLUSTER_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(CLUSTER_KEY, agruparSimilares ? '1' : '0'); } catch { /* quota */ }
+  }, [agruparSimilares]);
+  const [clustersExpanded, setClustersExpanded] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(CLUSTER_EXPANDED_KEY) || '[]');
+      return new Set(Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : []);
+    } catch { return new Set(); }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(CLUSTER_EXPANDED_KEY, JSON.stringify(Array.from(clustersExpanded)));
+    } catch { /* quota */ }
+  }, [clustersExpanded]);
+  const toggleClusterExpanded = useCallback((key: string) => {
+    setClustersExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+  // Normaliza título para agrupar variações irrelevantes ("#42", timestamps,
+  // números). Colapsa espaços, minúsculas, remove sequências numéricas.
+  const normalizeTitulo = useCallback((s: string) =>
+    s.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/#?\d+/g, '#')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  []);
+
 
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
@@ -539,8 +592,91 @@ export default function NotificationBell() {
     );
   }, [filtradas, filtro]);
 
+  // ─── Item 102: Clusters por bucket ────────────────────────────────────────
+  // Para cada bucket, agrupa itens CONSECUTIVOS com mesma chave (tipo+título
+  // normalizado) desde que ≥ CLUSTER_MIN_SIZE e delta ≤ CLUSTER_WINDOW_MS
+  // entre líder e último membro. Cluster é ignorado se qualquer membro estiver
+  // selecionado (evita esconder seleção) ou se `agruparSimilares` = false.
+  type ClusterInfo = {
+    key: string;              // chave estável (idLíder) — sobrevive à ordenação
+    leaderId: string;
+    memberIds: string[];      // inclui o líder no índice 0
+    unreadCount: number;
+    totalCount: number;
+  };
+  const clustersByBucket = useMemo(() => {
+    const map = new Map<string, ClusterInfo[]>();
+    if (!agruparSimilares) return map;
+    for (const [nome, itens] of grupos) {
+      const clusters: ClusterInfo[] = [];
+      let i = 0;
+      while (i < itens.length) {
+        const leader = itens[i];
+        const leaderKey = `${leader.tipo}::${normalizeTitulo(leader.titulo)}`;
+        const leaderTs = new Date(leader.created_at).getTime();
+        const members: Notificacao[] = [leader];
+        let j = i + 1;
+        while (j < itens.length) {
+          const cand = itens[j];
+          const candKey = `${cand.tipo}::${normalizeTitulo(cand.titulo)}`;
+          if (candKey !== leaderKey) break;
+          const dt = Math.abs(leaderTs - new Date(cand.created_at).getTime());
+          if (dt > CLUSTER_WINDOW_MS) break;
+          members.push(cand);
+          j++;
+        }
+        if (members.length >= CLUSTER_MIN_SIZE && !members.some((m) => selected.has(m.id))) {
+          clusters.push({
+            key: leader.id,
+            leaderId: leader.id,
+            memberIds: members.map((m) => m.id),
+            unreadCount: members.filter((m) => !m.lida).length,
+            totalCount: members.length,
+          });
+        }
+        i = j;
+      }
+      if (clusters.length > 0) map.set(nome, clusters);
+    }
+    return map;
+  }, [grupos, agruparSimilares, normalizeTitulo, selected]);
+
+  // Set de ids "escondidos" (membros não-líder de clusters colapsados).
+  const hiddenByCluster = useMemo(() => {
+    const hidden = new Set<string>();
+    clustersByBucket.forEach((clusters) => {
+      for (const c of clusters) {
+        if (!clustersExpanded.has(c.key)) {
+          // Esconde todos menos o líder
+          for (let k = 1; k < c.memberIds.length; k++) hidden.add(c.memberIds[k]);
+        }
+      }
+    });
+    return hidden;
+  }, [clustersByBucket, clustersExpanded]);
+
+  // Lookups O(1) para saber, no render, se um id é líder ou membro de cluster.
+  const clusterByLeader = useMemo(() => {
+    const m = new Map<string, ClusterInfo>();
+    clustersByBucket.forEach((cs) => cs.forEach((c) => m.set(c.leaderId, c)));
+    return m;
+  }, [clustersByBucket]);
+  const memberToLeader = useMemo(() => {
+    const m = new Map<string, string>();
+    clustersByBucket.forEach((cs) =>
+      cs.forEach((c) => c.memberIds.slice(1).forEach((id) => m.set(id, c.leaderId)))
+    );
+    return m;
+  }, [clustersByBucket]);
+
+
+
   // Lista plana na ordem visual — base para navegação por teclado (j/k).
-  const flatList = useMemo(() => grupos.flatMap(([, items]) => items), [grupos]);
+  // Exclui membros escondidos por clusters colapsados.
+  const flatList = useMemo(
+    () => grupos.flatMap(([, items]) => items.filter((n) => !hiddenByCluster.has(n.id))),
+    [grupos, hiddenByCluster]
+  );
 
   // Reseta o item ativo quando popover abre/fecha ou a lista muda.
   useEffect(() => {
@@ -887,12 +1023,10 @@ export default function NotificationBell() {
   };
 
   // ─── Item 101: Seleção múltipla + ações em lote ─────────────────────────────
-  // - Set<id> das seleções; shift+click faz intervalo sobre a lista filtrada.
-  // - Ações: marcar lidas, fixar/desafixar, adiar 1h, excluir — com Undo.
-  // - Auto-limpa itens que somem (após delete/backend). Ctrl/Cmd+A seleciona
-  //   todas visíveis; Escape limpa a seleção.
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const lastSelectedIdRef = useRef<string | null>(null);
+  // (State `selected` + `lastSelectedIdRef` foram elevados para antes de
+  //  `grupos`/`clustersByBucket` — o clustering precisa ler `selected` para
+  //  não esconder itens selecionados. Ver seção "Item 102" no topo.)
+
 
   // Purga IDs que não existem mais em `notificacoes` (delete/backend/refetch).
   useEffect(() => {
@@ -1515,6 +1649,20 @@ export default function NotificationBell() {
                 </div>
               </PopoverContent>
             </Popover>
+            {/* Item 102: Toggle de agrupamento inteligente */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setAgruparSimilares((v) => !v)}
+              aria-pressed={agruparSimilares}
+              aria-label={agruparSimilares ? 'Desativar agrupamento' : 'Ativar agrupamento'}
+              title={agruparSimilares
+                ? 'Agrupamento de similares: ativo (clique para desativar)'
+                : 'Agrupamento de similares: desativado (clique para ativar)'}
+            >
+              <Layers className={`w-3.5 h-3.5 ${agruparSimilares ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -1868,19 +2016,27 @@ export default function NotificationBell() {
                     ({itens.length})
                   </span>
                 </div>
-                {itens.map((n) => {
+                {itens.filter((n) => !hiddenByCluster.has(n.id)).map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
                   const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
                   const isSelected = selected.has(n.id);
+                  // Item 102: cluster meta — líder mostra badge/toggle;
+                  // membros expandidos aparecem levemente indentados.
+                  const cluster = clusterByLeader.get(n.id);
+                  const isClusterLeader = !!cluster;
+                  const isClusterMember = memberToLeader.has(n.id);
+                  const clusterExpanded = cluster ? clustersExpanded.has(cluster.key) : false;
                   return (
                     <div
                       key={n.id}
                       role="button"
                       tabIndex={0}
                       data-notif-id={n.id}
+                      data-cluster-role={isClusterLeader ? 'leader' : isClusterMember ? 'member' : undefined}
                       onMouseEnter={() => setActiveId(n.id)}
+
                       onClick={(e) => {
                         // Item 101: com seleção ativa OU shift/meta pressionado, clicar
                         // toggle a seleção em vez de abrir — evita abrir por engano.
@@ -1901,7 +2057,9 @@ export default function NotificationBell() {
                         !n.lida ? 'bg-primary/5' : ''
                       } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
                         isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
-                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''}`}
+                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''} ${
+                        isClusterMember ? 'pl-9 bg-muted/10 border-l-2 border-l-primary/20' : ''
+                      }`}
                     >
                       {/* Item 101: checkbox de seleção (visível no hover ou quando há seleção) */}
                       <input
@@ -1939,6 +2097,32 @@ export default function NotificationBell() {
                               />
                             )}
                             <span className="truncate">{highlight(n.titulo)}</span>
+                            {isClusterLeader && cluster && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleClusterExpanded(cluster.key);
+                                }}
+                                aria-expanded={clusterExpanded}
+                                aria-label={clusterExpanded
+                                  ? `Recolher ${cluster.totalCount} notificações similares`
+                                  : `Expandir ${cluster.totalCount} notificações similares`}
+                                title={clusterExpanded ? 'Recolher grupo' : `Ver mais ${cluster.totalCount - 1} similares`}
+                                className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold transition-colors ${
+                                  cluster.unreadCount > 0
+                                    ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                }`}
+                              >
+                                {clusterExpanded ? (
+                                  <ChevronUp className="w-2.5 h-2.5" />
+                                ) : (
+                                  <ChevronDown className="w-2.5 h-2.5" />
+                                )}
+                                +{cluster.totalCount - 1}
+                              </button>
+                            )}
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
