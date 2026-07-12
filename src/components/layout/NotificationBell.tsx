@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,7 +15,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const UNDO_MS = 5000;
 
@@ -82,6 +86,26 @@ const PREVIEW_KEY = 'bell_preview_v1';
 const AUTO_READ_KEY = 'bell_auto_read_v1';
 const AUTO_READ_DELAY_MS = 1500;
 const FOCUS_KEY = 'bell_focus_mode_v1';
+const RULES_KEY = 'bell_rules_v1';
+
+// ===== Item 96: Regras de Automação =====
+type RuleAction = 'silent' | 'auto_read' | 'auto_snooze_1h' | 'auto_pin';
+interface BellRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  tipos: TipoNotif[]; // vazio = qualquer tipo
+  contains: string;   // substring case/acento-insensível em titulo+mensagem; vazio = qualquer
+  action: RuleAction;
+}
+const RULE_ACTION_LABELS: Record<RuleAction, string> = {
+  silent: 'Silenciar (sem desktop)',
+  auto_read: 'Marcar como lida',
+  auto_snooze_1h: 'Adiar por 1 hora',
+  auto_pin: 'Fixar automaticamente',
+};
+const isRuleAction = (v: unknown): v is RuleAction =>
+  v === 'silent' || v === 'auto_read' || v === 'auto_snooze_1h' || v === 'auto_pin';
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
@@ -168,6 +192,33 @@ export default function NotificationBell() {
 
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
+
+  // Item 96: Regras de Automação
+  const [showRules, setShowRules] = useState<boolean>(false);
+  const [regras, setRegras] = useState<BellRule[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = JSON.parse(localStorage.getItem(RULES_KEY) || '[]');
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .filter((r): r is BellRule =>
+          !!r && typeof r === 'object'
+          && typeof r.id === 'string'
+          && typeof r.name === 'string'
+          && typeof r.enabled === 'boolean'
+          && Array.isArray(r.tipos) && r.tipos.every(isTipoNotif)
+          && typeof r.contains === 'string'
+          && isRuleAction(r.action)
+        );
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(RULES_KEY, JSON.stringify(regras)); } catch { /* quota */ }
+  }, [regras]);
+  // Ref sempre atualizada para uso dentro do handler realtime (evita re-subscribe).
+  const regrasRef = useRef<BellRule[]>(regras);
+  useEffect(() => { regrasRef.current = regras; }, [regras]);
+
 
   useEffect(() => {
     const timers = undoTimers.current;
@@ -440,11 +491,45 @@ export default function NotificationBell() {
         { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
           const nova = payload.new as Notificacao;
+          // Aplica regras de automação sobre a nova notificação.
+          const rules = regrasRef.current.filter((r) => r.enabled);
+          const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          const haystack = norm(`${nova.titulo} ${nova.mensagem}`);
+          const matched = rules.filter((r) => {
+            if (r.tipos.length > 0 && !r.tipos.includes(nova.tipo)) return false;
+            if (r.contains.trim() && !haystack.includes(norm(r.contains.trim()))) return false;
+            return true;
+          });
+          const actions = new Set<RuleAction>(matched.map((r) => r.action));
+
           setNotificacoes((prev) => {
             if (prev.some((n) => n.id === nova.id)) return prev;
-            return [nova, ...prev].slice(0, MAX_ITEMS);
+            const patched: Notificacao = {
+              ...nova,
+              lida: actions.has('auto_read') ? true : nova.lida,
+              fixada_em: actions.has('auto_pin') && !nova.fixada_em ? new Date().toISOString() : nova.fixada_em,
+              adiada_ate: actions.has('auto_snooze_1h')
+                ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+                : nova.adiada_ate,
+            };
+            return [patched, ...prev].slice(0, MAX_ITEMS);
           });
-          showDesktopRef.current(nova);
+
+          // Persistência das ações no backend (fire-and-forget).
+          if (actions.has('auto_read')) {
+            supabase.from('notificacoes').update({ lida: true }).eq('id', nova.id).then(() => {});
+          }
+          if (actions.has('auto_pin') && !nova.fixada_em) {
+            supabase.from('notificacoes').update({ fixada_em: new Date().toISOString() }).eq('id', nova.id).then(() => {});
+          }
+          if (actions.has('auto_snooze_1h')) {
+            const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+            supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
+          }
+          // Só dispara desktop se nenhuma regra pediu silenciamento.
+          if (!actions.has('silent')) {
+            showDesktopRef.current(nova);
+          }
         }
       )
       .on(
@@ -1003,6 +1088,19 @@ export default function NotificationBell() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 relative"
+              onClick={() => setShowRules(true)}
+              aria-label="Regras de automação"
+              title="Regras de automação"
+            >
+              <Wand2 className={`w-3.5 h-3.5 ${regras.some((r) => r.enabled) ? 'text-primary' : 'text-muted-foreground'}`} />
+              {regras.some((r) => r.enabled) && (
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" aria-hidden />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -1650,6 +1748,154 @@ export default function NotificationBell() {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Item 96: Dialog de Regras de Automação */}
+    <Dialog open={showRules} onOpenChange={setShowRules}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Wand2 className="w-4 h-4 text-primary" />
+            Regras de Automação
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Aplicadas automaticamente a cada nova notificação recebida. Combine filtros por tipo e conteúdo para silenciar, marcar como lida, adiar ou fixar.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+          {regras.length === 0 && (
+            <div className="text-center py-8 text-xs text-muted-foreground border border-dashed border-border/50 rounded-lg">
+              Nenhuma regra ainda. Clique em <span className="font-semibold text-foreground">Nova regra</span> para começar.
+            </div>
+          )}
+          {regras.map((r, idx) => (
+            <div key={r.id} className="p-3 rounded-lg border border-border/50 bg-card/50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={r.name}
+                  onChange={(e) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)))
+                  }
+                  placeholder="Nome da regra"
+                  className="h-8 text-xs flex-1"
+                />
+                <Switch
+                  checked={r.enabled}
+                  onCheckedChange={(v) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, enabled: !!v } : x)))
+                  }
+                  aria-label="Ativar regra"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive"
+                  onClick={() => setRegras((prev) => prev.filter((_, i) => i !== idx))}
+                  aria-label="Remover regra"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Tipos</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {TIPOS_ALL.map((t) => {
+                      const active = r.tipos.includes(t);
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() =>
+                            setRegras((prev) =>
+                              prev.map((x, i) =>
+                                i === idx
+                                  ? {
+                                      ...x,
+                                      tipos: active ? x.tipos.filter((y) => y !== t) : [...x.tipos, t],
+                                    }
+                                  : x
+                              )
+                            )
+                          }
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
+                            active
+                              ? 'bg-primary/15 border-primary/40 text-primary'
+                              : 'bg-transparent border-border/50 text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {tipoLabels[t]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Ação</Label>
+                  <Select
+                    value={r.action}
+                    onValueChange={(v) => {
+                      if (!isRuleAction(v)) return;
+                      setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, action: v } : x)));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(RULE_ACTION_LABELS) as RuleAction[]).map((a) => (
+                        <SelectItem key={a} value={a} className="text-xs">
+                          {RULE_ACTION_LABELS[a]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Contém (título ou mensagem)</Label>
+                <Input
+                  value={r.contains}
+                  onChange={(e) =>
+                    setRegras((prev) => prev.map((x, i) => (i === idx ? { ...x, contains: e.target.value } : x)))
+                  }
+                  placeholder="ex.: aprovação, férias..."
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={() =>
+              setRegras((prev) => [
+                ...prev,
+                {
+                  id: (crypto?.randomUUID?.() ?? String(Date.now())),
+                  name: `Regra ${prev.length + 1}`,
+                  enabled: true,
+                  tipos: [],
+                  contains: '',
+                  action: 'auto_read',
+                },
+              ])
+            }
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nova regra
+          </Button>
+          <Button size="sm" onClick={() => setShowRules(false)}>Concluído</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
+
   );
 }
