@@ -147,7 +147,7 @@ export default function NotificationBell() {
       );
     }
     return base;
-  }, [ordenadas, filtro, buscaNorm, normalize]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
