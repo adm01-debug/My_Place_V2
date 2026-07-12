@@ -714,6 +714,28 @@ export default function Notificacoes() {
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    title="Exportar notificações filtradas"
+                    disabled={filtradas.length === 0}
+                  >
+                    <Download className="w-4 h-4 mr-1" /> Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Exportar {filtradas.length} registro(s)</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={exportarCSV}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV (Excel)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportarPDF}>
+                    <FileText className="w-4 h-4 mr-2" /> PDF (imprimir)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="outline"
                 size="sm"
