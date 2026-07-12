@@ -60,6 +60,7 @@ const Assinaturas = lazy(() => import("./pages/Assinaturas"));
 const BusinessIntelligence = lazy(() => import("./pages/BusinessIntelligence"));
 const AdminIntegracoes = lazy(() => import("./pages/AdminIntegracoes"));
 const NotificacaoPreferencias = lazy(() => import("./pages/NotificacaoPreferencias"));
+const NotificacaoHistorico = lazy(() => import("./pages/NotificacaoHistorico"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
