@@ -1253,6 +1253,176 @@ export type Database = {
           },
         ]
       }
+      integracoes: {
+        Row: {
+          ativo: boolean
+          config: Json
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          endpoint: string
+          headers_extra: Json
+          hmac_secret_ref: string | null
+          id: string
+          nome: string
+          secret_ref: string | null
+          timeout_ms: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          config?: Json
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          endpoint: string
+          headers_extra?: Json
+          hmac_secret_ref?: string | null
+          id?: string
+          nome: string
+          secret_ref?: string | null
+          timeout_ms?: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          config?: Json
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          endpoint?: string
+          headers_extra?: Json
+          hmac_secret_ref?: string | null
+          id?: string
+          nome?: string
+          secret_ref?: string | null
+          timeout_ms?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integracoes_eventos: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          evento_tipo: string
+          id: string
+          idempotency_key: string
+          integracao_id: string
+          max_tentativas: number
+          payload: Json
+          processado_em: string | null
+          proxima_tentativa: string
+          status: string
+          tentativas: number
+          ultimo_erro: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          evento_tipo: string
+          id?: string
+          idempotency_key: string
+          integracao_id: string
+          max_tentativas?: number
+          payload?: Json
+          processado_em?: string | null
+          proxima_tentativa?: string
+          status?: string
+          tentativas?: number
+          ultimo_erro?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          evento_tipo?: string
+          id?: string
+          idempotency_key?: string
+          integracao_id?: string
+          max_tentativas?: number
+          payload?: Json
+          processado_em?: string | null
+          proxima_tentativa?: string
+          status?: string
+          tentativas?: number
+          ultimo_erro?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_eventos_integracao_id_fkey"
+            columns: ["integracao_id"]
+            isOneToOne: false
+            referencedRelation: "integracoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integracoes_logs: {
+        Row: {
+          created_at: string
+          duracao_ms: number | null
+          erro: string | null
+          evento_id: string
+          id: string
+          integracao_id: string
+          request_body: string | null
+          request_headers: Json
+          response_body: string | null
+          response_headers: Json
+          response_status: number | null
+          tentativa: number
+        }
+        Insert: {
+          created_at?: string
+          duracao_ms?: number | null
+          erro?: string | null
+          evento_id: string
+          id?: string
+          integracao_id: string
+          request_body?: string | null
+          request_headers?: Json
+          response_body?: string | null
+          response_headers?: Json
+          response_status?: number | null
+          tentativa: number
+        }
+        Update: {
+          created_at?: string
+          duracao_ms?: number | null
+          erro?: string | null
+          evento_id?: string
+          id?: string
+          integracao_id?: string
+          request_body?: string | null
+          request_headers?: Json
+          response_body?: string | null
+          response_headers?: Json
+          response_status?: number | null
+          tentativa?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracoes_logs_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "integracoes_eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integracoes_logs_integracao_id_fkey"
+            columns: ["integracao_id"]
+            isOneToOne: false
+            referencedRelation: "integracoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       justificativas_ponto: {
         Row: {
           anexo_url: string | null
@@ -3563,6 +3733,29 @@ export type Database = {
       fn_haversine_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
+      }
+      fn_integracao_enfileirar: {
+        Args: {
+          p_evento_tipo: string
+          p_idempotency_key?: string
+          p_integracao_id: string
+          p_payload: Json
+        }
+        Returns: string
+      }
+      fn_integracao_estatisticas: {
+        Args: { p_horas?: number }
+        Returns: {
+          enviados: number
+          falhou: number
+          integracao_id: string
+          latencia_media_ms: number
+          latencia_p95_ms: number
+          nome: string
+          pendentes: number
+          taxa_sucesso_pct: number
+          total_eventos: number
+        }[]
       }
       fn_meus_resultados_360: {
         Args: { p_ciclo_id: string }
