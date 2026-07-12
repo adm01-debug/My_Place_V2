@@ -108,7 +108,13 @@ export default function Notificacoes() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
-  const [filtro, setFiltro] = useState<Filtro>('todas');
+  const [filtro, setFiltro] = useState<Filtro>(() => {
+    if (typeof window === 'undefined') return 'todas';
+    const v = localStorage.getItem('notif_filtro') as Filtro | null;
+    return v && ['todas', 'nao_lidas', 'sucesso', 'erro', 'alerta', 'info'].includes(v)
+      ? v
+      : 'todas';
+  });
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
@@ -122,8 +128,12 @@ export default function Notificacoes() {
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [dataInicio, setDataInicio] = useState<string>('');
-  const [dataFim, setDataFim] = useState<string>('');
+  const [dataInicio, setDataInicio] = useState<string>(() =>
+    typeof window === 'undefined' ? '' : localStorage.getItem('notif_data_inicio') || ''
+  );
+  const [dataFim, setDataFim] = useState<string>(() =>
+    typeof window === 'undefined' ? '' : localStorage.getItem('notif_data_fim') || ''
+  );
   const [visibleCount, setVisibleCount] = useState<number>(50);
   const [modoFoco, setModoFoco] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -144,6 +154,27 @@ export default function Notificacoes() {
   useEffect(() => {
     localStorage.setItem('notif_modo_foco', modoFoco ? '1' : '0');
   }, [modoFoco]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_filtro', filtro);
+  }, [filtro]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_data_inicio', dataInicio);
+  }, [dataInicio]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_data_fim', dataFim);
+  }, [dataFim]);
+
+  const resetarFiltros = useCallback(() => {
+    setBusca('');
+    setFiltro('todas');
+    setDataInicio('');
+    setDataFim('');
+    setModoFoco(false);
+    toast.success('Filtros restaurados');
+  }, []);
 
 
 
@@ -975,6 +1006,18 @@ export default function Notificacoes() {
                   title="Limpar intervalo de datas"
                 >
                   Limpar
+                </Button>
+              )}
+              {(busca || filtro !== 'todas' || dataInicio || dataFim || modoFoco) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetarFiltros}
+                  title="Restaurar todos os filtros"
+                  className="ml-auto"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" />
+                  Resetar filtros
                 </Button>
               )}
             </div>
