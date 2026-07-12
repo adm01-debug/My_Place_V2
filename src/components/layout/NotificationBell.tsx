@@ -1288,13 +1288,57 @@ export default function NotificationBell() {
                     />
                   </label>
                 </div>
-                <div className="text-[11px] text-muted-foreground leading-relaxed">
+                {/* Item 100: dias da semana em que o Quiet Hours vale */}
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">Dias da semana</div>
+                  <div className="flex items-center gap-1">
+                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((label, idx) => {
+                      const active = quiet.diasSemana.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={!quiet.enabled}
+                          onClick={() => setQuiet((q) => ({
+                            ...q,
+                            diasSemana: active
+                              ? q.diasSemana.filter((d) => d !== idx)
+                              : [...q.diasSemana, idx].sort((a, b) => a - b),
+                          }))}
+                          className={`h-7 w-7 rounded-md border text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                            active
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-muted-foreground border-input hover:bg-accent'
+                          }`}
+                          aria-pressed={active}
+                          aria-label={`${['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][idx]} ${active ? 'ativo' : 'inativo'}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Item 100: permitir tipos críticos atravessarem o silêncio */}
+                <label className="flex items-start justify-between gap-2 cursor-pointer">
+                  <div className="flex-1">
+                    <div className="text-xs font-medium">Permitir críticos</div>
+                    <div className="text-[11px] text-muted-foreground">Alertas e erros tocam mesmo em silêncio</div>
+                  </div>
+                  <Switch
+                    checked={quiet.permitirCriticos}
+                    onCheckedChange={(v) => setQuiet((q) => ({ ...q, permitirCriticos: !!v }))}
+                    disabled={!quiet.enabled}
+                    aria-label="Permitir notificações críticas durante Quiet Hours"
+                  />
+                </label>
+                <div className="text-[11px] text-muted-foreground leading-relaxed border-t border-border pt-2">
                   {quiet.enabled ? (
                     isQuietNow()
-                      ? <>🌙 <strong>Silêncio ativo agora.</strong> Notificações continuam chegando na lista — sem som/desktop.</>
-                      : <>Programado: <strong>{quiet.start} → {quiet.end}</strong>{quiet.start > quiet.end ? ' (atravessa meia-noite)' : ''}.</>
+                      ? <>🌙 <strong>Silêncio ativo agora.</strong> Notificações continuam chegando na lista{quiet.permitirCriticos ? ' — críticos ainda alertam' : ' sem som nem desktop'}.</>
+                      : <>Programado: <strong>{quiet.start} → {quiet.end}</strong>{quiet.start > quiet.end ? ' (atravessa meia-noite)' : ''}. Sincroniza entre dispositivos.</>
                   ) : (
-                    <>Ative para pausar sons e pop-ups desktop em horários específicos (ex.: madrugada).</>
+                    <>Ative para pausar sons e pop-ups desktop em horários específicos (ex.: madrugada). Configuração salva na nuvem.</>
                   )}
                 </div>
               </PopoverContent>
