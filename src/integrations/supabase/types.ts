@@ -2543,6 +2543,7 @@ export type Database = {
           email: string
           gestor_id: string | null
           id: string
+          idioma_preferido: string | null
           matricula: string | null
           nome: string
           rh_responsavel: string | null
@@ -2565,6 +2566,7 @@ export type Database = {
           email: string
           gestor_id?: string | null
           id: string
+          idioma_preferido?: string | null
           matricula?: string | null
           nome: string
           rh_responsavel?: string | null
@@ -2587,6 +2589,7 @@ export type Database = {
           email?: string
           gestor_id?: string | null
           id?: string
+          idioma_preferido?: string | null
           matricula?: string | null
           nome?: string
           rh_responsavel?: string | null
@@ -4126,6 +4129,19 @@ export type Database = {
           _tipo: Database["public"]["Enums"]["tipo_notificacao"]
           _titulo: string
           _user_id: string
+        }
+        Returns: string
+      }
+      fn_notificar_template: {
+        Args: {
+          _categoria?: Database["public"]["Enums"]["notif_categoria"]
+          _codigo: string
+          _idioma?: string
+          _link?: string
+          _nivel?: Database["public"]["Enums"]["notif_nivel"]
+          _tipo?: Database["public"]["Enums"]["tipo_notificacao"]
+          _user_id: string
+          _vars?: Json
         }
         Returns: string
       }
