@@ -137,6 +137,8 @@ export default function NotificacaoHistorico() {
           }
         />
 
+        <NotificacaoSimulador onDispatched={fetch} />
+
         <div className="grid grid-cols-3 gap-3">
           <StatCard label="Total" value={stats.total} tone="bg-muted/50" />
           <StatCard label="Enviadas" value={stats.enviadas} tone="bg-emerald-500/10 text-emerald-600" />
