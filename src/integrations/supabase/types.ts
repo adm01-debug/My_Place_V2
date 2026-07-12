@@ -1616,12 +1616,17 @@ export type Database = {
           canal: string
           categoria: Database["public"]["Enums"]["notif_categoria"]
           created_at: string
+          erro: string | null
+          fallback_de: string | null
+          fallback_para: string | null
           id: string
+          integracao_id: string | null
           mensagem: string
           motivo: string | null
           nivel: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id: string | null
           status: string
+          tentativas: number
           titulo: string
           user_id: string
         }
@@ -1629,12 +1634,17 @@ export type Database = {
           canal: string
           categoria: Database["public"]["Enums"]["notif_categoria"]
           created_at?: string
+          erro?: string | null
+          fallback_de?: string | null
+          fallback_para?: string | null
           id?: string
+          integracao_id?: string | null
           mensagem: string
           motivo?: string | null
           nivel?: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id?: string | null
           status: string
+          tentativas?: number
           titulo: string
           user_id: string
         }
@@ -1642,16 +1652,35 @@ export type Database = {
           canal?: string
           categoria?: Database["public"]["Enums"]["notif_categoria"]
           created_at?: string
+          erro?: string | null
+          fallback_de?: string | null
+          fallback_para?: string | null
           id?: string
+          integracao_id?: string | null
           mensagem?: string
           motivo?: string | null
           nivel?: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id?: string | null
           status?: string
+          tentativas?: number
           titulo?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notificacao_entregas_fallback_de_fkey"
+            columns: ["fallback_de"]
+            isOneToOne: false
+            referencedRelation: "notificacao_entregas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacao_entregas_integracao_id_fkey"
+            columns: ["integracao_id"]
+            isOneToOne: false
+            referencedRelation: "integracoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notificacao_entregas_notificacao_id_fkey"
             columns: ["notificacao_id"]
@@ -3907,6 +3936,7 @@ export type Database = {
         Returns: string
       }
       fn_notif_prefs_reset: { Args: { _user_id: string }; Returns: number }
+      fn_notif_stats_24h: { Args: { _user_id?: string }; Returns: Json }
       fn_notificar: {
         Args: {
           _categoria: Database["public"]["Enums"]["notif_categoria"]
@@ -3927,6 +3957,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      fn_registrar_tentativa_entrega: {
+        Args: {
+          _entrega_id: string
+          _erro?: string
+          _integracao_id?: string
+          _sucesso: boolean
+        }
+        Returns: string
       }
       fn_validar_ponto_no_raio: {
         Args: { p_latitude: number; p_longitude: number }

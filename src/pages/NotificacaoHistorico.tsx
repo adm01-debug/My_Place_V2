@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   History, Smartphone, Mail, BellRing, MessageCircle,
   CheckCircle2, Ban, Moon, VolumeX, SlidersHorizontal, ChevronDown,
+  AlertTriangle, RefreshCw, ArrowRightLeft, Activity,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { NotificacaoSimulador } from '@/components/notificacoes/NotificacaoSimulador';
 
 type Canal = 'in_app' | 'email' | 'push' | 'whatsapp';
-type Status = 'enviado' | 'bloqueado';
+type Status = 'enviado' | 'bloqueado' | 'falhou';
 
 interface Entrega {
   id: string;
@@ -28,10 +29,17 @@ interface Entrega {
   canal: Canal;
   status: Status;
   motivo: string | null;
+  erro: string | null;
+  tentativas: number;
+  integracao_id: string | null;
+  fallback_de: string | null;
+  fallback_para: string | null;
   titulo: string;
   mensagem: string;
   created_at: string;
 }
+
+interface Integracao { id: string; nome: string; }
 
 interface Grupo {
   key: string;
@@ -41,6 +49,14 @@ interface Grupo {
   nivel: Entrega['nivel'];
   created_at: string;
   canais: Record<Canal, Entrega | undefined>;
+}
+
+interface CanalStat { total: number; enviadas: number; bloqueadas: number; falhas: number; tentativas: number; }
+interface CategoriaStat { total: number; enviadas: number; bloqueadas: number; falhas: number; }
+interface Stats24h {
+  totais: { total: number; enviadas: number; bloqueadas: number; falhas: number; tentativas: number; fallbacks: number };
+  por_canal: Record<string, CanalStat>;
+  por_categoria: Record<string, CategoriaStat>;
 }
 
 const CANAIS: { id: Canal; label: string; icon: typeof Mail }[] = [
@@ -70,96 +86,194 @@ export default function NotificacaoHistorico() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [entregas, setEntregas] = useState<Entrega[]>([]);
+  const [integracoes, setIntegracoes] = useState<Integracao[]>([]);
+  const [stats24h, setStats24h] = useState<Stats24h | null>(null);
   const [loading, setLoading] = useState(true);
   const [filtroCanal, setFiltroCanal] = useState<'todos' | Canal>('todos');
   const [filtroStatus, setFiltroStatus] = useState<'todos' | Status>('todos');
+  const [filtroCategoria, setFiltroCategoria] = useState<'todos' | string>('todos');
+  const [filtroIntegracao, setFiltroIntegracao] = useState<'todos' | 'sem' | string>('todos');
   const [expandido, setExpandido] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('notificacao_entregas')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (error) {
-      toast.error('Falha ao carregar histórico');
-    } else {
-      setEntregas((data ?? []) as Entrega[]);
-    }
+    const [entregasRes, statsRes, integracoesRes] = await Promise.all([
+      supabase.from('notificacao_entregas').select('*').eq('user_id', user.id)
+        .order('created_at', { ascending: false }).limit(500),
+      supabase.rpc('fn_notif_stats_24h', { _user_id: user.id }),
+      supabase.from('integracoes').select('id, nome').order('nome'),
+    ]);
+    if (entregasRes.error) toast.error('Falha ao carregar histórico');
+    else setEntregas((entregasRes.data ?? []) as unknown as Entrega[]);
+    if (!statsRes.error && statsRes.data) setStats24h(statsRes.data as unknown as Stats24h);
+    if (!integracoesRes.error) setIntegracoes((integracoesRes.data ?? []) as Integracao[]);
     setLoading(false);
   }, [user]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
+  const categoriasDisponiveis = useMemo(() => {
+    const s = new Set<string>();
+    entregas.forEach(e => s.add(e.categoria));
+    return Array.from(s).sort();
+  }, [entregas]);
+
+  const filtradas = useMemo(() => entregas.filter(e =>
+    (filtroCanal === 'todos' || e.canal === filtroCanal) &&
+    (filtroStatus === 'todos' || e.status === filtroStatus) &&
+    (filtroCategoria === 'todos' || e.categoria === filtroCategoria) &&
+    (filtroIntegracao === 'todos'
+      || (filtroIntegracao === 'sem' && !e.integracao_id)
+      || e.integracao_id === filtroIntegracao)
+  ), [entregas, filtroCanal, filtroStatus, filtroCategoria, filtroIntegracao]);
+
   const grupos = useMemo<Grupo[]>(() => {
     const map = new Map<string, Grupo>();
-    for (const e of entregas) {
-      if (filtroCanal !== 'todos' && e.canal !== filtroCanal) continue;
-      if (filtroStatus !== 'todos' && e.status !== filtroStatus) continue;
+    for (const e of filtradas) {
       const key = e.notificacao_id ?? `${e.titulo}-${e.created_at}`;
       const g = map.get(key);
-      if (g) {
-        g.canais[e.canal] = e;
-      } else {
-        map.set(key, {
-          key,
-          titulo: e.titulo,
-          mensagem: e.mensagem,
-          categoria: e.categoria,
-          nivel: e.nivel,
-          created_at: e.created_at,
-          canais: { in_app: undefined, email: undefined, push: undefined, whatsapp: undefined, [e.canal]: e } as Grupo['canais'],
-        });
-      }
+      if (g) g.canais[e.canal] = e;
+      else map.set(key, {
+        key, titulo: e.titulo, mensagem: e.mensagem, categoria: e.categoria,
+        nivel: e.nivel, created_at: e.created_at,
+        canais: { in_app: undefined, email: undefined, push: undefined, whatsapp: undefined, [e.canal]: e } as Grupo['canais'],
+      });
     }
     return Array.from(map.values()).sort((a, b) => b.created_at.localeCompare(a.created_at));
-  }, [entregas, filtroCanal, filtroStatus]);
+  }, [filtradas]);
 
-  const stats = useMemo(() => {
-    const total = entregas.length;
-    const enviadas = entregas.filter(e => e.status === 'enviado').length;
-    return { total, enviadas, bloqueadas: total - enviadas };
-  }, [entregas]);
+  const kpis = stats24h?.totais ?? { total: 0, enviadas: 0, bloqueadas: 0, falhas: 0, tentativas: 0, fallbacks: 0 };
 
   return (
     <PullToRefresh onRefresh={fetch}>
       <div className="w-full max-w-5xl mx-auto p-4 pb-24 space-y-6">
         <ModuleHeader
           title="Histórico de Notificações"
-          description="Auditoria completa por canal, com timestamps e motivo de bloqueio"
+          description="KPIs 24h, breakdown por canal e categoria, com tentativas, falhas e fallback"
           icon={History}
           actions={
-            <Button variant="outline" size="sm" onClick={() => navigate('/notificacoes/preferencias')}>
-              Preferências
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={fetch}>
+                <RefreshCw className="w-3.5 h-3.5 mr-1" /> Atualizar
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/notificacoes/preferencias')}>
+                Preferências
+              </Button>
+            </div>
           }
         />
 
         <NotificacaoSimulador onDispatched={fetch} />
 
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Total" value={stats.total} tone="bg-muted/50" />
-          <StatCard label="Enviadas" value={stats.enviadas} tone="bg-emerald-500/10 text-emerald-600" />
-          <StatCard label="Bloqueadas" value={stats.bloqueadas} tone="bg-amber-500/10 text-amber-600" />
-        </div>
+        {/* KPIs últimas 24h */}
+        <Card className="border-border/50">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold">Últimas 24 horas</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+              <Kpi label="Eventos" value={kpis.total} tone="bg-muted/40" />
+              <Kpi label="Enviadas" value={kpis.enviadas} tone="bg-emerald-500/10 text-emerald-600" />
+              <Kpi label="Bloqueadas" value={kpis.bloqueadas} tone="bg-amber-500/10 text-amber-600" />
+              <Kpi label="Falhas" value={kpis.falhas} tone="bg-red-500/10 text-red-600" icon={AlertTriangle} />
+              <Kpi label="Tentativas" value={kpis.tentativas} tone="bg-indigo-500/10 text-indigo-600" icon={RefreshCw} />
+              <Kpi label="Fallbacks" value={kpis.fallbacks} tone="bg-sky-500/10 text-sky-600" icon={ArrowRightLeft} />
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Breakdown por canal */}
+        <Card className="border-border/50">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="text-sm font-semibold">Breakdown por canal (24h)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {CANAIS.map(({ id, label, icon: Icon }) => {
+                const s = stats24h?.por_canal?.[id] ?? { total: 0, enviadas: 0, bloqueadas: 0, falhas: 0, tentativas: 0 };
+                const taxa = s.total > 0 ? Math.round((s.enviadas / s.total) * 100) : 0;
+                return (
+                  <div key={id} className="rounded-md border border-border/50 p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs font-medium">{label}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">{taxa}% ok</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-[10px]">
+                      <BreakItem label="Total" value={s.total} />
+                      <BreakItem label="Tent." value={s.tentativas} />
+                      <BreakItem label="Env." value={s.enviadas} tone="text-emerald-600" />
+                      <BreakItem label="Blq." value={s.bloqueadas} tone="text-amber-600" />
+                      <BreakItem label="Falha" value={s.falhas} tone="text-red-600" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Breakdown por categoria */}
+        <Card className="border-border/50">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="text-sm font-semibold">Breakdown por categoria (24h)</h3>
+            <div className="space-y-1.5">
+              {Object.entries(stats24h?.por_categoria ?? {}).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem eventos nas últimas 24h.</p>
+              ) : Object.entries(stats24h?.por_categoria ?? {})
+                .sort((a, b) => b[1].total - a[1].total)
+                .map(([cat, s]) => {
+                  const pct = s.total > 0 ? (s.enviadas / s.total) * 100 : 0;
+                  return (
+                    <div key={cat} className="flex items-center gap-3">
+                      <span className="text-xs capitalize w-32 truncate">{cat}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex gap-2 text-[10px] text-muted-foreground w-40 justify-end">
+                        <span className="text-emerald-600">{s.enviadas}</span>
+                        <span className="text-amber-600">{s.bloqueadas}</span>
+                        <span className="text-red-600">{s.falhas}</span>
+                        <span>/ {s.total}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Filtros */}
         <div className="flex flex-wrap gap-2 items-center">
           <Select value={filtroCanal} onValueChange={(v) => setFiltroCanal(v as typeof filtroCanal)}>
-            <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Canal" /></SelectTrigger>
+            <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Canal" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os canais</SelectItem>
               {CANAIS.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as typeof filtroStatus)}>
-            <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os status</SelectItem>
               <SelectItem value="enviado">Enviadas</SelectItem>
               <SelectItem value="bloqueado">Bloqueadas</SelectItem>
+              <SelectItem value="falhou">Falhas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+            <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas categorias</SelectItem>
+              {categoriasDisponiveis.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filtroIntegracao} onValueChange={setFiltroIntegracao}>
+            <SelectTrigger className="w-44 h-9 text-xs"><SelectValue placeholder="Integração" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas integrações</SelectItem>
+              <SelectItem value="sem">Sem integração</SelectItem>
+              {integracoes.map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
             </SelectContent>
           </Select>
           <span className="text-xs text-muted-foreground ml-auto">{grupos.length} evento(s)</span>
@@ -207,33 +321,54 @@ export default function NotificacaoHistorico() {
                         );
                       }
                       const enviado = e.status === 'enviado';
+                      const falhou = e.status === 'falhou';
                       const motivo = e.motivo ? MOTIVOS[e.motivo] : null;
-                      const MotivoIcon = motivo?.icon ?? Ban;
+                      const MotivoIcon = falhou ? AlertTriangle : (motivo?.icon ?? Ban);
+                      const bg = enviado
+                        ? 'border-emerald-500/20 bg-emerald-500/5'
+                        : falhou
+                          ? 'border-red-500/20 bg-red-500/5'
+                          : 'border-amber-500/20 bg-amber-500/5';
+                      const integ = integracoes.find(i => i.id === e.integracao_id);
                       return (
-                        <div
-                          key={id}
-                          className={`rounded-md border p-2 space-y-1 ${
-                            enviado
-                              ? 'border-emerald-500/20 bg-emerald-500/5'
-                              : 'border-amber-500/20 bg-amber-500/5'
-                          }`}
-                        >
+                        <div key={id} className={`rounded-md border p-2 space-y-1 ${bg}`}>
                           <div className="flex items-center gap-1.5">
                             <Icon className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-medium">{label}</span>
                             {enviado ? (
                               <CheckCircle2 className="w-3 h-3 ml-auto text-emerald-500" />
                             ) : (
-                              <MotivoIcon className={`w-3 h-3 ml-auto ${motivo?.tone ?? 'text-amber-500'}`} />
+                              <MotivoIcon className={`w-3 h-3 ml-auto ${falhou ? 'text-red-500' : motivo?.tone ?? 'text-amber-500'}`} />
                             )}
                           </div>
                           <p className="text-[10px] text-muted-foreground truncate">
-                            {enviado ? 'Enviado' : motivo?.label ?? 'Bloqueado'}
+                            {enviado ? 'Enviado' : falhou ? 'Falhou' : motivo?.label ?? 'Bloqueado'}
                           </p>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {e.tentativas > 1 && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1">
+                                <RefreshCw className="w-2.5 h-2.5 mr-0.5" />{e.tentativas}
+                              </Badge>
+                            )}
+                            {e.fallback_para && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1 text-sky-600 border-sky-500/30">
+                                <ArrowRightLeft className="w-2.5 h-2.5 mr-0.5" />{e.fallback_para}
+                              </Badge>
+                            )}
+                            {e.fallback_de && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1 text-sky-600 border-sky-500/30">
+                                fallback
+                              </Badge>
+                            )}
+                          </div>
                           {expandido === g.key && (
-                            <p className="text-[9px] text-muted-foreground/70">
-                              {format(new Date(e.created_at), 'HH:mm:ss', { locale: ptBR })}
-                            </p>
+                            <div className="space-y-0.5">
+                              <p className="text-[9px] text-muted-foreground/70">
+                                {format(new Date(e.created_at), 'HH:mm:ss', { locale: ptBR })}
+                              </p>
+                              {integ && <p className="text-[9px] text-muted-foreground/70 truncate">via {integ.nome}</p>}
+                              {e.erro && <p className="text-[9px] text-red-500/80 line-clamp-2">{e.erro}</p>}
+                            </div>
                           )}
                         </div>
                       );
@@ -253,11 +388,23 @@ export default function NotificacaoHistorico() {
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: number; tone: string }) {
+function Kpi({ label, value, tone, icon: Icon }: { label: string; value: number; tone: string; icon?: typeof Activity }) {
   return (
     <div className={`rounded-lg p-3 ${tone}`}>
-      <p className="text-[10px] uppercase tracking-wide opacity-70">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide opacity-70">
+        {Icon && <Icon className="w-3 h-3" />}
+        {label}
+      </div>
+      <p className="text-xl font-bold">{value}</p>
+    </div>
+  );
+}
+
+function BreakItem({ label, value, tone }: { label: string; value: number; tone?: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-semibold ${tone ?? ''}`}>{value}</span>
     </div>
   );
 }
