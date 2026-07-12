@@ -195,6 +195,16 @@ export default function NotificationBell() {
   // Item 101 (state elevado): usado tanto por ações em lote quanto pelo
   // clustering (Item 102), que precisa não esconder itens selecionados.
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  // Item 104: expansão inline da mensagem (peek). Efêmero — reseta ao fechar o painel.
+  const [expandedMsgs, setExpandedMsgs] = useState<Set<string>>(() => new Set());
+  const toggleMsgExpand = useCallback((id: string) => {
+    setExpandedMsgs(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+  const MSG_PEEK_LIMIT = 120;
   const lastSelectedIdRef = useRef<string | null>(null);
 
   // ─── Item 102: Agrupamento inteligente (clustering) ───────────────────────
