@@ -847,6 +847,7 @@ export default function NotificationBell() {
   };
 
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
