@@ -259,13 +259,17 @@ export default function NotificationBell() {
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
+    // Modo foco: restringe a alerta+erro (fixadas urgentes seguem visíveis).
+    if (focusMode) {
+      base = base.filter((n) => n.tipo === 'alerta' || n.tipo === 'erro');
+    }
     if (buscaNorm) {
       base = base.filter(
         (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed, focusMode]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
