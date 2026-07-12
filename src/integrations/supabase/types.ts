@@ -1571,6 +1571,129 @@ export type Database = {
           },
         ]
       }
+      patrimonio_ativos: {
+        Row: {
+          codigo: string
+          created_at: string
+          data_aquisicao: string | null
+          descricao: string
+          estado_conservacao: string
+          foto_url: string | null
+          id: string
+          marca: string | null
+          modelo: string | null
+          numero_serie: string | null
+          observacoes: string | null
+          patrimonio_num: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          valor_aquisicao: number | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          data_aquisicao?: string | null
+          descricao: string
+          estado_conservacao?: string
+          foto_url?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          numero_serie?: string | null
+          observacoes?: string | null
+          patrimonio_num?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          valor_aquisicao?: number | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          data_aquisicao?: string | null
+          descricao?: string
+          estado_conservacao?: string
+          foto_url?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          numero_serie?: string | null
+          observacoes?: string | null
+          patrimonio_num?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          valor_aquisicao?: number | null
+        }
+        Relationships: []
+      }
+      patrimonio_movimentacoes: {
+        Row: {
+          assinatura_em: string | null
+          assinatura_hash: string | null
+          assinatura_ip: string | null
+          assinatura_user_agent: string | null
+          ativo_id: string
+          created_at: string
+          data_movimentacao: string
+          estado_no_ato: string
+          id: string
+          observacoes: string | null
+          registrado_por: string | null
+          tipo_movimentacao: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assinatura_em?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
+          assinatura_user_agent?: string | null
+          ativo_id: string
+          created_at?: string
+          data_movimentacao?: string
+          estado_no_ato: string
+          id?: string
+          observacoes?: string | null
+          registrado_por?: string | null
+          tipo_movimentacao: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assinatura_em?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
+          assinatura_user_agent?: string | null
+          ativo_id?: string
+          created_at?: string
+          data_movimentacao?: string
+          estado_no_ato?: string
+          id?: string
+          observacoes?: string | null
+          registrado_por?: string | null
+          tipo_movimentacao?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrimonio_movimentacoes_ativo_id_fkey"
+            columns: ["ativo_id"]
+            isOneToOne: false
+            referencedRelation: "patrimonio_ativos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrimonio_movimentacoes_ativo_id_fkey"
+            columns: ["ativo_id"]
+            isOneToOne: false
+            referencedRelation: "vw_patrimonio_em_uso"
+            referencedColumns: ["ativo_id"]
+          },
+        ]
+      }
       plano_saude_gastos: {
         Row: {
           beneficio_id: string | null
@@ -2731,6 +2854,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_patrimonio_em_uso: {
+        Row: {
+          assinatura_em: string | null
+          ativo_id: string | null
+          codigo: string | null
+          descricao: string | null
+          entregue_em: string | null
+          estado_conservacao: string | null
+          estado_na_entrega: string | null
+          foto_url: string | null
+          marca: string | null
+          modelo: string | null
+          movimentacao_id: string | null
+          numero_serie: string | null
+          patrimonio_num: string | null
+          status: string | null
+          tipo: string | null
+          user_id: string | null
+        }
+        Relationships: []
       }
       vw_politicas_pendentes: {
         Row: {
