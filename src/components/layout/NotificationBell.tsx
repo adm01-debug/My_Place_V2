@@ -634,7 +634,7 @@ export default function NotificationBell() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {n.mensagem}
+                          {highlight(n.mensagem)}
                         </p>
                       </div>
                       {!n.lida && (
