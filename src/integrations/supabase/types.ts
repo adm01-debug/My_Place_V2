@@ -1611,6 +1611,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao_digest_fila: {
+        Row: {
+          agrupado_em: string | null
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at: string
+          id: string
+          link: string | null
+          mensagem: string
+          nivel: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_resumo_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          agrupado_em?: string | null
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          link?: string | null
+          mensagem: string
+          nivel?: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_resumo_id?: string | null
+          tipo: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          agrupado_em?: string | null
+          categoria?: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          link?: string | null
+          mensagem?: string
+          nivel?: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_resumo_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_notificacao"]
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacao_digest_fila_notificacao_resumo_id_fkey"
+            columns: ["notificacao_resumo_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacao_entregas: {
         Row: {
           canal: string
@@ -1698,6 +1748,7 @@ export type Database = {
           canal_whatsapp: boolean
           categoria: Database["public"]["Enums"]["notif_categoria"]
           created_at: string
+          digest_frequencia: Database["public"]["Enums"]["notif_digest_freq"]
           id: string
           nivel_minimo: Database["public"]["Enums"]["notif_nivel"]
           silenciar_ate: string | null
@@ -1711,6 +1762,7 @@ export type Database = {
           canal_whatsapp?: boolean
           categoria: Database["public"]["Enums"]["notif_categoria"]
           created_at?: string
+          digest_frequencia?: Database["public"]["Enums"]["notif_digest_freq"]
           id?: string
           nivel_minimo?: Database["public"]["Enums"]["notif_nivel"]
           silenciar_ate?: string | null
@@ -1724,6 +1776,7 @@ export type Database = {
           canal_whatsapp?: boolean
           categoria?: Database["public"]["Enums"]["notif_categoria"]
           created_at?: string
+          digest_frequencia?: Database["public"]["Enums"]["notif_digest_freq"]
           id?: string
           nivel_minimo?: Database["public"]["Enums"]["notif_nivel"]
           silenciar_ate?: string | null
@@ -3958,6 +4011,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      fn_processar_digest: {
+        Args: {
+          _categoria?: Database["public"]["Enums"]["notif_categoria"]
+          _user_id: string
+        }
+        Returns: number
+      }
+      fn_processar_digests_devidos: {
+        Args: { _freq?: Database["public"]["Enums"]["notif_digest_freq"] }
+        Returns: number
+      }
       fn_registrar_tentativa_entrega: {
         Args: {
           _entrega_id: string
@@ -4055,6 +4119,7 @@ export type Database = {
         | "aniversario"
         | "sistema"
         | "seguranca"
+      notif_digest_freq: "imediato" | "horario" | "diario" | "semanal"
       notif_nivel: "info" | "aviso" | "critico"
       politica_categoria:
         | "codigo_conduta"
@@ -4306,6 +4371,7 @@ export const Constants = {
         "sistema",
         "seguranca",
       ],
+      notif_digest_freq: ["imediato", "horario", "diario", "semanal"],
       notif_nivel: ["info", "aviso", "critico"],
       politica_categoria: [
         "codigo_conduta",

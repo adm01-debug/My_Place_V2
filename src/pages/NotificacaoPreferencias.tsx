@@ -18,6 +18,8 @@ type Categoria =
 
 type Nivel = "info" | "aviso" | "critico";
 
+type DigestFreq = "imediato" | "horario" | "diario" | "semanal";
+
 interface Pref {
   categoria: Categoria;
   canal_in_app: boolean;
@@ -26,6 +28,7 @@ interface Pref {
   canal_whatsapp: boolean;
   nivel_minimo: Nivel;
   silenciar_ate: string | null;
+  digest_frequencia: DigestFreq;
 }
 
 interface Quiet {
@@ -77,10 +80,10 @@ export default function NotificacaoPreferencias() {
     const map = {} as Record<Categoria, Pref>;
     for (const cat of CATEGORIAS) {
       const found = p?.find((x) => x.categoria === cat.id);
-      map[cat.id] = found ?? {
+      map[cat.id] = (found as Pref | undefined) ?? {
         categoria: cat.id,
         canal_in_app: true, canal_email: true, canal_push: true, canal_whatsapp: false,
-        nivel_minimo: "info", silenciar_ate: null,
+        nivel_minimo: "info", silenciar_ate: null, digest_frequencia: "imediato",
       };
     }
     setPrefs(map);
@@ -282,6 +285,26 @@ export default function NotificacaoPreferencias() {
                     <Switch checked={p.canal_whatsapp} onCheckedChange={(v) => updatePref(cat.id, { canal_whatsapp: v })} />
                     WhatsApp
                   </label>
+                </div>
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
+                  <div>
+                    <p className="text-xs font-medium">Agrupamento (digest)</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Combina eventos não-críticos em um único resumo periódico.
+                    </p>
+                  </div>
+                  <Select
+                    value={p.digest_frequencia}
+                    onValueChange={(v) => updatePref(cat.id, { digest_frequencia: v as DigestFreq })}
+                  >
+                    <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="imediato">Imediato</SelectItem>
+                      <SelectItem value="horario">A cada hora</SelectItem>
+                      <SelectItem value="diario">1x por dia</SelectItem>
+                      <SelectItem value="semanal">1x por semana</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {silenciada && (
                   <Button size="sm" variant="ghost" onClick={() => updatePref(cat.id, { silenciar_ate: null })}>
