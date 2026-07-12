@@ -138,6 +138,9 @@ export default function NotificationBell() {
     let base = ordenadas;
     if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
     else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    if (tiposAtivos.size > 0) {
+      base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
+    }
     if (buscaNorm) {
       base = base.filter(
         (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
