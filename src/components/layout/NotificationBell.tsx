@@ -285,6 +285,16 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').delete().eq('id', id);
   };
 
+  const handleClick = (n: Notificacao) => {
+    if (!n.lida) markAsRead(n.id);
+    setOpen(false);
+    if (n.link) {
+      navigate(n.link);
+    } else {
+      navigate(`/notificacoes?focus=${n.id}`);
+    }
+  };
+
   // Navegação por teclado dentro do popover — j/k (ou setas) percorrem,
   // Enter abre, e = marcar lida, p = fixar/desafixar, Delete/Backspace/x = excluir.
   useEffect(() => {
