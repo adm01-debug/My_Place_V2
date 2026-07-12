@@ -145,6 +145,10 @@ export default function Notificacoes() {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('notif_modo_foco') === '1';
   });
+  const [densidade, setDensidade] = useState<'compact' | 'comfortable'>(() => {
+    if (typeof window === 'undefined') return 'comfortable';
+    return localStorage.getItem('notif_densidade') === 'compact' ? 'compact' : 'comfortable';
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
