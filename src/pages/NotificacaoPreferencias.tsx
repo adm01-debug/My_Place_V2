@@ -286,6 +286,26 @@ export default function NotificacaoPreferencias() {
                     WhatsApp
                   </label>
                 </div>
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
+                  <div>
+                    <p className="text-xs font-medium">Agrupamento (digest)</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Combina eventos não-críticos em um único resumo periódico.
+                    </p>
+                  </div>
+                  <Select
+                    value={p.digest_frequencia}
+                    onValueChange={(v) => updatePref(cat.id, { digest_frequencia: v as DigestFreq })}
+                  >
+                    <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="imediato">Imediato</SelectItem>
+                      <SelectItem value="horario">A cada hora</SelectItem>
+                      <SelectItem value="diario">1x por dia</SelectItem>
+                      <SelectItem value="semanal">1x por semana</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {silenciada && (
                   <Button size="sm" variant="ghost" onClick={() => updatePref(cat.id, { silenciar_ate: null })}>
                     Remover silêncio
