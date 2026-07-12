@@ -2083,6 +2083,32 @@ export default function NotificationBell() {
                               />
                             )}
                             <span className="truncate">{highlight(n.titulo)}</span>
+                            {isClusterLeader && cluster && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleClusterExpanded(cluster.key);
+                                }}
+                                aria-expanded={clusterExpanded}
+                                aria-label={clusterExpanded
+                                  ? `Recolher ${cluster.totalCount} notificações similares`
+                                  : `Expandir ${cluster.totalCount} notificações similares`}
+                                title={clusterExpanded ? 'Recolher grupo' : `Ver mais ${cluster.totalCount - 1} similares`}
+                                className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold transition-colors ${
+                                  cluster.unreadCount > 0
+                                    ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                }`}
+                              >
+                                {clusterExpanded ? (
+                                  <ChevronUp className="w-2.5 h-2.5" />
+                                ) : (
+                                  <ChevronDown className="w-2.5 h-2.5" />
+                                )}
+                                +{cluster.totalCount - 1}
+                              </button>
+                            )}
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
