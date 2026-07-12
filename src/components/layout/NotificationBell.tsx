@@ -2002,19 +2002,27 @@ export default function NotificationBell() {
                     ({itens.length})
                   </span>
                 </div>
-                {itens.map((n) => {
+                {itens.filter((n) => !hiddenByCluster.has(n.id)).map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
                   const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
                   const isSelected = selected.has(n.id);
+                  // Item 102: cluster meta — líder mostra badge/toggle;
+                  // membros expandidos aparecem levemente indentados.
+                  const cluster = clusterByLeader.get(n.id);
+                  const isClusterLeader = !!cluster;
+                  const isClusterMember = memberToLeader.has(n.id);
+                  const clusterExpanded = cluster ? clustersExpanded.has(cluster.key) : false;
                   return (
                     <div
                       key={n.id}
                       role="button"
                       tabIndex={0}
                       data-notif-id={n.id}
+                      data-cluster-role={isClusterLeader ? 'leader' : isClusterMember ? 'member' : undefined}
                       onMouseEnter={() => setActiveId(n.id)}
+
                       onClick={(e) => {
                         // Item 101: com seleção ativa OU shift/meta pressionado, clicar
                         // toggle a seleção em vez de abrir — evita abrir por engano.
