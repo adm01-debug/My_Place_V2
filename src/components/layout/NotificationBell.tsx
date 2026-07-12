@@ -141,6 +141,52 @@ export default function NotificationBell() {
     fetchNotificacoes();
   }, [fetchNotificacoes]);
 
+  // Preferência de notificações desktop persistida
+  const [desktopOn, setDesktopOn] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(DESKTOP_KEY) === '1';
+  });
+
+  const toggleDesktop = useCallback(async () => {
+    if (!canUseDesktop()) return;
+    if (!desktopOn) {
+      const perm =
+        Notification.permission === 'granted'
+          ? 'granted'
+          : await Notification.requestPermission();
+      if (perm === 'granted') {
+        setDesktopOn(true);
+        localStorage.setItem(DESKTOP_KEY, '1');
+      }
+    } else {
+      setDesktopOn(false);
+      localStorage.setItem(DESKTOP_KEY, '0');
+    }
+  }, [desktopOn]);
+
+  const showDesktop = useCallback(
+    (n: Notificacao) => {
+      if (!desktopOn || !canUseDesktop() || Notification.permission !== 'granted') return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') return;
+      try {
+        const notif = new Notification(n.titulo, {
+          body: n.mensagem,
+          icon: '/favicon.ico',
+          tag: n.id,
+          silent: false,
+        });
+        notif.onclick = () => {
+          window.focus();
+          navigate(n.link || `/notificacoes?focus=${n.id}`);
+          notif.close();
+        };
+      } catch {
+        /* alguns browsers exigem SW — ignora silenciosamente */
+      }
+    },
+    [desktopOn, navigate]
+  );
+
   // Realtime: INSERT, UPDATE e DELETE — mantém o sino sincronizado
   // mesmo quando alterações acontecem na página /notificacoes ou em outro tab.
   useEffect(() => {
@@ -156,8 +202,10 @@ export default function NotificationBell() {
             if (prev.some((n) => n.id === nova.id)) return prev;
             return [nova, ...prev].slice(0, MAX_ITEMS);
           });
+          showDesktop(nova);
         }
       )
+
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
