@@ -1938,6 +1938,7 @@ export type Database = {
       }
       notificacoes: {
         Row: {
+          adiada_ate: string | null
           created_at: string
           id: string
           lida: boolean
@@ -1948,6 +1949,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          adiada_ate?: string | null
           created_at?: string
           id?: string
           lida?: boolean
@@ -1958,6 +1960,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          adiada_ate?: string | null
           created_at?: string
           id?: string
           lida?: boolean
@@ -3917,6 +3920,10 @@ export type Database = {
       }
       cleanup_old_login_attempts: { Args: never; Returns: number }
       cleanup_webauthn_challenges: { Args: never; Returns: number }
+      fn_adiar_notificacoes: {
+        Args: { _ate: string; _ids: string[] }
+        Returns: number
+      }
       fn_bi_absenteismo: {
         Args: { p_meses?: number }
         Returns: {
@@ -4199,6 +4206,7 @@ export type Database = {
         Args: { _categoria: string; _user_id: string }
         Returns: boolean
       }
+      fn_reativar_notificacoes_adiadas: { Args: never; Returns: number }
       fn_registrar_tentativa_entrega: {
         Args: {
           _entrega_id: string
