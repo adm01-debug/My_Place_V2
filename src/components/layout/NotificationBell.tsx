@@ -896,6 +896,16 @@ export default function NotificationBell() {
             <Button
               variant="ghost"
               size="icon"
+              className="h-7 w-7"
+              onClick={() => setShowHelp(true)}
+              aria-label="Ver atalhos de teclado"
+              title="Atalhos de teclado (?)"
+            >
+              <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden md:inline-flex h-7 w-7"
               onClick={() => setShowPreview((v) => !v)}
               aria-pressed={showPreview}
