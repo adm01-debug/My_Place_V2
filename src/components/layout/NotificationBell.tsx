@@ -293,45 +293,60 @@ export default function NotificationBell() {
               </p>
             </div>
           ) : (
-            filtradas.map((n) => {
-              const Icon = tipoIcons[n.tipo] || Info;
-              const fixada = !!n.fixada_em;
-              return (
-                <button
-                  key={n.id}
-                  onClick={() => handleClick(n)}
-                  className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 border-b border-border/20 ${
-                    !n.lida ? 'bg-primary/5' : ''
-                  } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
-                >
-                  <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p
-                        className={`text-xs font-medium truncate flex items-center gap-1 ${
-                          !n.lida ? 'text-foreground' : 'text-muted-foreground'
-                        }`}
-                      >
-                        {fixada && (
-                          <Pin
-                            className="w-3 h-3 text-primary shrink-0 fill-primary/20"
-                            aria-label="Fixada"
-                          />
-                        )}
-                        <span className="truncate">{n.titulo}</span>
-                      </p>
-                      <span className="text-[10px] text-muted-foreground shrink-0">
-                        {formatTime(n.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.mensagem}</p>
-                  </div>
-                  {!n.lida && <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0" />}
-                </button>
-              );
-            })
+            grupos.map(([grupo, itens]) => (
+              <div key={grupo}>
+                <div className="sticky top-0 z-10 px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-background/95 backdrop-blur border-b border-border/30">
+                  {grupo}
+                  <span className="ml-1.5 text-muted-foreground/60 normal-case tracking-normal">
+                    ({itens.length})
+                  </span>
+                </div>
+                {itens.map((n) => {
+                  const Icon = tipoIcons[n.tipo] || Info;
+                  const fixada = !!n.fixada_em;
+                  return (
+                    <button
+                      key={n.id}
+                      onClick={() => handleClick(n)}
+                      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 border-b border-border/20 ${
+                        !n.lida ? 'bg-primary/5' : ''
+                      } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
+                    >
+                      <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p
+                            className={`text-xs font-medium truncate flex items-center gap-1 ${
+                              !n.lida ? 'text-foreground' : 'text-muted-foreground'
+                            }`}
+                          >
+                            {fixada && (
+                              <Pin
+                                className="w-3 h-3 text-primary shrink-0 fill-primary/20"
+                                aria-label="Fixada"
+                              />
+                            )}
+                            <span className="truncate">{n.titulo}</span>
+                          </p>
+                          <span className="text-[10px] text-muted-foreground shrink-0">
+                            {formatTime(n.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                          {n.mensagem}
+                        </p>
+                      </div>
+                      {!n.lida && (
+                        <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))
           )}
         </ScrollArea>
+
         <div className="p-2 border-t border-border/50">
           <Button
             variant="ghost"
