@@ -610,8 +610,10 @@ export default function NotificationBell() {
             const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
             supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
           }
-          // Só dispara desktop e som se nenhuma regra pediu silenciamento.
-          if (!actions.has('silent')) {
+          // Só dispara desktop e som se nenhuma regra pediu silenciamento
+          // e não estamos em Quiet Hours (janela silenciosa configurável).
+          const quietNow = quietRef.current();
+          if (!actions.has('silent') && !quietNow) {
             showDesktopRef.current(nova);
             // Modo foco: só toca em alerta/erro (reduz ruído).
             if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
