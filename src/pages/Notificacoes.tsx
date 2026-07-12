@@ -145,6 +145,8 @@ export default function Notificacoes() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
+  const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
+  const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
