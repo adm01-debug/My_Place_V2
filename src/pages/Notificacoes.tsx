@@ -1514,5 +1514,6 @@ export default function Notificacoes() {
       removeRule={removeRule}
       toggleRule={toggleRule}
     />
+    </>
   );
 }
