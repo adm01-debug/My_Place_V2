@@ -2127,6 +2127,69 @@ export default function NotificationBell() {
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
                           </span>
+                          {/* Item 103: Quick actions no hover — ficam sobrepostas ao
+                              timestamp (que se apaga em group-hover). Ocultas em
+                              focusMode e em membros de cluster expandido para não
+                              poluir; leader mantém as ações do próprio item. */}
+                          {!focusMode && !isClusterMember && (
+                            <div
+                              className="absolute right-2 top-2 hidden group-hover:flex items-center gap-0.5 bg-background/95 backdrop-blur border border-border/60 rounded-md shadow-sm px-0.5 py-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                              role="toolbar"
+                              aria-label="Ações rápidas"
+                            >
+                              {!n.lida && (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setNotificacoes((prev) => prev.map((x) => x.id === n.id ? { ...x, lida: true } : x));
+                                    await supabase.from('notificacoes').update({ lida: true }).eq('id', n.id);
+                                  }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Marcar como lida"
+                                  aria-label="Marcar como lida"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); togglePin(n.id, fixada); }}
+                                className={`h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted transition-colors ${fixada ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                                title={fixada ? 'Desafixar' : 'Fixar'}
+                                aria-label={fixada ? 'Desafixar' : 'Fixar'}
+                              >
+                                {fixada ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
+                              </button>
+                              {!snoozed && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    snoozeNotif(n.id, SNOOZE_OPTIONS[0].at(new Date()));
+                                  }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title={`Adiar (${SNOOZE_OPTIONS[0].label})`}
+                                  aria-label="Adiar"
+                                >
+                                  <Clock className="w-3 h-3" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  scheduleDelete([n.id], `"${n.titulo.slice(0, 40)}"`);
+                                }}
+                                className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                title="Excluir"
+                                aria-label="Excluir"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                           {highlight(n.mensagem)}
