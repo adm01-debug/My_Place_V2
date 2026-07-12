@@ -37,6 +37,19 @@ const DESKTOP_KEY = 'bell_desktop_v1';
 
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
 const FILTER_KEY = 'bell_filter_v1';
+const TIPOS_KEY = 'bell_tipos_v1';
+
+type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
+const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
+const isTipoNotif = (v: unknown): v is TipoNotif =>
+  v === 'info' || v === 'sucesso' || v === 'alerta' || v === 'erro';
+
+const tipoLabels: Record<TipoNotif, string> = {
+  info: 'Info',
+  sucesso: 'Sucesso',
+  alerta: 'Alerta',
+  erro: 'Erro',
+};
 
 const isBellFilter = (v: unknown): v is BellFilter =>
   v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
@@ -75,6 +88,31 @@ export default function NotificationBell() {
   );
   const buscaNorm = useMemo(() => normalize(busca.trim()), [busca, normalize]);
 
+  // Filtro por tipo (multi-seleção). Set vazio = todos os tipos visíveis.
+  const [tiposAtivos, setTiposAtivos] = useState<Set<TipoNotif>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(TIPOS_KEY) || '[]');
+      if (Array.isArray(raw)) return new Set(raw.filter(isTipoNotif));
+    } catch { /* ignore */ }
+    return new Set();
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TIPOS_KEY, JSON.stringify([...tiposAtivos]));
+    } catch { /* quota — ignore */ }
+  }, [tiposAtivos]);
+
+  const toggleTipo = useCallback((t: TipoNotif) => {
+    setTiposAtivos((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
+      return next;
+    });
+  }, []);
+
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
     [notificacoes]
@@ -100,13 +138,16 @@ export default function NotificationBell() {
     let base = ordenadas;
     if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
     else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    if (tiposAtivos.size > 0) {
+      base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
+    }
     if (buscaNorm) {
       base = base.filter(
         (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
       );
     }
     return base;
-  }, [ordenadas, filtro, buscaNorm, normalize]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
@@ -566,6 +607,55 @@ export default function NotificationBell() {
             );
           })}
         </div>
+
+        {/* Chips de filtro por tipo (multi-seleção) */}
+        <div
+          role="group"
+          aria-label="Filtrar por tipo"
+          className="flex items-center gap-1 px-2 py-1.5 border-b border-border/50 overflow-x-auto"
+        >
+          {tiposAtivos.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setTiposAtivos(new Set())}
+              className="shrink-0 text-[10px] px-2 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              aria-label="Limpar filtros de tipo"
+              title="Limpar filtros de tipo"
+            >
+              Limpar
+            </button>
+          )}
+          {TIPOS_ALL.map((t) => {
+            const Icon = tipoIcons[t];
+            const ativo = tiposAtivos.has(t);
+            const count = notificacoes.filter((n) => n.tipo === t).length;
+            const disabled = count === 0;
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => !disabled && toggleTipo(t)}
+                disabled={disabled}
+                aria-pressed={ativo}
+                title={`${tipoLabels[t]} (${count})`}
+                className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full border transition-colors ${
+                  disabled
+                    ? 'opacity-40 cursor-not-allowed border-transparent text-muted-foreground'
+                    : ativo
+                      ? `border-primary/40 bg-primary/10 ${tipoColors[t]}`
+                      : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                }`}
+              >
+                <Icon className={`w-3 h-3 ${ativo ? tipoColors[t] : ''}`} />
+                {tipoLabels[t]}
+                {count > 0 && (
+                  <span className="text-[9px] opacity-70">{count > 99 ? '99+' : count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         <ScrollArea className="max-h-80">
           {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
@@ -573,12 +663,23 @@ export default function NotificationBell() {
               <p className="text-sm">
                 {buscaNorm
                   ? `Nenhum resultado para "${busca.trim()}"`
-                  : filtro === 'nao_lidas'
-                    ? 'Nenhuma notificação não lida'
-                    : filtro === 'fixadas'
-                      ? 'Nenhuma notificação fixada'
-                      : 'Nenhuma notificação'}
+                  : tiposAtivos.size > 0
+                    ? 'Nenhuma notificação nos tipos selecionados'
+                    : filtro === 'nao_lidas'
+                      ? 'Nenhuma notificação não lida'
+                      : filtro === 'fixadas'
+                        ? 'Nenhuma notificação fixada'
+                        : 'Nenhuma notificação'}
               </p>
+              {tiposAtivos.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTiposAtivos(new Set())}
+                  className="mt-2 text-[11px] text-primary hover:underline"
+                >
+                  Limpar filtros de tipo
+                </button>
+              )}
             </div>
           ) : (
             grupos.map(([grupo, itens]) => (
