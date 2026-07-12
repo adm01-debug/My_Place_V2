@@ -3848,6 +3848,18 @@ export type Database = {
         }[]
       }
       fn_notif_prefs_reset: { Args: { _user_id: string }; Returns: number }
+      fn_notificar: {
+        Args: {
+          _categoria: Database["public"]["Enums"]["notif_categoria"]
+          _link?: string
+          _mensagem: string
+          _nivel?: Database["public"]["Enums"]["notif_nivel"]
+          _tipo: Database["public"]["Enums"]["tipo_notificacao"]
+          _titulo: string
+          _user_id: string
+        }
+        Returns: string
+      }
       fn_pode_notificar: {
         Args: {
           _canal: string
