@@ -262,8 +262,7 @@ export default function Vales() {
           table: 'solicitacoes',
           filter: `user_id=eq.${user?.id}`
         },
-        (payload) => {
-          console.log('Realtime update received:', payload);
+        () => {
           fetchData();
         }
       )
