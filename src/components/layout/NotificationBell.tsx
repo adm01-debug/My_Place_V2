@@ -663,12 +663,23 @@ export default function NotificationBell() {
               <p className="text-sm">
                 {buscaNorm
                   ? `Nenhum resultado para "${busca.trim()}"`
-                  : filtro === 'nao_lidas'
-                    ? 'Nenhuma notificação não lida'
-                    : filtro === 'fixadas'
-                      ? 'Nenhuma notificação fixada'
-                      : 'Nenhuma notificação'}
+                  : tiposAtivos.size > 0
+                    ? 'Nenhuma notificação nos tipos selecionados'
+                    : filtro === 'nao_lidas'
+                      ? 'Nenhuma notificação não lida'
+                      : filtro === 'fixadas'
+                        ? 'Nenhuma notificação fixada'
+                        : 'Nenhuma notificação'}
               </p>
+              {tiposAtivos.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTiposAtivos(new Set())}
+                  className="mt-2 text-[11px] text-primary hover:underline"
+                >
+                  Limpar filtros de tipo
+                </button>
+              )}
             </div>
           ) : (
             grupos.map(([grupo, itens]) => (
