@@ -56,6 +56,7 @@ const Treinamentos = lazy(() => import("./pages/Treinamentos"));
 const Epis = lazy(() => import("./pages/Epis"));
 const Patrimonio = lazy(() => import("./pages/Patrimonio"));
 const Viagens = lazy(() => import("./pages/Viagens"));
+const Assinaturas = lazy(() => import("./pages/Assinaturas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -147,6 +148,7 @@ const App = () => (
                 <Route path="/epis" element={<Page name="EPIs"><Epis /></Page>} />
                 <Route path="/patrimonio" element={<Page name="Patrimônio"><Patrimonio /></Page>} />
                 <Route path="/viagens" element={<Page name="Viagens Corporativas"><Viagens /></Page>} />
+                <Route path="/assinaturas" element={<Page name="Assinatura de Documentos"><Assinaturas /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>

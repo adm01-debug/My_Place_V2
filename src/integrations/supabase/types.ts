@@ -481,6 +481,117 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_assinatura: {
+        Row: {
+          arquivo_hash: string
+          arquivo_url: string
+          categoria: string
+          codigo: string
+          created_at: string
+          criado_por: string
+          data_limite: string | null
+          descricao: string | null
+          id: string
+          observacoes: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          arquivo_hash: string
+          arquivo_url: string
+          categoria: string
+          codigo?: string
+          created_at?: string
+          criado_por: string
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          arquivo_hash?: string
+          arquivo_url?: string
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          criado_por?: string
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documentos_assinaturas: {
+        Row: {
+          arquivo_hash_assinado: string | null
+          assinado_em: string | null
+          assinatura_hash: string | null
+          created_at: string
+          documento_id: string
+          id: string
+          ip: string | null
+          motivo_recusa: string | null
+          ordem: number
+          papel: string
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          arquivo_hash_assinado?: string | null
+          assinado_em?: string | null
+          assinatura_hash?: string | null
+          created_at?: string
+          documento_id: string
+          id?: string
+          ip?: string | null
+          motivo_recusa?: string | null
+          ordem?: number
+          papel?: string
+          status?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          arquivo_hash_assinado?: string | null
+          assinado_em?: string | null
+          assinatura_hash?: string | null
+          created_at?: string
+          documento_id?: string
+          id?: string
+          ip?: string | null
+          motivo_recusa?: string | null
+          ordem?: number
+          papel?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_assinaturas_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_assinatura"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_assinaturas_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_documentos_assinatura"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emprestimos: {
         Row: {
           aprovado_em: string | null
@@ -2898,6 +3009,63 @@ export type Database = {
           horas_medias_resolucao: number | null
           status: Database["public"]["Enums"]["chamado_status"] | null
           total: number | null
+        }
+        Relationships: []
+      }
+      vw_documentos_assinatura: {
+        Row: {
+          arquivo_hash: string | null
+          arquivo_url: string | null
+          categoria: string | null
+          codigo: string | null
+          created_at: string | null
+          criado_por: string | null
+          data_limite: string | null
+          descricao: string | null
+          id: string | null
+          observacoes: string | null
+          status: string | null
+          titulo: string | null
+          total_assinados: number | null
+          total_pendentes: number | null
+          total_signatarios: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_hash?: string | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string | null
+          observacoes?: string | null
+          status?: string | null
+          titulo?: string | null
+          total_assinados?: never
+          total_pendentes?: never
+          total_signatarios?: never
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_hash?: string | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string | null
+          observacoes?: string | null
+          status?: string | null
+          titulo?: string | null
+          total_assinados?: never
+          total_pendentes?: never
+          total_signatarios?: never
+          updated_at?: string | null
         }
         Relationships: []
       }
