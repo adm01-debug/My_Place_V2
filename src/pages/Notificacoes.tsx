@@ -48,6 +48,7 @@ import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
+import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 
 interface Notificacao {
   id: string;
