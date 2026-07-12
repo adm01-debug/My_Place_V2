@@ -487,11 +487,45 @@ export default function NotificationBell() {
         { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
           const nova = payload.new as Notificacao;
+          // Aplica regras de automação sobre a nova notificação.
+          const rules = regrasRef.current.filter((r) => r.enabled);
+          const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          const haystack = norm(`${nova.titulo} ${nova.mensagem}`);
+          const matched = rules.filter((r) => {
+            if (r.tipos.length > 0 && !r.tipos.includes(nova.tipo)) return false;
+            if (r.contains.trim() && !haystack.includes(norm(r.contains.trim()))) return false;
+            return true;
+          });
+          const actions = new Set<RuleAction>(matched.map((r) => r.action));
+
           setNotificacoes((prev) => {
             if (prev.some((n) => n.id === nova.id)) return prev;
-            return [nova, ...prev].slice(0, MAX_ITEMS);
+            const patched: Notificacao = {
+              ...nova,
+              lida: actions.has('auto_read') ? true : nova.lida,
+              fixada_em: actions.has('auto_pin') && !nova.fixada_em ? new Date().toISOString() : nova.fixada_em,
+              adiada_ate: actions.has('auto_snooze_1h')
+                ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+                : nova.adiada_ate,
+            };
+            return [patched, ...prev].slice(0, MAX_ITEMS);
           });
-          showDesktopRef.current(nova);
+
+          // Persistência das ações no backend (fire-and-forget).
+          if (actions.has('auto_read')) {
+            supabase.from('notificacoes').update({ lida: true }).eq('id', nova.id).then(() => {});
+          }
+          if (actions.has('auto_pin') && !nova.fixada_em) {
+            supabase.from('notificacoes').update({ fixada_em: new Date().toISOString() }).eq('id', nova.id).then(() => {});
+          }
+          if (actions.has('auto_snooze_1h')) {
+            const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+            supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
+          }
+          // Só dispara desktop se nenhuma regra pediu silenciamento.
+          if (!actions.has('silent')) {
+            showDesktopRef.current(nova);
+          }
         }
       )
       .on(
