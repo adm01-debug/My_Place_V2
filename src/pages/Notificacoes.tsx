@@ -114,7 +114,9 @@ export default function Notificacoes() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState<number>(50);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
