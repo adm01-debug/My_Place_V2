@@ -78,6 +78,8 @@ type BellFilter = 'todas' | 'nao_lidas' | 'fixadas' | 'adiadas';
 const FILTER_KEY = 'bell_filter_v2';
 const TIPOS_KEY = 'bell_tipos_v1';
 const PREVIEW_KEY = 'bell_preview_v1';
+const AUTO_READ_KEY = 'bell_auto_read_v1';
+const AUTO_READ_DELAY_MS = 1500;
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
@@ -137,6 +139,20 @@ export default function NotificationBell() {
       /* quota — ignore */
     }
   }, [showPreview]);
+
+  // Auto-marcar como lida ao visualizar no painel de preview (opt-in, default ON).
+  const [autoRead, setAutoRead] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(AUTO_READ_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUTO_READ_KEY, autoRead ? '1' : '0');
+    } catch {
+      /* quota — ignore */
+    }
+  }, [autoRead]);
 
   useEffect(() => {
     const timers = undoTimers.current;
@@ -769,6 +785,21 @@ export default function NotificationBell() {
     [filtradas, activeId]
   );
 
+  // Auto-read: quando o preview lateral está visível, o popover está aberto,
+  // o usuário optou por auto-marcar e o item ativo ainda está não lido,
+  // agenda uma marcação como lida após AUTO_READ_DELAY_MS. Cancela em troca.
+  useEffect(() => {
+    if (!open || !showPreview || !autoRead || !activeItem || activeItem.lida) return;
+    const targetId = activeItem.id;
+    const t = setTimeout(() => {
+      markAsRead(targetId);
+    }, AUTO_READ_DELAY_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, showPreview, autoRead, activeItem?.id, activeItem?.lida]);
+
+
+
   const formatAbsolute = (iso: string) => {
     try {
       return new Date(iso).toLocaleString('pt-BR', {
@@ -823,6 +854,21 @@ export default function NotificationBell() {
                 <PanelRightOpen className="w-3.5 h-3.5 text-muted-foreground" />
               )}
             </Button>
+            {showPreview && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden md:inline-flex h-7 w-7"
+                onClick={() => setAutoRead((v) => !v)}
+                aria-pressed={autoRead}
+                aria-label={autoRead ? 'Desativar auto-marcar como lida' : 'Ativar auto-marcar como lida'}
+                title={autoRead ? 'Auto-marcar lida: ativa (1.5s no preview)' : 'Auto-marcar lida: desativada'}
+              >
+                <CheckCircle2
+                  className={`w-3.5 h-3.5 ${autoRead ? 'text-emerald-500' : 'text-muted-foreground'}`}
+                />
+              </Button>
+            )}
             {canUseDesktop() && (
               <Button
                 variant="ghost"
