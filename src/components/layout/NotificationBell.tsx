@@ -541,6 +541,11 @@ export default function NotificationBell() {
             togglePin(current.id, !!current.fixada_em);
           }
           break;
+        case 'v':
+          // Alterna painel lateral de preview (só faz sentido em md+, mas o estado persiste).
+          e.preventDefault();
+          setShowPreview((v) => !v);
+          break;
         case 'x':
         case 'Delete':
         case 'Backspace': {
