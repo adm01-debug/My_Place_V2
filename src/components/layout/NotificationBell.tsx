@@ -1083,6 +1083,24 @@ export default function NotificationBell() {
         return;
       }
 
+      // Item 101: Ctrl/Cmd+A → seleciona todas visíveis; Escape → limpa seleção.
+      if (!inField && (e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        selectAllFiltradas();
+        return;
+      }
+      if (!inField && e.key === 'Escape' && selected.size > 0) {
+        e.preventDefault();
+        clearSelection();
+        return;
+      }
+      // Item 101: barra de espaço alterna seleção do item ativo.
+      if (!inField && e.key === ' ' && activeId) {
+        e.preventDefault();
+        toggleSelect(activeId, { shift: e.shiftKey });
+        return;
+      }
+
       if (flatList.length === 0) return;
 
       const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
