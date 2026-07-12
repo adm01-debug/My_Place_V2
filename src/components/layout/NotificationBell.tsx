@@ -1945,6 +1945,14 @@ export default function NotificationBell() {
               </button>
               <button
                 type="button"
+                onClick={bulkMarkUnread}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Marcar selecionadas como não lidas"
+              >
+                <MailOpen className="w-3 h-3" /> Não lidas
+              </button>
+              <button
+                type="button"
                 onClick={bulkTogglePin}
                 className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
                 title="Fixar/desafixar selecionadas"
