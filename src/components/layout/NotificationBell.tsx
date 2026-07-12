@@ -1915,6 +1915,79 @@ export default function NotificationBell() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Item 97: Dialog de Snooze Personalizado */}
+    <Dialog
+      open={customSnoozeFor !== null}
+      onOpenChange={(v) => { if (!v) setCustomSnoozeFor(null); }}
+    >
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Clock className="w-4 h-4 text-primary" />
+            Adiar até…
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Escolha a data e hora exata em que a notificação deve voltar. Máximo de 30 dias no futuro.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <input
+            type="datetime-local"
+            value={customSnoozeValue}
+            min={(() => {
+              const d = new Date(Date.now() + 60000);
+              const pad = (v: number) => String(v).padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            })()}
+            max={(() => {
+              const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+              const pad = (v: number) => String(v).padStart(2, '0');
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            })()}
+            onChange={(e) => setCustomSnoozeValue(e.target.value)}
+            className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          {customSnoozeValue && (() => {
+            const target = new Date(customSnoozeValue);
+            const now = new Date();
+            const invalid = isNaN(target.getTime()) || target.getTime() <= now.getTime();
+            const tooFar = target.getTime() - now.getTime() > 30 * 24 * 60 * 60 * 1000;
+            if (invalid) return <p className="text-[11px] text-destructive">Escolha uma data/hora no futuro.</p>;
+            if (tooFar) return <p className="text-[11px] text-destructive">Máximo permitido: 30 dias.</p>;
+            const diffMin = Math.round((target.getTime() - now.getTime()) / 60000);
+            const rel =
+              diffMin < 60 ? `${diffMin} min` :
+              diffMin < 60 * 24 ? `${Math.round(diffMin / 60)} h` :
+              `${Math.round(diffMin / (60 * 24))} d`;
+            return <p className="text-[11px] text-muted-foreground">Volta em <span className="font-medium text-foreground">{rel}</span> ({formatAbsolute(target.toISOString())}).</p>;
+          })()}
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setCustomSnoozeFor(null)}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            disabled={(() => {
+              if (!customSnoozeValue) return true;
+              const t = new Date(customSnoozeValue).getTime();
+              const now = Date.now();
+              return isNaN(t) || t <= now || t - now > 30 * 24 * 60 * 60 * 1000;
+            })()}
+            onClick={() => {
+              if (!customSnoozeFor) return;
+              const target = new Date(customSnoozeValue);
+              snoozeNotif(customSnoozeFor, target);
+              setCustomSnoozeFor(null);
+            }}
+          >
+            <Clock className="w-3.5 h-3.5 mr-1.5" />
+            Adiar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
 
   );
