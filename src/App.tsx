@@ -60,6 +60,7 @@ const Assinaturas = lazy(() => import("./pages/Assinaturas"));
 const BusinessIntelligence = lazy(() => import("./pages/BusinessIntelligence"));
 const AdminIntegracoes = lazy(() => import("./pages/AdminIntegracoes"));
 const NotificacaoPreferencias = lazy(() => import("./pages/NotificacaoPreferencias"));
+const NotificacaoHistorico = lazy(() => import("./pages/NotificacaoHistorico"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -155,6 +156,7 @@ const App = () => (
                 <Route path="/bi" element={<Page name="Business Intelligence"><BusinessIntelligence /></Page>} />
                 <Route path="/admin/integracoes" element={<Page name="Integrações Externas"><AdminIntegracoes /></Page>} />
                 <Route path="/notificacoes/preferencias" element={<Page name="Preferências de Notificação"><NotificacaoPreferencias /></Page>} />
+                <Route path="/notificacoes/historico" element={<Page name="Histórico de Notificações"><NotificacaoHistorico /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>

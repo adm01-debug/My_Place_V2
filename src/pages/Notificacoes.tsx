@@ -138,9 +138,14 @@ export default function Notificacoes() {
             description="Fique por dentro das novidades e atualizações"
             icon={Bell}
             actions={
-              <Button variant="outline" size="sm" onClick={() => navigate('/notificacoes/preferencias')}>
-                Preferências
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
+                  Histórico
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate('/notificacoes/preferencias')}>
+                  Preferências
+                </Button>
+              </div>
             }
           />
         </div>
