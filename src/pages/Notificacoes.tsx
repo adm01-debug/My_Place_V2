@@ -474,6 +474,8 @@ export default function Notificacoes() {
   }, [filtradas]);
 
   const exportarPDF = useCallback(() => {
+    const escapeHtml = (s: string) =>
+      (s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
     if (filtradas.length === 0) {
       toast.info('Nada para exportar no filtro atual');
       return;
