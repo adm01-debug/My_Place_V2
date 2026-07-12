@@ -423,13 +423,20 @@ export default function Notificacoes() {
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
+    const ini = dataInicio ? new Date(`${dataInicio}T00:00:00`).getTime() : null;
+    const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`).getTime() : null;
     return notificacoes.filter((n) => {
       if (filtro === 'nao_lidas' && n.lida) return false;
       if (['sucesso', 'erro', 'alerta', 'info'].includes(filtro) && n.tipo !== filtro) return false;
       if (termo && !`${n.titulo} ${n.mensagem}`.toLowerCase().includes(termo)) return false;
+      if (ini || fim) {
+        const t = new Date(n.created_at).getTime();
+        if (ini && t < ini) return false;
+        if (fim && t > fim) return false;
+      }
       return true;
     });
-  }, [notificacoes, filtro, busca]);
+  }, [notificacoes, filtro, busca, dataInicio, dataFim]);
 
   const grupos = useMemo(() => {
     const map = new Map<string, Notificacao[]>();
