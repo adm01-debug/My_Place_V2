@@ -895,6 +895,25 @@ export default function Notificacoes() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setDensidade((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
+                title={
+                  densidade === 'compact'
+                    ? 'Densidade compacta: mais itens visíveis. Clique para modo confortável.'
+                    : 'Densidade confortável. Clique para modo compacto (mais itens por tela).'
+                }
+                aria-pressed={densidade === 'compact'}
+                aria-label={densidade === 'compact' ? 'Alternar para densidade confortável' : 'Alternar para densidade compacta'}
+              >
+                {densidade === 'compact' ? (
+                  <Rows3 className="w-4 h-4 mr-1" />
+                ) : (
+                  <Rows2 className="w-4 h-4 mr-1" />
+                )}
+                {densidade === 'compact' ? 'Compacto' : 'Confortável'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setRulesDialogOpen(true)}
                 title="Regras automáticas: aplicar ações a novas notificações que casem com um padrão"
                 aria-label="Abrir regras automáticas"
