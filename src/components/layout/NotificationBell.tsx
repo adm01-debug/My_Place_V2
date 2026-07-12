@@ -248,6 +248,19 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').update({ lida: true }).in('id', unreadIds);
   };
 
+  const togglePin = async (id: string, isPinned: boolean) => {
+    const novoFixadaEm = isPinned ? null : new Date().toISOString();
+    setNotificacoes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, fixada_em: novoFixadaEm } : n))
+    );
+    await supabase.from('notificacoes').update({ fixada_em: novoFixadaEm }).eq('id', id);
+  };
+
+  const deleteNotif = async (id: string) => {
+    setNotificacoes((prev) => prev.filter((n) => n.id !== id));
+    await supabase.from('notificacoes').delete().eq('id', id);
+  };
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
