@@ -514,8 +514,13 @@ export default function Notificacoes() {
   );
 
   const grupos = useMemo(() => {
+    const fixadas: Notificacao[] = [];
     const map = new Map<string, Notificacao[]>();
     for (const n of filtradasVisiveis) {
+      if (n.fixada_em) {
+        fixadas.push(n);
+        continue;
+      }
       const label = groupLabel(new Date(n.created_at));
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
@@ -524,8 +529,17 @@ export default function Notificacoes() {
       for (const [, itens] of map) {
         itens.sort((a, b) => relevanceScore(b) - relevanceScore(a));
       }
+      fixadas.sort((a, b) => relevanceScore(b) - relevanceScore(a));
+    } else {
+      // Mais recentemente fixadas primeiro
+      fixadas.sort(
+        (a, b) => new Date(b.fixada_em ?? 0).getTime() - new Date(a.fixada_em ?? 0).getTime(),
+      );
     }
-    return Array.from(map.entries());
+    const result: Array<[string, Notificacao[]]> = [];
+    if (fixadas.length > 0) result.push(['📌 Fixadas', fixadas]);
+    for (const entry of map.entries()) result.push(entry);
+    return result;
   }, [filtradasVisiveis, ordenarPorRelevancia]);
 
   // Reset paginação quando filtros mudam
