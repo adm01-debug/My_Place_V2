@@ -163,7 +163,8 @@ export default function Notificacoes() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          setNotificacoes((prev) => [payload.new as Notificacao, ...prev]);
+          const nova = payload.new as Notificacao;
+          setNotificacoes((prev) => (prev.some((n) => n.id === nova.id) ? prev : [nova, ...prev]));
         },
       )
       .subscribe();
