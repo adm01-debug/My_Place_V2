@@ -424,6 +424,29 @@ export default function NotificationBell() {
     return `${days}d`;
   };
 
+  // Realça o termo buscado no texto (respeitando acentos e case originais).
+  const highlight = useCallback(
+    (text: string) => {
+      if (!buscaNorm) return text;
+      const normText = normalize(text);
+      const start = normText.indexOf(buscaNorm);
+      if (start < 0) return text;
+      const end = start + buscaNorm.length;
+      return (
+        <>
+          {text.slice(0, start)}
+          <mark className="bg-primary/25 text-foreground rounded px-0.5">
+            {text.slice(start, end)}
+          </mark>
+          {text.slice(end)}
+        </>
+      );
+    },
+    [buscaNorm, normalize]
+  );
+
+
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
