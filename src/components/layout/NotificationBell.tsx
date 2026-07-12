@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -846,6 +846,77 @@ export default function NotificationBell() {
     }
   };
 
+  // ===== Item 95: Exportar notificações (CSV/JSON) =====
+  // Exporta a coleção atualmente visível (respeitando busca/filtros/aba/foco).
+  // Fallback: se a lista visível estiver vazia, exporta todas as carregadas.
+  const buildExportPayload = useCallback(() => {
+    const source = filtradas.length > 0 ? filtradas : notificacoes;
+    return source.map((n) => ({
+      id: n.id,
+      titulo: n.titulo,
+      mensagem: n.mensagem,
+      tipo: n.tipo,
+      lida: n.lida,
+      fixada: !!n.fixada_em,
+      adiada_ate: n.adiada_ate,
+      link: n.link,
+      created_at: n.created_at,
+      created_at_local: (() => {
+        try { return new Date(n.created_at).toLocaleString('pt-BR'); } catch { return ''; }
+      })(),
+    }));
+  }, [filtradas, notificacoes]);
+
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Revoga em seguida para liberar memória.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const timestamp = () => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  };
+
+  const exportarJSON = () => {
+    const payload = buildExportPayload();
+    if (payload.length === 0) {
+      toast.info('Nada para exportar');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    triggerDownload(blob, `notificacoes_${timestamp()}.json`);
+    toast.success(`${payload.length} notificação(ões) exportadas (JSON)`);
+  };
+
+  const exportarCSV = () => {
+    const payload = buildExportPayload();
+    if (payload.length === 0) {
+      toast.info('Nada para exportar');
+      return;
+    }
+    const headers = ['id','titulo','mensagem','tipo','lida','fixada','adiada_ate','link','created_at','created_at_local'];
+    const escape = (v: unknown) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v).replace(/"/g, '""').replace(/\r?\n/g, ' ');
+      return `"${s}"`;
+    };
+    const rows = payload.map((r) => headers.map((h) => escape((r as Record<string, unknown>)[h])).join(','));
+    // BOM para compatibilidade com Excel PT-BR.
+    const csv = '\ufeff' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    triggerDownload(blob, `notificacoes_${timestamp()}.csv`);
+    toast.success(`${payload.length} notificação(ões) exportadas (CSV)`);
+  };
+
+
   return (
     <>
     <Popover open={open} onOpenChange={setOpen}>
@@ -905,6 +976,33 @@ export default function NotificationBell() {
             >
               <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  aria-label="Exportar notificações"
+                  title="Exportar notificações"
+                >
+                  <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-xs">
+                  Exportar {filtradas.length > 0 ? `${filtradas.length} visível(is)` : `${notificacoes.length} total`}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportarCSV} className="gap-2 text-xs">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+                  Baixar como CSV (Excel)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarJSON} className="gap-2 text-xs">
+                  <FileJson className="w-3.5 h-3.5 text-primary" />
+                  Baixar como JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="ghost"
               size="icon"
