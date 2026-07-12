@@ -34,7 +34,7 @@ const CATEGORIAS = ["financeiro", "rh", "ponto", "documentos", "sistema", "socia
 function renderPreview(tpl: string, vars: Record<string, string>): string {
   let out = tpl || "";
   Object.entries(vars).forEach(([k, v]) => {
-    out = out.replaceAll(`{{${k}}}`, v || `{{${k}}}`);
+    out = out.split(`{{${k}}}`).join(v || `{{${k}}}`);
   });
   return out;
 }
