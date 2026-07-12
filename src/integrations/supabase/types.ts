@@ -1875,6 +1875,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao_templates: {
+        Row: {
+          ativo: boolean
+          canal: string
+          categoria: string
+          codigo: string
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          idioma: string
+          mensagem_template: string
+          titulo_template: string
+          updated_at: string
+          variaveis_esperadas: Json
+          versao: number
+        }
+        Insert: {
+          ativo?: boolean
+          canal?: string
+          categoria: string
+          codigo: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          idioma?: string
+          mensagem_template: string
+          titulo_template: string
+          updated_at?: string
+          variaveis_esperadas?: Json
+          versao?: number
+        }
+        Update: {
+          ativo?: boolean
+          canal?: string
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          idioma?: string
+          mensagem_template?: string
+          titulo_template?: string
+          updated_at?: string
+          variaveis_esperadas?: Json
+          versao?: number
+        }
+        Relationships: []
+      }
       notificacoes: {
         Row: {
           created_at: string
@@ -3994,6 +4045,31 @@ export type Database = {
           total_respostas: number
         }[]
       }
+      fn_get_template: {
+        Args: { _canal?: string; _codigo: string; _idioma?: string }
+        Returns: {
+          ativo: boolean
+          canal: string
+          categoria: string
+          codigo: string
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          idioma: string
+          mensagem_template: string
+          titulo_template: string
+          updated_at: string
+          variaveis_esperadas: Json
+          versao: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notificacao_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_haversine_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -4084,6 +4160,10 @@ export type Database = {
           _integracao_id?: string
           _sucesso: boolean
         }
+        Returns: string
+      }
+      fn_render_template: {
+        Args: { _template: string; _vars: Json }
         Returns: string
       }
       fn_validar_ponto_no_raio: {
