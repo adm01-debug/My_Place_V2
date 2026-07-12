@@ -27,12 +27,12 @@ import { ExportPanel } from "@/components/bi/ExportPanel";
 
 type Meses = 3 | 6 | 12;
 
-interface HeadcountRow { mes: string; departamento: string; ativos: number }
-interface AbsentRow { mes: string; departamento: string; total_atestados: number; dias_afastados: number; taxa_absenteismo_pct: number | null }
-interface CustoRow { mes: string; departamento: string; salarios: number; reembolsos: number; viagens: number; vales: number; total: number }
-interface TurnoverRow { trimestre: string; departamento: string; admissoes: number; desligamentos: number; turnover_pct: number | null }
-interface EngajRow { mes: string; departamento: string; kudos: number; treinamentos_concluidos: number; clima_respostas: number; score_engajamento: number }
-interface ComplianceRow { departamento: string; politicas_pct: number | null; treinamentos_pct: number | null; epis_pct: number | null; score_geral: number | null }
+type HeadcountRow = { mes: string; departamento: string; ativos: number } & Record<string, unknown>;
+type AbsentRow = { mes: string; departamento: string; total_atestados: number; dias_afastados: number; taxa_absenteismo_pct: number | null } & Record<string, unknown>;
+type CustoRow = { mes: string; departamento: string; salarios: number; reembolsos: number; viagens: number; vales: number; total: number } & Record<string, unknown>;
+type TurnoverRow = { trimestre: string; departamento: string; admissoes: number; desligamentos: number; turnover_pct: number | null } & Record<string, unknown>;
+type EngajRow = { mes: string; departamento: string; kudos: number; treinamentos_concluidos: number; clima_respostas: number; score_engajamento: number } & Record<string, unknown>;
+type ComplianceRow = { departamento: string; politicas_pct: number | null; treinamentos_pct: number | null; epis_pct: number | null; score_geral: number | null } & Record<string, unknown>;
 
 const currency = (n: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(n);
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${Number(n).toFixed(1)}%`);
