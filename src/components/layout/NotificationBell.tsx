@@ -474,6 +474,36 @@ export default function NotificationBell() {
           </div>
         </div>
 
+        {/* Busca inline */}
+        <div className="relative px-2 py-1.5 border-b border-border/50">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            ref={buscaRef}
+            type="text"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar notificações…  ( / )"
+            aria-label="Buscar notificações"
+            className="w-full h-8 pl-7 pr-7 text-xs rounded-md bg-muted/40 border border-transparent focus:border-primary/40 focus:bg-background focus:outline-none placeholder:text-muted-foreground/70 transition-colors"
+          />
+          {busca && (
+            <button
+              type="button"
+              onClick={() => {
+                setBusca('');
+                buscaRef.current?.focus();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded hover:bg-muted transition-colors"
+              aria-label="Limpar busca"
+              title="Limpar busca (Esc)"
+            >
+              <X className="w-3 h-3 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+
+
         <div
           role="tablist"
           aria-label="Filtro de notificações"
