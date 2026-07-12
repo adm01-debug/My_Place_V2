@@ -370,15 +370,8 @@ export default function NotificationBell() {
 
 
 
-  const handleClick = (n: Notificacao) => {
-    if (!n.lida) markAsRead(n.id);
-    setOpen(false);
-    if (n.link) {
-      navigate(n.link);
-    } else {
-      navigate(`/notificacoes?focus=${n.id}`);
-    }
-  };
+
+
 
   const formatTime = (d: string) => {
     const diff = Date.now() - new Date(d).getTime();
