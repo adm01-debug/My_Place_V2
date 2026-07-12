@@ -165,6 +165,9 @@ export default function NotificationBell() {
     try { localStorage.setItem(FOCUS_KEY, focusMode ? '1' : '0'); } catch { /* quota */ }
   }, [focusMode]);
 
+  // Central de Atalhos (help modal).
+  const [showHelp, setShowHelp] = useState<boolean>(false);
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
