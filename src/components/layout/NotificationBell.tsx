@@ -192,6 +192,54 @@ export default function NotificationBell() {
   const focusModeRef = useRef(focusMode);
   useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
 
+  // ─── Item 102: Agrupamento inteligente (clustering) ───────────────────────
+  // Agrupa notificações consecutivas do mesmo tipo + título normalizado dentro
+  // do mesmo bucket temporal. Reduz ruído em bursts (ex.: 5 avisos de "novo
+  // comentário em X" viram 1 linha com "+4"). Toggle persistido; expansão por
+  // cluster também persiste até a próxima sessão.
+  const CLUSTER_KEY = 'notif_cluster_enabled';
+  const CLUSTER_EXPANDED_KEY = 'notif_cluster_expanded';
+  const CLUSTER_MIN_SIZE = 2;
+  const CLUSTER_WINDOW_MS = 6 * 60 * 60 * 1000; // 6h entre líder e último membro
+  const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(CLUSTER_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(CLUSTER_KEY, agruparSimilares ? '1' : '0'); } catch { /* quota */ }
+  }, [agruparSimilares]);
+  const [clustersExpanded, setClustersExpanded] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(CLUSTER_EXPANDED_KEY) || '[]');
+      return new Set(Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : []);
+    } catch { return new Set(); }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(CLUSTER_EXPANDED_KEY, JSON.stringify(Array.from(clustersExpanded)));
+    } catch { /* quota */ }
+  }, [clustersExpanded]);
+  const toggleClusterExpanded = useCallback((key: string) => {
+    setClustersExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+  // Normaliza título para agrupar variações irrelevantes ("#42", timestamps,
+  // números). Colapsa espaços, minúsculas, remove sequências numéricas.
+  const normalizeTitulo = useCallback((s: string) =>
+    s.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/#?\d+/g, '#')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  []);
+
+
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
 
