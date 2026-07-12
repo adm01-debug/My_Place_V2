@@ -27,6 +27,7 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  Focus,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -115,6 +116,10 @@ export default function Notificacoes() {
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
   const [visibleCount, setVisibleCount] = useState<number>(50);
+  const [modoFoco, setModoFoco] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('notif_modo_foco') === '1';
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -125,6 +130,11 @@ export default function Notificacoes() {
   useEffect(() => {
     localStorage.setItem('notif_ordenar_relevancia', ordenarPorRelevancia ? '1' : '0');
   }, [ordenarPorRelevancia]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_modo_foco', modoFoco ? '1' : '0');
+  }, [modoFoco]);
+
 
 
   const toggleThread = (key: string) => {
@@ -436,9 +446,16 @@ export default function Notificacoes() {
         if (ini && t < ini) return false;
         if (fim && t > fim) return false;
       }
+      // Modo Foco: apenas não-lidas prioritárias (erro/alerta OU score ≥ 130)
+      if (modoFoco) {
+        if (n.lida) return false;
+        const prioritaria = n.tipo === 'erro' || n.tipo === 'alerta' || relevanceScore(n) >= 130;
+        if (!prioritaria) return false;
+      }
       return true;
     });
-  }, [notificacoes, filtro, busca, dataInicio, dataFim]);
+  }, [notificacoes, filtro, busca, dataInicio, dataFim, modoFoco]);
+
 
   const filtradasVisiveis = useMemo(
     () => filtradas.slice(0, visibleCount),
@@ -463,7 +480,8 @@ export default function Notificacoes() {
   // Reset paginação quando filtros mudam
   useEffect(() => {
     setVisibleCount(50);
-  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia]);
+  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco]);
+
 
   // Infinite scroll via IntersectionObserver
   useEffect(() => {
@@ -714,6 +732,21 @@ export default function Notificacoes() {
           actions={
             <div className="flex gap-2">
               <Button
+                variant={modoFoco ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setModoFoco((v) => !v)}
+                title={
+                  modoFoco
+                    ? 'Sair do modo Foco'
+                    : 'Modo Foco: mostrar apenas não-lidas prioritárias (erros, alertas e alta relevância)'
+                }
+                aria-pressed={modoFoco}
+                className={modoFoco ? 'bg-amber-500 hover:bg-amber-600 text-white' : ''}
+              >
+                <Focus className="w-4 h-4 mr-1" />
+                {modoFoco ? 'Foco ativo' : 'Foco'}
+              </Button>
+              <Button
                 variant={agruparSimilares ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAgruparSimilares((v) => !v)}
@@ -956,8 +989,23 @@ export default function Notificacoes() {
           </div>
         )}
 
+        {modoFoco && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-sm">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+              <Focus className="w-4 h-4" />
+              <span>
+                <strong>Modo Foco ativo</strong> — exibindo apenas não-lidas prioritárias (erros, alertas e alta relevância).
+              </span>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setModoFoco(false)} className="h-7">
+              Sair
+            </Button>
+          </div>
+        )}
+
         {/* Lista agrupada */}
         <div className="space-y-6">
+
           {loading ? (
             Array(4)
               .fill(0)
