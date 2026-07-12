@@ -1107,6 +1107,28 @@ export default function NotificationBell() {
               variant="ghost"
               size="icon"
               className="h-7 w-7"
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                if (next) {
+                  // Toca um preview curto ao ativar para feedback imediato.
+                  playSound('sucesso');
+                }
+              }}
+              aria-pressed={soundEnabled}
+              aria-label={soundEnabled ? 'Desativar sons de notificação' : 'Ativar sons de notificação'}
+              title={soundEnabled ? 'Sons: ativados (clique para silenciar)' : 'Sons: desativados (clique para ativar)'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
               onClick={() => setShowHelp(true)}
               aria-label="Ver atalhos de teclado"
               title="Atalhos de teclado (?)"
