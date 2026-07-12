@@ -195,6 +195,10 @@ export default function NotificationBell() {
 
   // Item 96: Regras de Automação
   const [showRules, setShowRules] = useState<boolean>(false);
+
+  // Item 97: Snooze Personalizado (data/hora customizada)
+  const [customSnoozeFor, setCustomSnoozeFor] = useState<string | null>(null);
+  const [customSnoozeValue, setCustomSnoozeValue] = useState<string>('');
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
