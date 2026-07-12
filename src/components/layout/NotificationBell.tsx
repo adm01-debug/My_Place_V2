@@ -34,6 +34,12 @@ const tipoColors = {
 
 const MAX_ITEMS = 30;
 
+type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
+const FILTER_KEY = 'bell_filter_v1';
+
+const isBellFilter = (v: unknown): v is BellFilter =>
+  v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
+
 export default function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
