@@ -147,6 +147,7 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) {
       setActiveId(null);
+      setBusca('');
       return;
     }
     setActiveId((prev) => {
