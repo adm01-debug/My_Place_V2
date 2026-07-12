@@ -189,6 +189,33 @@ export default function NotificationBell() {
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
 
+  // Item 96: Regras de Automação
+  const [showRules, setShowRules] = useState<boolean>(false);
+  const [regras, setRegras] = useState<BellRule[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = JSON.parse(localStorage.getItem(RULES_KEY) || '[]');
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .filter((r): r is BellRule =>
+          !!r && typeof r === 'object'
+          && typeof r.id === 'string'
+          && typeof r.name === 'string'
+          && typeof r.enabled === 'boolean'
+          && Array.isArray(r.tipos) && r.tipos.every(isTipoNotif)
+          && typeof r.contains === 'string'
+          && isRuleAction(r.action)
+        );
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(RULES_KEY, JSON.stringify(regras)); } catch { /* quota */ }
+  }, [regras]);
+  // Ref sempre atualizada para uso dentro do handler realtime (evita re-subscribe).
+  const regrasRef = useRef<BellRule[]>(regras);
+  useEffect(() => { regrasRef.current = regras; }, [regras]);
+
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
