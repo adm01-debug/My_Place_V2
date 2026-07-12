@@ -199,6 +199,48 @@ export default function NotificationBell() {
   // Item 97: Snooze Personalizado (data/hora customizada)
   const [customSnoozeFor, setCustomSnoozeFor] = useState<string | null>(null);
   const [customSnoozeValue, setCustomSnoozeValue] = useState<string>('');
+
+  // Item 98: Sons de notificação (Web Audio, síntese — sem asset externo)
+  const SOUND_KEY = 'notif_sound_enabled';
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(SOUND_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0'); } catch { /* quota */ }
+  }, [soundEnabled]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const playSound = useCallback((tipo: Notificacao['tipo']) => {
+    if (!soundEnabled) return;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new AC();
+      const ctx = audioCtxRef.current;
+      // Frequência distinta por tipo para reconhecimento auditivo.
+      const freqMap: Record<Notificacao['tipo'], number> = {
+        info: 660,      // Mi
+        sucesso: 880,   // Lá agudo
+        alerta: 520,    // Dó grave
+        erro: 300,      // grave/urgente
+      };
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freqMap[tipo] ?? 660, now);
+      // Envelope curto: attack 10ms, decay 250ms — não invasivo.
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch { /* som é opcional */ }
+  }, [soundEnabled]);
+  const playSoundRef = useRef(playSound);
+  useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
