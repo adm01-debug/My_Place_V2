@@ -155,6 +155,16 @@ export default function NotificationBell() {
     }
   }, [autoRead]);
 
+  // Modo Foco (Zen): filtra apenas alerta+erro; badge fica discreto (ponto) e
+  // ignora as demais notificações no popover — ideal para reduzir ruído.
+  const [focusMode, setFocusMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(FOCUS_KEY) === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(FOCUS_KEY, focusMode ? '1' : '0'); } catch { /* quota */ }
+  }, [focusMode]);
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
