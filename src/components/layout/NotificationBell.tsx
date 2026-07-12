@@ -84,6 +84,18 @@ export default function NotificationBell() {
   const [busca, setBusca] = useState('');
   const buscaRef = useRef<HTMLInputElement>(null);
 
+  // Undo: itens marcados como "pending delete" ficam ocultos por UNDO_MS antes do commit real no backend.
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(() => new Set());
+  const undoTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(() => {
+    const timers = undoTimers.current;
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
+    };
+  }, []);
+
   // Normaliza texto (case + acentos) para busca amigável em PT-BR.
   const normalize = useCallback(
     (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(),
