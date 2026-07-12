@@ -140,13 +140,15 @@ export default function AdminHolerites() {
 
         if (hError) throw hError;
 
-        // Criar notificação para o usuário
-        await supabase.from('notificacoes').insert({
-          user_id: profile.id,
-          titulo: "Novo Holerite Disponível",
-          mensagem: `Seu holerite de ${competencia} já está disponível para visualização.`,
-          tipo: 'info',
-          link: '/holerites'
+        // Criar notificação respeitando preferências do usuário
+        await supabase.rpc('fn_notificar', {
+          _user_id: profile.id,
+          _titulo: "Novo Holerite Disponível",
+          _mensagem: `Seu holerite de ${competencia} já está disponível para visualização.`,
+          _tipo: 'info',
+          _categoria: 'holerite',
+          _link: '/holerites',
+          _nivel: 'info',
         });
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "success", progress: 100 } : f));

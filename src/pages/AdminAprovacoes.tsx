@@ -163,12 +163,14 @@ export default function AdminAprovacoes() {
         : solicitacoes.find(s => s.id === actionDialog.id);
       
       if (requestData) {
-        await supabase.from('notificacoes').insert({
-          user_id: requestData.user_id,
-          titulo: `Sua solicitação foi ${isAprovar ? 'aprovada' : 'recusada'}`,
-          mensagem: `Sua solicitação de ${actionDialog.type === 'ferias' ? 'férias' : 'RH'} foi processada pelo RH.`,
-          tipo: isAprovar ? 'sucesso' : 'alerta',
-          link: actionDialog.type === 'ferias' ? '/ferias' : '/solicitacoes'
+        await supabase.rpc('fn_notificar', {
+          _user_id: requestData.user_id,
+          _titulo: `Sua solicitação foi ${isAprovar ? 'aprovada' : 'recusada'}`,
+          _mensagem: `Sua solicitação de ${actionDialog.type === 'ferias' ? 'férias' : 'RH'} foi processada pelo RH.`,
+          _tipo: isAprovar ? 'sucesso' : 'alerta',
+          _categoria: actionDialog.type === 'ferias' ? 'ferias' : 'solicitacao',
+          _link: actionDialog.type === 'ferias' ? '/ferias' : '/solicitacoes',
+          _nivel: 'info',
         });
       }
 
