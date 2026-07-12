@@ -1676,6 +1676,7 @@ export type Database = {
           nivel: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id: string | null
           status: string
+          template_id: string | null
           tentativas: number
           titulo: string
           user_id: string
@@ -1694,6 +1695,7 @@ export type Database = {
           nivel?: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id?: string | null
           status: string
+          template_id?: string | null
           tentativas?: number
           titulo: string
           user_id: string
@@ -1712,6 +1714,7 @@ export type Database = {
           nivel?: Database["public"]["Enums"]["notif_nivel"]
           notificacao_id?: string | null
           status?: string
+          template_id?: string | null
           tentativas?: number
           titulo?: string
           user_id?: string
@@ -1736,6 +1739,13 @@ export type Database = {
             columns: ["notificacao_id"]
             isOneToOne: false
             referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacao_entregas_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notificacao_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -4120,6 +4130,22 @@ export type Database = {
       }
       fn_notif_prefs_reset: { Args: { _user_id: string }; Returns: number }
       fn_notif_stats_24h: { Args: { _user_id?: string }; Returns: Json }
+      fn_notif_template_stats: {
+        Args: { _periodo_dias?: number }
+        Returns: {
+          agrupados: number
+          bloqueados: number
+          canal: string
+          codigo: string
+          entregues: number
+          idioma: string
+          taxa_sucesso: number
+          template_id: string
+          total_envios: number
+          ultimo_uso: string
+          versao: number
+        }[]
+      }
       fn_notificar: {
         Args: {
           _categoria: Database["public"]["Enums"]["notif_categoria"]
