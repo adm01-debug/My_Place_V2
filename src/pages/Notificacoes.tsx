@@ -473,108 +473,178 @@ export default function Notificacoes() {
               </div>
             </div>
           ) : (
-            grupos.map(([label, itens]) => (
-              <div key={label} className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
-                  {label} · {itens.length}
-                </h4>
-                <div className="space-y-2">
-                  {itens.map((n) => {
-                    const selecionada = selecionadas.has(n.id);
-                    return (
-                      <Card
-                        key={n.id}
-                        className={`group border-border/50 transition-all hover:shadow-md ${
-                          !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
-                        } ${selecionada ? 'ring-2 ring-primary/40' : ''}`}
-                      >
-                        <CardContent className="p-4">
+            grupos.map(([label, itens]) => {
+              const threads = buildThreads(label, itens);
+              const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => {
+                const selecionada = selecionadas.has(n.id);
+                return (
+                  <Card
+                    key={n.id}
+                    className={`group border-border/50 transition-all hover:shadow-md ${
+                      !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
+                    } ${selecionada ? 'ring-2 ring-primary/40' : ''} ${
+                      opts?.inThread ? 'ml-6 border-l-2 border-l-primary/30' : ''
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex gap-3">
+                        <div className="pt-1">
+                          <Checkbox
+                            checked={selecionada}
+                            onCheckedChange={() => toggleSelecao(n.id)}
+                            aria-label="Selecionar notificação"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleAction(n)}
+                          className="flex-1 min-w-0 text-left"
+                        >
                           <div className="flex gap-3">
-                            <div className="pt-1">
-                              <Checkbox
-                                checked={selecionada}
-                                onCheckedChange={() => toggleSelecao(n.id)}
-                                aria-label="Selecionar notificação"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleAction(n)}
-                              className="flex-1 min-w-0 text-left"
-                            >
-                              <div className="flex gap-3">
-                                <div className="shrink-0 mt-1">{getIcon(n.tipo)}</div>
-                                <div className="flex-1 min-w-0 space-y-1">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h3
-                                      className={`text-sm font-semibold truncate ${
-                                        !n.lida ? 'text-primary' : 'text-foreground'
-                                      }`}
-                                    >
-                                      {n.titulo}
-                                    </h3>
-                                    <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5 flex items-center gap-1">
-                                      <Calendar className="w-3 h-3" />
-                                      {format(new Date(n.created_at), 'dd MMM, HH:mm', {
-                                        locale: ptBR,
-                                      })}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                    {n.mensagem}
-                                  </p>
-                                  {n.link && (
-                                    <span className="text-[10px] font-medium text-primary flex items-center gap-1 pt-1">
-                                      Acessar <ExternalLink className="w-2.5 h-2.5" />
-                                    </span>
-                                  )}
-                                </div>
+                            <div className="shrink-0 mt-1">{getIcon(n.tipo)}</div>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <h3
+                                  className={`text-sm font-semibold truncate ${
+                                    !n.lida ? 'text-primary' : 'text-foreground'
+                                  }`}
+                                >
+                                  {n.titulo}
+                                </h3>
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5 flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {format(new Date(n.created_at), 'dd MMM, HH:mm', { locale: ptBR })}
+                                </span>
                               </div>
-                            </button>
-                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                    onClick={(e) => e.stopPropagation()}
-                                    aria-label="Adiar notificação"
-                                  >
-                                    <Clock className="w-3.5 h-3.5" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                  <DropdownMenuLabel>Adiar por…</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 30)}>30 minutos</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60)}>1 hora</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 4)}>4 horas</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24)}>Amanhã</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24 * 7)}>Próxima semana</DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {n.mensagem}
+                              </p>
+                              {n.link && (
+                                <span className="text-[10px] font-medium text-primary flex items-center gap-1 pt-1">
+                                  Acessar <ExternalLink className="w-2.5 h-2.5" />
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  excluirNotificacao(n.id);
-                                }}
-                                aria-label="Excluir notificação"
+                                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label="Adiar notificação"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Clock className="w-3.5 h-3.5" />
                               </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuLabel>Adiar por…</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 30)}>30 minutos</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60)}>1 hora</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 4)}>4 horas</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24)}>Amanhã</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24 * 7)}>Próxima semana</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              excluirNotificacao(n.id);
+                            }}
+                            aria-label="Excluir notificação"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              };
+              return (
+                <div key={label} className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                    {label} · {itens.length}
+                  </h4>
+                  <div className="space-y-2">
+                    {threads.map((t) => {
+                      if (t.kind === 'single') return renderCard(t.notif);
+                      const expandida = threadsExpandidas.has(t.key);
+                      const naoLidasThread = t.items.filter((n) => !n.lida).length;
+                      const ids = t.items.map((n) => n.id);
+                      const todasSelThread = ids.every((id) => selecionadas.has(id));
+                      return (
+                        <div key={t.key} className="space-y-1">
+                          <Card
+                            className={`border-border/50 transition-all hover:shadow-md cursor-pointer ${
+                              naoLidasThread > 0 ? 'bg-primary/5 border-primary/20' : 'bg-card'
+                            }`}
+                            onClick={() => toggleThread(t.key)}
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex items-center gap-3">
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <Checkbox
+                                    checked={todasSelThread}
+                                    onCheckedChange={(checked) => {
+                                      setSelecionadas((prev) => {
+                                        const next = new Set(prev);
+                                        if (checked) ids.forEach((id) => next.add(id));
+                                        else ids.forEach((id) => next.delete(id));
+                                        return next;
+                                      });
+                                    }}
+                                    aria-label="Selecionar thread"
+                                  />
+                                </div>
+                                <div className="shrink-0">{getIcon(t.tipo)}</div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className={`text-sm font-semibold truncate ${
+                                      naoLidasThread > 0 ? 'text-primary' : 'text-foreground'
+                                    }`}>
+                                      {t.titulo}
+                                    </h3>
+                                    <Badge variant="secondary" className="text-[10px] shrink-0">
+                                      {t.items.length}
+                                    </Badge>
+                                    {naoLidasThread > 0 && (
+                                      <Badge className="text-[10px] shrink-0 bg-primary/20 text-primary hover:bg-primary/20">
+                                        {naoLidasThread} nova(s)
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground truncate">
+                                    Última: {format(new Date(t.items[0].created_at), 'dd MMM, HH:mm', { locale: ptBR })}
+                                  </p>
+                                </div>
+                                {expandida ? (
+                                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                          {expandida && (
+                            <div className="space-y-2">
+                              {t.items.map((n) => renderCard(n, { inThread: true }))}
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
