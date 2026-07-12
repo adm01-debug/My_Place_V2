@@ -80,6 +80,12 @@ export default function NotificationBell() {
     });
   }, [notificacoes]);
 
+  const filtradas = useMemo(() => {
+    if (filtro === 'nao_lidas') return ordenadas.filter((n) => !n.lida);
+    if (filtro === 'fixadas') return ordenadas.filter((n) => !!n.fixada_em);
+    return ordenadas;
+  }, [ordenadas, filtro]);
+
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
