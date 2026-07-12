@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { ExternalLink, Link as LinkIcon, ImageOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface LinkPreviewData {
   url: string;
@@ -49,19 +48,6 @@ export function LinkPreview({ url }: LinkPreviewProps) {
         setData(cached.data);
         setLoading(false);
         return;
-      }
-
-      try {
-        const { data: resp, error } = await supabase.functions.invoke('link-preview', {
-          body: null,
-          method: 'GET',
-          // functions.invoke does not append query params — use fetch fallback
-        });
-        // supabase-js v2 does not support query strings on invoke reliably; call fetch directly
-        void resp;
-        void error;
-      } catch {
-        /* ignore — using direct fetch below */
       }
 
       try {
