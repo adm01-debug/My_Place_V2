@@ -35,6 +35,8 @@ import {
   Pin,
   PinOff,
   Wand2,
+  Rows2,
+  Rows3,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -143,6 +145,10 @@ export default function Notificacoes() {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('notif_modo_foco') === '1';
   });
+  const [densidade, setDensidade] = useState<'compact' | 'comfortable'>(() => {
+    if (typeof window === 'undefined') return 'comfortable';
+    return localStorage.getItem('notif_densidade') === 'compact' ? 'compact' : 'comfortable';
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
@@ -160,6 +166,10 @@ export default function Notificacoes() {
   useEffect(() => {
     localStorage.setItem('notif_modo_foco', modoFoco ? '1' : '0');
   }, [modoFoco]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_densidade', densidade);
+  }, [densidade]);
 
   useEffect(() => {
     localStorage.setItem('notif_filtro', filtro);
@@ -885,6 +895,25 @@ export default function Notificacoes() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setDensidade((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
+                title={
+                  densidade === 'compact'
+                    ? 'Densidade compacta: mais itens visíveis. Clique para modo confortável.'
+                    : 'Densidade confortável. Clique para modo compacto (mais itens por tela).'
+                }
+                aria-pressed={densidade === 'compact'}
+                aria-label={densidade === 'compact' ? 'Alternar para densidade confortável' : 'Alternar para densidade compacta'}
+              >
+                {densidade === 'compact' ? (
+                  <Rows3 className="w-4 h-4 mr-1" />
+                ) : (
+                  <Rows2 className="w-4 h-4 mr-1" />
+                )}
+                {densidade === 'compact' ? 'Compacto' : 'Confortável'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setRulesDialogOpen(true)}
                 title="Regras automáticas: aplicar ações a novas notificações que casem com um padrão"
                 aria-label="Abrir regras automáticas"
@@ -1230,7 +1259,7 @@ export default function Notificacoes() {
                     }`}
                     onMouseEnter={() => setFocusedId(n.id)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className={densidade === 'compact' ? 'p-2.5' : 'p-4'}>
                       <div className="flex gap-3">
                         <div className="pt-1">
                           <Checkbox
@@ -1272,7 +1301,7 @@ export default function Notificacoes() {
                                   {format(new Date(n.created_at), 'dd MMM, HH:mm', { locale: ptBR })}
                                 </span>
                               </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                              <p className={`text-xs text-muted-foreground leading-relaxed ${densidade === 'compact' ? 'line-clamp-1' : 'line-clamp-2'}`}>
                                 <HighlightText text={n.mensagem} query={busca} />
                               </p>
                               {n.link && (
