@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { NotificacaoSimulador } from '@/components/notificacoes/NotificacaoSimulador';
 
 type Canal = 'in_app' | 'email' | 'push' | 'whatsapp';
 type Status = 'enviado' | 'bloqueado';
