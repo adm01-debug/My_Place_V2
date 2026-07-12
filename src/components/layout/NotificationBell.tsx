@@ -178,14 +178,32 @@ export default function NotificationBell() {
     });
   }, []);
 
+  // Tick "agora" a cada 30s para reavaliar snoozes expirados sem depender de refetch.
+  const [nowTs, setNowTs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isSnoozed = useCallback(
+    (n: Notificacao) => !!n.adiada_ate && new Date(n.adiada_ate).getTime() > nowTs,
+    [nowTs]
+  );
+
   const unreadCount = useMemo(
-    () => notificacoes.filter((n) => !n.lida).length,
-    [notificacoes]
+    // Snoozed não contam no badge — voltam automaticamente quando expira.
+    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n)).length,
+    [notificacoes, isSnoozed]
   );
 
   const fixadasCount = useMemo(
     () => notificacoes.filter((n) => !!n.fixada_em).length,
     [notificacoes]
+  );
+
+  const snoozedCount = useMemo(
+    () => notificacoes.filter(isSnoozed).length,
+    [notificacoes, isSnoozed]
   );
 
   // Fixadas primeiro (por fixada_em desc), depois por created_at desc.
@@ -202,8 +220,14 @@ export default function NotificationBell() {
   const filtradas = useMemo(() => {
     let base = ordenadas;
     if (pendingDeleteIds.size > 0) base = base.filter((n) => !pendingDeleteIds.has(n.id));
-    if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
-    else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    // Regra global: snoozed são ocultos em todas as abas exceto "adiadas".
+    if (filtro === 'adiadas') {
+      base = base.filter(isSnoozed);
+    } else {
+      base = base.filter((n) => !isSnoozed(n));
+      if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
+      else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    }
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
@@ -213,7 +237,7 @@ export default function NotificationBell() {
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
