@@ -1433,6 +1433,32 @@ export default function Notificacoes() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copiarNotificacao(n);
+                            }}
+                            aria-label="Copiar notificação"
+                            title="Copiar título, mensagem e link"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              compartilharNotificacao(n);
+                            }}
+                            aria-label="Compartilhar notificação"
+                            title="Compartilhar (usa Web Share API quando disponível)"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
