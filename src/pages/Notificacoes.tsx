@@ -71,6 +71,7 @@ export default function Notificacoes() {
         .from('notificacoes')
         .select('*')
         .eq('user_id', user.id)
+        .or('adiada_ate.is.null,adiada_ate.lte.' + new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(200);
 
