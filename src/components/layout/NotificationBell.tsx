@@ -1491,5 +1491,66 @@ export default function NotificationBell() {
         </div>
       </PopoverContent>
     </Popover>
+    <Dialog open={showHelp} onOpenChange={setShowHelp}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Keyboard className="w-4 h-4 text-primary" />
+            Atalhos do sino
+          </DialogTitle>
+          <DialogDescription>
+            Navegue e gerencie notificações sem tirar as mãos do teclado.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          {[
+            {
+              titulo: 'Navegação',
+              itens: [
+                ['↑ ↓', 'Mover entre notificações'],
+                ['Home / End', 'Ir para o primeiro / último item'],
+                ['Enter', 'Abrir notificação'],
+                ['/', 'Focar campo de busca'],
+                ['Esc', 'Limpar busca ou fechar'],
+              ],
+            },
+            {
+              titulo: 'Ações rápidas',
+              itens: [
+                ['E', 'Marcar como lida'],
+                ['P', 'Fixar / desafixar'],
+                ['S', 'Adiar (snooze) 1h — repete para cancelar'],
+                ['X · Del · ⌫', 'Excluir (com undo de 5s)'],
+              ],
+            },
+            {
+              titulo: 'Modos',
+              itens: [
+                ['V', 'Alternar painel lateral de preview'],
+                ['Z', 'Alternar Modo Foco (só urgentes)'],
+                ['?', 'Abrir/fechar esta ajuda'],
+              ],
+            },
+          ].map((secao) => (
+            <div key={secao.titulo}>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                {secao.titulo}
+              </h4>
+              <ul className="space-y-1.5">
+                {secao.itens.map(([tecla, desc]) => (
+                  <li key={tecla} className="flex items-center justify-between gap-3">
+                    <span className="text-foreground/90">{desc}</span>
+                    <kbd className="px-2 py-0.5 rounded border border-border bg-muted text-[11px] font-mono text-muted-foreground shrink-0">
+                      {tecla}
+                    </kbd>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
