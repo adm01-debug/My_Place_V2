@@ -45,9 +45,27 @@ export default function NotificationBell() {
   const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [open, setOpen] = useState(false);
+  const [filtro, setFiltro] = useState<BellFilter>(() => {
+    if (typeof window === 'undefined') return 'todas';
+    const raw = localStorage.getItem(FILTER_KEY);
+    return isBellFilter(raw) ? raw : 'todas';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTER_KEY, filtro);
+    } catch {
+      /* quota — ignore */
+    }
+  }, [filtro]);
 
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
+    [notificacoes]
+  );
+
+  const fixadasCount = useMemo(
+    () => notificacoes.filter((n) => !!n.fixada_em).length,
     [notificacoes]
   );
 
