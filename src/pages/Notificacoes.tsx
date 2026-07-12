@@ -137,6 +137,11 @@ export default function Notificacoes() {
             title="Notificações"
             description="Fique por dentro das novidades e atualizações"
             icon={Bell}
+            actions={
+              <Button variant="outline" size="sm" onClick={() => navigate('/notificacoes/preferencias')}>
+                Preferências
+              </Button>
+            }
           />
         </div>
 
