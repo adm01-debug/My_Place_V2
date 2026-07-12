@@ -24,6 +24,9 @@ import {
   Flame,
   ArrowDownWideNarrow,
   Keyboard,
+  Download,
+  FileText,
+  FileSpreadsheet,
 } from 'lucide-react';
 import {
   DropdownMenu,
