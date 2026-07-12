@@ -41,6 +41,7 @@ const DESKTOP_KEY = 'bell_desktop_v1';
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
 const FILTER_KEY = 'bell_filter_v1';
 const TIPOS_KEY = 'bell_tipos_v1';
+const PREVIEW_KEY = 'bell_preview_v1';
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
