@@ -627,7 +627,7 @@ export default function NotificationBell() {
                                 aria-label="Fixada"
                               />
                             )}
-                            <span className="truncate">{n.titulo}</span>
+                            <span className="truncate">{highlight(n.titulo)}</span>
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
