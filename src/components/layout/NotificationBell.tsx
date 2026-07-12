@@ -342,6 +342,28 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').delete().eq('id', id);
   };
 
+  // Marca como lidas apenas as notificações atualmente visíveis (aba + busca + tipos).
+  const markVisibleAsRead = async () => {
+    const ids = filtradas.filter((n) => !n.lida).map((n) => n.id);
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+    await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+  };
+
+  // Exclui em lote todas as notificações visíveis (respeita filtros ativos).
+  // Preserva fixadas por segurança — para excluir uma fixada, use a ação individual.
+  const deleteVisible = async () => {
+    const alvos = filtradas.filter((n) => !n.fixada_em);
+    if (alvos.length === 0) return;
+    const label = alvos.length === 1 ? '1 notificação' : `${alvos.length} notificações`;
+    if (!window.confirm(`Excluir ${label} visíveis? Fixadas serão preservadas.`)) return;
+    const ids = alvos.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.filter((n) => !idSet.has(n.id)));
+    await supabase.from('notificacoes').delete().in('id', ids);
+  };
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
