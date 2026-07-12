@@ -189,6 +189,8 @@ export default function NotificationBell() {
   useEffect(() => {
     try { localStorage.setItem(FOCUS_KEY, focusMode ? '1' : '0'); } catch { /* quota */ }
   }, [focusMode]);
+  const focusModeRef = useRef(focusMode);
+  useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
 
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
