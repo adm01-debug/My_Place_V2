@@ -21,6 +21,8 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Flame,
+  ArrowDownWideNarrow,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -58,6 +60,25 @@ const groupLabel = (date: Date): string => {
   return 'Anteriores';
 };
 
+/**
+ * Score de relevância (0–200+):
+ * - Tipo: erro 100, alerta 70, info 30, sucesso 20
+ * - Não lida: +40
+ * - Palavras-chave de urgência no título: +25
+ * - Recência: até +30, decaindo linearmente ao longo de 72h
+ */
+const URGENCY_RX = /(urgente|vencido|vencendo|pendente|expirad|atrasa|crític|obrigat[óo]ri)/i;
+const relevanceScore = (n: Notificacao): number => {
+  const tipoScore =
+    n.tipo === 'erro' ? 100 : n.tipo === 'alerta' ? 70 : n.tipo === 'info' ? 30 : 20;
+  const unreadScore = n.lida ? 0 : 40;
+  const urgencyScore = URGENCY_RX.test(`${n.titulo} ${n.mensagem}`) ? 25 : 0;
+  const ageHours =
+    (Date.now() - new Date(n.created_at).getTime()) / (1000 * 60 * 60);
+  const recencyScore = Math.max(0, 30 - (ageHours / 72) * 30);
+  return tipoScore + unreadScore + urgencyScore + recencyScore;
+};
+
 export default function Notificacoes() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -72,11 +93,20 @@ export default function Notificacoes() {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('notif_agrupar_similares') !== '0';
   });
+  const [ordenarPorRelevancia, setOrdenarPorRelevancia] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('notif_ordenar_relevancia') === '1';
+  });
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
   }, [agruparSimilares]);
+
+  useEffect(() => {
+    localStorage.setItem('notif_ordenar_relevancia', ordenarPorRelevancia ? '1' : '0');
+  }, [ordenarPorRelevancia]);
+
 
   const toggleThread = (key: string) => {
     setThreadsExpandidas((prev) => {
@@ -319,8 +349,13 @@ export default function Notificacoes() {
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
     }
+    if (ordenarPorRelevancia) {
+      for (const [, itens] of map) {
+        itens.sort((a, b) => relevanceScore(b) - relevanceScore(a));
+      }
+    }
     return Array.from(map.entries());
-  }, [filtradas]);
+  }, [filtradas, ordenarPorRelevancia]);
 
   // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
   type ThreadItem =
@@ -382,6 +417,24 @@ export default function Notificacoes() {
               >
                 <Layers className="w-4 h-4 mr-1" />
                 {agruparSimilares ? 'Agrupadas' : 'Individuais'}
+              </Button>
+              <Button
+                variant={ordenarPorRelevancia ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrdenarPorRelevancia((v) => !v)}
+                title={
+                  ordenarPorRelevancia
+                    ? 'Ordenar cronologicamente'
+                    : 'Ordenar por relevância (urgência + não lidas + recência)'
+                }
+                aria-pressed={ordenarPorRelevancia}
+              >
+                {ordenarPorRelevancia ? (
+                  <Flame className="w-4 h-4 mr-1" />
+                ) : (
+                  <ArrowDownWideNarrow className="w-4 h-4 mr-1" />
+                )}
+                {ordenarPorRelevancia ? 'Relevância' : 'Recente'}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
