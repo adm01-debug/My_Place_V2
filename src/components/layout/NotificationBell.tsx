@@ -1171,6 +1171,12 @@ export default function NotificationBell() {
         case 'x':
         case 'Delete':
         case 'Backspace': {
+          // Item 101: se há seleção ativa, Delete exclui em lote.
+          if (selected.size > 0) {
+            e.preventDefault();
+            bulkDelete();
+            break;
+          }
           if (current) {
             e.preventDefault();
             const nextIdx = Math.min(idx + 1, flatList.length - 1);
@@ -1185,7 +1191,7 @@ export default function NotificationBell() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeId, flatList, busca]);
+  }, [open, activeId, flatList, busca, selected]);
 
 
 
