@@ -37,6 +37,19 @@ const DESKTOP_KEY = 'bell_desktop_v1';
 
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
 const FILTER_KEY = 'bell_filter_v1';
+const TIPOS_KEY = 'bell_tipos_v1';
+
+type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
+const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
+const isTipoNotif = (v: unknown): v is TipoNotif =>
+  v === 'info' || v === 'sucesso' || v === 'alerta' || v === 'erro';
+
+const tipoLabels: Record<TipoNotif, string> = {
+  info: 'Info',
+  sucesso: 'Sucesso',
+  alerta: 'Alerta',
+  erro: 'Erro',
+};
 
 const isBellFilter = (v: unknown): v is BellFilter =>
   v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
