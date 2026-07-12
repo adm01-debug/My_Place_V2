@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Flame,
   ArrowDownWideNarrow,
+  Keyboard,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +33,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
