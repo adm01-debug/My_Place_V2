@@ -1940,6 +1940,7 @@ export type Database = {
         Row: {
           adiada_ate: string | null
           created_at: string
+          fixada_em: string | null
           id: string
           lida: boolean
           link: string | null
@@ -1951,6 +1952,7 @@ export type Database = {
         Insert: {
           adiada_ate?: string | null
           created_at?: string
+          fixada_em?: string | null
           id?: string
           lida?: boolean
           link?: string | null
@@ -1962,6 +1964,7 @@ export type Database = {
         Update: {
           adiada_ate?: string | null
           created_at?: string
+          fixada_em?: string | null
           id?: string
           lida?: boolean
           link?: string | null
