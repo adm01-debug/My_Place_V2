@@ -1873,6 +1873,7 @@ export default function NotificationBell() {
                   const fixada = !!n.fixada_em;
                   const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
+                  const isSelected = selected.has(n.id);
                   return (
                     <div
                       key={n.id}
@@ -1880,7 +1881,16 @@ export default function NotificationBell() {
                       tabIndex={0}
                       data-notif-id={n.id}
                       onMouseEnter={() => setActiveId(n.id)}
-                      onClick={() => handleClick(n)}
+                      onClick={(e) => {
+                        // Item 101: com seleção ativa OU shift/meta pressionado, clicar
+                        // toggle a seleção em vez de abrir — evita abrir por engano.
+                        if (selected.size > 0 || e.shiftKey || e.metaKey || e.ctrlKey) {
+                          e.preventDefault();
+                          toggleSelect(n.id, { shift: e.shiftKey });
+                          return;
+                        }
+                        handleClick(n);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
@@ -1891,9 +1901,24 @@ export default function NotificationBell() {
                         !n.lida ? 'bg-primary/5' : ''
                       } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
                         isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
-                      }`}
+                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''}`}
                     >
+                      {/* Item 101: checkbox de seleção (visível no hover ou quando há seleção) */}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => { /* controlado por onClick abaixo */ }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelect(n.id, { shift: (e.nativeEvent as MouseEvent).shiftKey });
+                        }}
+                        aria-label={isSelected ? 'Desmarcar notificação' : 'Selecionar notificação'}
+                        className={`mt-1 h-3.5 w-3.5 shrink-0 rounded border-input accent-primary cursor-pointer transition-opacity ${
+                          selected.size > 0 || isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-70 focus:opacity-100'
+                        }`}
+                      />
                       <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p
