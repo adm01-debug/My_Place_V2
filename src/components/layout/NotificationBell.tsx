@@ -285,6 +285,81 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').delete().eq('id', id);
   };
 
+  // Navegação por teclado dentro do popover — j/k (ou setas) percorrem,
+  // Enter abre, e = marcar lida, p = fixar/desafixar, Delete/Backspace/x = excluir.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Não sequestra teclas quando o usuário digita em campo (search futuro, etc.)
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      if (flatList.length === 0) return;
+
+      const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
+      const current = idx >= 0 ? flatList[idx] : null;
+
+      const move = (delta: number) => {
+        e.preventDefault();
+        const next = flatList[Math.max(0, Math.min(flatList.length - 1, (idx < 0 ? 0 : idx + delta)))];
+        if (next) setActiveId(next.id);
+      };
+
+      switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+          move(1);
+          break;
+        case 'k':
+        case 'ArrowUp':
+          move(-1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          setActiveId(flatList[0].id);
+          break;
+        case 'End':
+          e.preventDefault();
+          setActiveId(flatList[flatList.length - 1].id);
+          break;
+        case 'Enter':
+          if (current) {
+            e.preventDefault();
+            handleClick(current);
+          }
+          break;
+        case 'e':
+          if (current && !current.lida) {
+            e.preventDefault();
+            markAsRead(current.id);
+          }
+          break;
+        case 'p':
+          if (current) {
+            e.preventDefault();
+            togglePin(current.id, !!current.fixada_em);
+          }
+          break;
+        case 'x':
+        case 'Delete':
+        case 'Backspace': {
+          if (current) {
+            e.preventDefault();
+            const nextIdx = Math.min(idx + 1, flatList.length - 1);
+            const fallback = flatList[nextIdx]?.id !== current.id ? flatList[nextIdx]?.id : flatList[idx - 1]?.id ?? null;
+            setActiveId(fallback);
+            deleteNotif(current.id);
+          }
+          break;
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeId, flatList]);
+
+
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
