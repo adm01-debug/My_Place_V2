@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
+import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 
 interface Notificacao {
   id: string;
@@ -577,6 +578,11 @@ export default function Notificacoes() {
                             </div>
                           </div>
                         </button>
+                        {n.link && (n.link.startsWith('http') || n.link.startsWith('/storage/') || n.link.includes('/object/public/')) && (
+                          <div className="pl-11 -mt-1">
+                            <AnexoPreview url={n.link} titulo={n.titulo} />
+                          </div>
+                        )}
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
