@@ -34,14 +34,38 @@ const tipoColors = {
 
 const MAX_ITEMS = 30;
 
+type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
+const FILTER_KEY = 'bell_filter_v1';
+
+const isBellFilter = (v: unknown): v is BellFilter =>
+  v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
+
 export default function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [open, setOpen] = useState(false);
+  const [filtro, setFiltro] = useState<BellFilter>(() => {
+    if (typeof window === 'undefined') return 'todas';
+    const raw = localStorage.getItem(FILTER_KEY);
+    return isBellFilter(raw) ? raw : 'todas';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTER_KEY, filtro);
+    } catch {
+      /* quota — ignore */
+    }
+  }, [filtro]);
 
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
+    [notificacoes]
+  );
+
+  const fixadasCount = useMemo(
+    () => notificacoes.filter((n) => !!n.fixada_em).length,
     [notificacoes]
   );
 
@@ -55,6 +79,12 @@ export default function NotificationBell() {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [notificacoes]);
+
+  const filtradas = useMemo(() => {
+    if (filtro === 'nao_lidas') return ordenadas.filter((n) => !n.lida);
+    if (filtro === 'fixadas') return ordenadas.filter((n) => !!n.fixada_em);
+    return ordenadas;
+  }, [ordenadas, filtro]);
 
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
@@ -178,14 +208,59 @@ export default function NotificationBell() {
             </Button>
           )}
         </div>
+        <div
+          role="tablist"
+          aria-label="Filtro de notificações"
+          className="flex items-center gap-1 px-2 py-1.5 border-b border-border/50 bg-muted/20"
+        >
+          {(
+            [
+              { id: 'todas', label: 'Todas', count: notificacoes.length },
+              { id: 'nao_lidas', label: 'Não lidas', count: unreadCount },
+              { id: 'fixadas', label: 'Fixadas', count: fixadasCount },
+            ] as { id: BellFilter; label: string; count: number }[]
+          ).map((tab) => {
+            const ativo = filtro === tab.id;
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={ativo}
+                onClick={() => setFiltro(tab.id)}
+                className={`flex-1 text-[11px] font-medium py-1.5 px-2 rounded-md transition-colors flex items-center justify-center gap-1 ${
+                  ativo
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span
+                    className={`text-[10px] px-1 rounded ${
+                      ativo ? 'bg-primary/15 text-primary' : 'bg-muted-foreground/15'
+                    }`}
+                  >
+                    {tab.count > 99 ? '99+' : tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
         <ScrollArea className="max-h-80">
-          {ordenadas.length === 0 ? (
+          {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-40" />
-              <p className="text-sm">Nenhuma notificação</p>
+              <p className="text-sm">
+                {filtro === 'nao_lidas'
+                  ? 'Nenhuma notificação não lida'
+                  : filtro === 'fixadas'
+                    ? 'Nenhuma notificação fixada'
+                    : 'Nenhuma notificação'}
+              </p>
             </div>
           ) : (
-            ordenadas.map((n) => {
+            filtradas.map((n) => {
               const Icon = tipoIcons[n.tipo] || Info;
               const fixada = !!n.fixada_em;
               return (
