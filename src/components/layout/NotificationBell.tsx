@@ -1029,6 +1029,7 @@ export default function NotificationBell() {
                 {itens.map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
+                  const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
                   return (
                     <div
@@ -1064,6 +1065,12 @@ export default function NotificationBell() {
                                 aria-label="Fixada"
                               />
                             )}
+                            {snoozed && (
+                              <Clock
+                                className="w-3 h-3 text-amber-500 shrink-0"
+                                aria-label="Adiada"
+                              />
+                            )}
                             <span className="truncate">{highlight(n.titulo)}</span>
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
@@ -1073,6 +1080,12 @@ export default function NotificationBell() {
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                           {highlight(n.mensagem)}
                         </p>
+                        {snoozed && n.adiada_ate && (
+                          <p className="text-[10px] text-amber-500/90 mt-1 inline-flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            Volta em {formatAbsolute(n.adiada_ate)}
+                          </p>
+                        )}
                       </div>
                       {!n.lida && (
                         <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0 group-hover:opacity-0 transition-opacity" />
@@ -1093,6 +1106,54 @@ export default function NotificationBell() {
                           >
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
                           </button>
+                        )}
+                        {snoozed ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              unsnoozeNotif(n.id);
+                            }}
+                            className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            aria-label="Cancelar adiamento"
+                            title="Cancelar adiamento"
+                          >
+                            <AlarmClockOff className="w-3.5 h-3.5 text-amber-500" />
+                          </button>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                                aria-label="Adiar"
+                                title="Adiar (snooze)"
+                              >
+                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-44"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                Adiar por
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {SNOOZE_OPTIONS.map((opt) => (
+                                <DropdownMenuItem
+                                  key={opt.id}
+                                  onSelect={() => snoozeNotif(n.id, opt.at(new Date()))}
+                                  className="text-xs"
+                                >
+                                  <Clock className="w-3.5 h-3.5 mr-2 text-amber-500" />
+                                  {opt.label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                         <button
                           type="button"
