@@ -35,6 +35,8 @@ import {
   Pin,
   PinOff,
   Wand2,
+  Rows2,
+  Rows3,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
