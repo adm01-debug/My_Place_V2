@@ -976,6 +976,33 @@ export default function NotificationBell() {
             >
               <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  aria-label="Exportar notificações"
+                  title="Exportar notificações"
+                >
+                  <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-xs">
+                  Exportar {filtradas.length > 0 ? `${filtradas.length} visível(is)` : `${notificacoes.length} total`}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportarCSV} className="gap-2 text-xs">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+                  Baixar como CSV (Excel)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarJSON} className="gap-2 text-xs">
+                  <FileJson className="w-3.5 h-3.5 text-primary" />
+                  Baixar como JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="ghost"
               size="icon"
