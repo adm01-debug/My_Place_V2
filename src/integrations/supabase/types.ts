@@ -2657,6 +2657,138 @@ export type Database = {
         }
         Relationships: []
       }
+      viagens: {
+        Row: {
+          adiantamento_liberado: number
+          adiantamento_solicitado: number
+          aprovado_em: string | null
+          aprovador_id: string | null
+          codigo: string
+          created_at: string
+          data_ida: string
+          data_volta: string
+          destino: string
+          id: string
+          meio_transporte: string
+          motivo: string
+          motivo_reprovacao: string | null
+          observacoes: string | null
+          origem: string
+          saldo: number
+          status: string
+          total_despesas: number
+          updated_at: string
+          user_id: string
+          valor_estimado: number
+        }
+        Insert: {
+          adiantamento_liberado?: number
+          adiantamento_solicitado?: number
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          codigo?: string
+          created_at?: string
+          data_ida: string
+          data_volta: string
+          destino: string
+          id?: string
+          meio_transporte: string
+          motivo: string
+          motivo_reprovacao?: string | null
+          observacoes?: string | null
+          origem: string
+          saldo?: number
+          status?: string
+          total_despesas?: number
+          updated_at?: string
+          user_id: string
+          valor_estimado?: number
+        }
+        Update: {
+          adiantamento_liberado?: number
+          adiantamento_solicitado?: number
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          codigo?: string
+          created_at?: string
+          data_ida?: string
+          data_volta?: string
+          destino?: string
+          id?: string
+          meio_transporte?: string
+          motivo?: string
+          motivo_reprovacao?: string | null
+          observacoes?: string | null
+          origem?: string
+          saldo?: number
+          status?: string
+          total_despesas?: number
+          updated_at?: string
+          user_id?: string
+          valor_estimado?: number
+        }
+        Relationships: []
+      }
+      viagens_despesas: {
+        Row: {
+          categoria: string
+          comprovante_url: string | null
+          created_at: string
+          data_despesa: string
+          descricao: string
+          id: string
+          observacoes: string | null
+          reembolsavel: boolean
+          updated_at: string
+          user_id: string
+          valor: number
+          viagem_id: string
+        }
+        Insert: {
+          categoria: string
+          comprovante_url?: string | null
+          created_at?: string
+          data_despesa: string
+          descricao: string
+          id?: string
+          observacoes?: string | null
+          reembolsavel?: boolean
+          updated_at?: string
+          user_id: string
+          valor: number
+          viagem_id: string
+        }
+        Update: {
+          categoria?: string
+          comprovante_url?: string | null
+          created_at?: string
+          data_despesa?: string
+          descricao?: string
+          id?: string
+          observacoes?: string | null
+          reembolsavel?: boolean
+          updated_at?: string
+          user_id?: string
+          valor?: number
+          viagem_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viagens_despesas_viagem_id_fkey"
+            columns: ["viagem_id"]
+            isOneToOne: false
+            referencedRelation: "viagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viagens_despesas_viagem_id_fkey"
+            columns: ["viagem_id"]
+            isOneToOne: false
+            referencedRelation: "vw_viagens_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webauthn_challenges: {
         Row: {
           challenge: string
@@ -2918,6 +3050,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_viagens_resumo: {
+        Row: {
+          adiantamento_liberado: number | null
+          adiantamento_solicitado: number | null
+          aprovado_em: string | null
+          aprovador_id: string | null
+          codigo: string | null
+          created_at: string | null
+          data_ida: string | null
+          data_volta: string | null
+          destino: string | null
+          duracao_dias: number | null
+          id: string | null
+          meio_transporte: string | null
+          motivo: string | null
+          motivo_reprovacao: string | null
+          observacoes: string | null
+          origem: string | null
+          saldo: number | null
+          situacao_financeira: string | null
+          status: string | null
+          total_despesas: number | null
+          total_lancamentos: number | null
+          updated_at: string | null
+          user_id: string | null
+          valor_estimado: number | null
+        }
+        Insert: {
+          adiantamento_liberado?: number | null
+          adiantamento_solicitado?: number | null
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          data_ida?: string | null
+          data_volta?: string | null
+          destino?: string | null
+          duracao_dias?: never
+          id?: string | null
+          meio_transporte?: string | null
+          motivo?: string | null
+          motivo_reprovacao?: string | null
+          observacoes?: string | null
+          origem?: string | null
+          saldo?: number | null
+          situacao_financeira?: never
+          status?: string | null
+          total_despesas?: number | null
+          total_lancamentos?: never
+          updated_at?: string | null
+          user_id?: string | null
+          valor_estimado?: number | null
+        }
+        Update: {
+          adiantamento_liberado?: number | null
+          adiantamento_solicitado?: number | null
+          aprovado_em?: string | null
+          aprovador_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          data_ida?: string | null
+          data_volta?: string | null
+          destino?: string | null
+          duracao_dias?: never
+          id?: string | null
+          meio_transporte?: string | null
+          motivo?: string | null
+          motivo_reprovacao?: string | null
+          observacoes?: string | null
+          origem?: string | null
+          saldo?: number | null
+          situacao_financeira?: never
+          status?: string | null
+          total_despesas?: number | null
+          total_lancamentos?: never
+          updated_at?: string | null
+          user_id?: string | null
+          valor_estimado?: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
