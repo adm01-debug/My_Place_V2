@@ -679,12 +679,15 @@ export default function NotificationBell() {
             supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
           }
           // Só dispara desktop e som se nenhuma regra pediu silenciamento
-          // e não estamos em Quiet Hours (janela silenciosa configurável).
+          // e não estamos em Quiet Hours — exceto tipos críticos (alerta/erro)
+          // quando o usuário optou por "permitir críticos" no Quiet Hours.
           const quietNow = quietRef.current();
-          if (!actions.has('silent') && !quietNow) {
+          const isCritical = nova.tipo === 'alerta' || nova.tipo === 'erro';
+          const bypass = quietBypassRef.current && isCritical;
+          if (!actions.has('silent') && (!quietNow || bypass)) {
             showDesktopRef.current(nova);
             // Modo foco: só toca em alerta/erro (reduz ruído).
-            if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
+            if (!focusModeRef.current || isCritical) {
               playSoundRef.current(nova.tipo);
             }
           }
