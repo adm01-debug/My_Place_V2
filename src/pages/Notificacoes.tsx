@@ -115,6 +115,10 @@ export default function Notificacoes() {
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
   const [visibleCount, setVisibleCount] = useState<number>(50);
+  const [modoFoco, setModoFoco] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('notif_modo_foco') === '1';
+  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
