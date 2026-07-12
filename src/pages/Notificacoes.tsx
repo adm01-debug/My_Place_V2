@@ -445,9 +445,16 @@ export default function Notificacoes() {
         if (ini && t < ini) return false;
         if (fim && t > fim) return false;
       }
+      // Modo Foco: apenas não-lidas prioritárias (erro/alerta OU score ≥ 130)
+      if (modoFoco) {
+        if (n.lida) return false;
+        const prioritaria = n.tipo === 'erro' || n.tipo === 'alerta' || relevanceScore(n) >= 130;
+        if (!prioritaria) return false;
+      }
       return true;
     });
-  }, [notificacoes, filtro, busca, dataInicio, dataFim]);
+  }, [notificacoes, filtro, busca, dataInicio, dataFim, modoFoco]);
+
 
   const filtradasVisiveis = useMemo(
     () => filtradas.slice(0, visibleCount),
