@@ -84,6 +84,11 @@ export default function Notificacoes() {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
   }, [agruparSimilares]);
 
+  useEffect(() => {
+    localStorage.setItem('notif_ordenar_relevancia', ordenarPorRelevancia ? '1' : '0');
+  }, [ordenarPorRelevancia]);
+
+
   const toggleThread = (key: string) => {
     setThreadsExpandidas((prev) => {
       const next = new Set(prev);
