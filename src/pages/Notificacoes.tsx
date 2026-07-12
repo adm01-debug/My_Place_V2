@@ -418,6 +418,24 @@ export default function Notificacoes() {
                 <Layers className="w-4 h-4 mr-1" />
                 {agruparSimilares ? 'Agrupadas' : 'Individuais'}
               </Button>
+              <Button
+                variant={ordenarPorRelevancia ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrdenarPorRelevancia((v) => !v)}
+                title={
+                  ordenarPorRelevancia
+                    ? 'Ordenar cronologicamente'
+                    : 'Ordenar por relevância (urgência + não lidas + recência)'
+                }
+                aria-pressed={ordenarPorRelevancia}
+              >
+                {ordenarPorRelevancia ? (
+                  <Flame className="w-4 h-4 mr-1" />
+                ) : (
+                  <ArrowDownWideNarrow className="w-4 h-4 mr-1" />
+                )}
+                {ordenarPorRelevancia ? 'Relevância' : 'Recente'}
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
               </Button>
