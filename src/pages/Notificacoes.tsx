@@ -732,6 +732,21 @@ export default function Notificacoes() {
           actions={
             <div className="flex gap-2">
               <Button
+                variant={modoFoco ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setModoFoco((v) => !v)}
+                title={
+                  modoFoco
+                    ? 'Sair do modo Foco'
+                    : 'Modo Foco: mostrar apenas não-lidas prioritárias (erros, alertas e alta relevância)'
+                }
+                aria-pressed={modoFoco}
+                className={modoFoco ? 'bg-amber-500 hover:bg-amber-600 text-white' : ''}
+              >
+                <Focus className="w-4 h-4 mr-1" />
+                {modoFoco ? 'Foco ativo' : 'Foco'}
+              </Button>
+              <Button
                 variant={agruparSimilares ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAgruparSimilares((v) => !v)}
