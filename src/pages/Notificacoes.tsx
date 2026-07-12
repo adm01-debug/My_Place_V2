@@ -27,6 +27,7 @@ import {
   Download,
   FileText,
   FileSpreadsheet,
+  Focus,
 } from 'lucide-react';
 import {
   DropdownMenu,
