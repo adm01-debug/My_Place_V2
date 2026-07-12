@@ -497,11 +497,14 @@ export default function NotificationBell() {
                 {itens.map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
+                  const isActive = activeId === n.id;
                   return (
                     <div
                       key={n.id}
                       role="button"
                       tabIndex={0}
+                      data-notif-id={n.id}
+                      onMouseEnter={() => setActiveId(n.id)}
                       onClick={() => handleClick(n)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -511,7 +514,9 @@ export default function NotificationBell() {
                       }}
                       className={`group relative w-full flex items-start gap-3 px-4 py-3 text-left cursor-pointer transition-colors hover:bg-muted/50 border-b border-border/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                         !n.lida ? 'bg-primary/5' : ''
-                      } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
+                      } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
+                        isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
+                      }`}
                     >
                       <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
                       <div className="flex-1 min-w-0">
