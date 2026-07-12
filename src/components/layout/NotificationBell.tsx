@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Bell, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,6 +15,7 @@ interface Notificacao {
   lida: boolean;
   link: string | null;
   created_at: string;
+  fixada_em: string | null;
 }
 
 const tipoIcons = {
@@ -31,22 +32,39 @@ const tipoColors = {
   erro: 'text-red-400',
 };
 
+const MAX_ITEMS = 30;
+
 export default function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [open, setOpen] = useState(false);
 
-  const unreadCount = notificacoes.filter(n => !n.lida).length;
+  const unreadCount = useMemo(
+    () => notificacoes.filter((n) => !n.lida).length,
+    [notificacoes]
+  );
+
+  // Fixadas primeiro (por fixada_em desc), depois por created_at desc.
+  const ordenadas = useMemo(() => {
+    return [...notificacoes].sort((a, b) => {
+      if (!!a.fixada_em !== !!b.fixada_em) return a.fixada_em ? -1 : 1;
+      if (a.fixada_em && b.fixada_em) {
+        return new Date(b.fixada_em).getTime() - new Date(a.fixada_em).getTime();
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [notificacoes]);
 
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from('notificacoes')
-      .select('id, titulo, mensagem, tipo, lida, link, created_at')
+      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em')
       .eq('user_id', user.id)
+      .order('fixada_em', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
-      .limit(30);
+      .limit(MAX_ITEMS);
 
     if (data) setNotificacoes(data as Notificacao[]);
   }, [user]);
@@ -55,40 +73,57 @@ export default function NotificationBell() {
     fetchNotificacoes();
   }, [fetchNotificacoes]);
 
-  // Realtime subscription
+  // Realtime: INSERT, UPDATE e DELETE — mantém o sino sincronizado
+  // mesmo quando alterações acontecem na página /notificacoes ou em outro tab.
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel('notificacoes-realtime')
+      .channel('notificacoes-bell')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notificacoes',
-          filter: `user_id=eq.${user.id}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const newNotif = payload.new as Notificacao;
-          setNotificacoes(prev => [newNotif, ...prev].slice(0, 30));
+          const nova = payload.new as Notificacao;
+          setNotificacoes((prev) => {
+            if (prev.some((n) => n.id === nova.id)) return prev;
+            return [nova, ...prev].slice(0, MAX_ITEMS);
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const upd = payload.new as Notificacao;
+          setNotificacoes((prev) => prev.map((n) => (n.id === upd.id ? { ...n, ...upd } : n)));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setNotificacoes((prev) => prev.filter((n) => n.id !== old.id));
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const markAsRead = async (id: string) => {
+    setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
     await supabase.from('notificacoes').update({ lida: true }).eq('id', id);
-    setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
   };
 
   const markAllAsRead = async () => {
     if (!user) return;
-    const unreadIds = notificacoes.filter(n => !n.lida).map(n => n.id);
+    const unreadIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
     if (unreadIds.length === 0) return;
+    setNotificacoes((prev) => prev.map((n) => ({ ...n, lida: true })));
     await supabase.from('notificacoes').update({ lida: true }).in('id', unreadIds);
-    setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
   };
 
   const handleClick = (n: Notificacao) => {
@@ -115,8 +150,17 @@ export default function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative rounded-full" aria-label={`Notificações (${unreadCount} não lidas)`}>
-          <Bell className={`w-5 h-5 transition-transform ${unreadCount > 0 ? 'animate-[wiggle_0.5s_ease-in-out]' : ''}`} />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative rounded-full"
+          aria-label={`Notificações (${unreadCount} não lidas)`}
+        >
+          <Bell
+            className={`w-5 h-5 transition-transform ${
+              unreadCount > 0 ? 'animate-[wiggle_0.5s_ease-in-out]' : ''
+            }`}
+          />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground animate-in zoom-in-50 duration-200">
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -135,29 +179,42 @@ export default function NotificationBell() {
           )}
         </div>
         <ScrollArea className="max-h-80">
-          {notificacoes.length === 0 ? (
+          {ordenadas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">Nenhuma notificação</p>
             </div>
           ) : (
-            notificacoes.map((n) => {
+            ordenadas.map((n) => {
               const Icon = tipoIcons[n.tipo] || Info;
+              const fixada = !!n.fixada_em;
               return (
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}
                   className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 border-b border-border/20 ${
                     !n.lida ? 'bg-primary/5' : ''
-                  }`}
+                  } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
                 >
                   <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`text-xs font-medium truncate ${!n.lida ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        {n.titulo}
+                      <p
+                        className={`text-xs font-medium truncate flex items-center gap-1 ${
+                          !n.lida ? 'text-foreground' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {fixada && (
+                          <Pin
+                            className="w-3 h-3 text-primary shrink-0 fill-primary/20"
+                            aria-label="Fixada"
+                          />
+                        )}
+                        <span className="truncate">{n.titulo}</span>
                       </p>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{formatTime(n.created_at)}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {formatTime(n.created_at)}
+                      </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.mensagem}</p>
                   </div>
@@ -168,9 +225,9 @@ export default function NotificationBell() {
           )}
         </ScrollArea>
         <div className="p-2 border-t border-border/50">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="w-full text-xs font-medium text-primary hover:text-primary hover:bg-primary/5"
             onClick={() => {
               setOpen(false);
