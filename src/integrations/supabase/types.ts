@@ -4158,6 +4158,10 @@ export type Database = {
         }
         Returns: string
       }
+      fn_notificar_aprovadores: {
+        Args: { _autor_id: string; _codigo: string; _link: string; _vars: Json }
+        Returns: undefined
+      }
       fn_notificar_template: {
         Args: {
           _categoria?: Database["public"]["Enums"]["notif_categoria"]
