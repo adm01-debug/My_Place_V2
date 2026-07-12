@@ -112,6 +112,8 @@ export default function Notificacoes() {
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [dataInicio, setDataInicio] = useState<string>('');
+  const [dataFim, setDataFim] = useState<string>('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
