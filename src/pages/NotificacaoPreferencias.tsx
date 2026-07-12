@@ -145,6 +145,40 @@ export default function NotificacaoPreferencias() {
     [prefs]
   );
 
+  const [bulkFreq, setBulkFreq] = useState<DigestFreq>("imediato");
+
+  const aplicarDigestATodas = () => {
+    setPrefs((s) => Object.fromEntries(
+      Object.entries(s).map(([k, v]) => [k, { ...v, digest_frequencia: bulkFreq }])
+    ) as Record<Categoria, Pref>);
+    toast.info(`Digest "${bulkFreq}" aplicado a todas as categorias — clique em Salvar`);
+  };
+
+  const proximaEntrega = useMemo(() => {
+    // Backend: horario a cada hora; diario 08:00 BRT (11 UTC); semanal seg 08:00 BRT.
+    const freqs = new Set(Object.values(prefs).map((p) => p.digest_frequencia));
+    const items: string[] = [];
+    const fmt = (d: Date) => d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    const now = new Date();
+    if (freqs.has("horario")) {
+      const next = new Date(now); next.setMinutes(0, 0, 0); next.setHours(next.getHours() + 1);
+      items.push(`⏱️ Horário → ${fmt(next)}`);
+    }
+    if (freqs.has("diario")) {
+      const next = new Date(now); next.setUTCHours(11, 0, 0, 0);
+      if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+      items.push(`📅 Diário → ${fmt(next)}`);
+    }
+    if (freqs.has("semanal")) {
+      const next = new Date(now); next.setUTCHours(11, 0, 0, 0);
+      const daysUntilMon = (8 - next.getUTCDay()) % 7 || 7;
+      next.setUTCDate(next.getUTCDate() + (next.getUTCDay() === 1 && next > now ? 0 : daysUntilMon));
+      items.push(`🗓️ Semanal → ${fmt(next)}`);
+    }
+    return items;
+  }, [prefs]);
+
+
   if (loading) return (
     <div className="flex items-center justify-center py-20">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
