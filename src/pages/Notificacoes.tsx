@@ -64,6 +64,7 @@ import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
+import { LinkPreview } from '@/components/notificacoes/LinkPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
@@ -1378,6 +1379,11 @@ export default function Notificacoes() {
                         {n.link && (n.link.startsWith('http') || n.link.startsWith('/storage/') || n.link.includes('/object/public/')) && (
                           <div className="pl-11 -mt-1">
                             <AnexoPreview url={n.link} titulo={n.titulo} />
+                          </div>
+                        )}
+                        {n.link && n.link.startsWith('http') && !n.link.includes('/object/public/') && !n.link.includes('/storage/') && (
+                          <div className="pl-11">
+                            <LinkPreview url={n.link} />
                           </div>
                         )}
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
