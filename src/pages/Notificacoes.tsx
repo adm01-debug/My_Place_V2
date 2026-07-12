@@ -112,6 +112,8 @@ export default function Notificacoes() {
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [dataInicio, setDataInicio] = useState<string>('');
+  const [dataFim, setDataFim] = useState<string>('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -421,13 +423,20 @@ export default function Notificacoes() {
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
+    const ini = dataInicio ? new Date(`${dataInicio}T00:00:00`).getTime() : null;
+    const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`).getTime() : null;
     return notificacoes.filter((n) => {
       if (filtro === 'nao_lidas' && n.lida) return false;
       if (['sucesso', 'erro', 'alerta', 'info'].includes(filtro) && n.tipo !== filtro) return false;
       if (termo && !`${n.titulo} ${n.mensagem}`.toLowerCase().includes(termo)) return false;
+      if (ini || fim) {
+        const t = new Date(n.created_at).getTime();
+        if (ini && t < ini) return false;
+        if (fim && t > fim) return false;
+      }
       return true;
     });
-  }, [notificacoes, filtro, busca]);
+  }, [notificacoes, filtro, busca, dataInicio, dataFim]);
 
   const grupos = useMemo(() => {
     const map = new Map<string, Notificacao[]>();
@@ -758,6 +767,64 @@ export default function Notificacoes() {
               onChange={(e) => setBusca(e.target.value)}
               className="pl-9"
             />
+          </div>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="flex flex-col">
+              <label htmlFor="notif-data-inicio" className="text-xs text-muted-foreground mb-1">De</label>
+              <Input
+                id="notif-data-inicio"
+                type="date"
+                value={dataInicio}
+                max={dataFim || undefined}
+                onChange={(e) => setDataInicio(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="notif-data-fim" className="text-xs text-muted-foreground mb-1">Até</label>
+              <Input
+                id="notif-data-fim"
+                type="date"
+                value={dataFim}
+                min={dataInicio || undefined}
+                onChange={(e) => setDataFim(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { label: 'Hoje', dias: 0 },
+                { label: '7 dias', dias: 6 },
+                { label: '30 dias', dias: 29 },
+                { label: '90 dias', dias: 89 },
+              ].map((p) => (
+                <Button
+                  key={p.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const hoje = new Date();
+                    const ini = new Date();
+                    ini.setDate(hoje.getDate() - p.dias);
+                    setDataInicio(format(ini, 'yyyy-MM-dd'));
+                    setDataFim(format(hoje, 'yyyy-MM-dd'));
+                  }}
+                >
+                  {p.label}
+                </Button>
+              ))}
+              {(dataInicio || dataFim) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setDataInicio(''); setDataFim(''); }}
+                  title="Limpar intervalo de datas"
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
           </div>
 
           <Tabs value={filtro} onValueChange={(v) => setFiltro(v as Filtro)}>
