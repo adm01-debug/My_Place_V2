@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck, Users, FileUp, FileSpreadsheet, LayoutDashboard, Settings, ChevronLeft } from 'lucide-react';
+import { Building2, Home, User, LogOut, Clock, Palmtree, Receipt, FileText, MapPin, ClipboardCheck, Users, FileUp, FileSpreadsheet, LayoutDashboard, Settings, ChevronLeft, Zap } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { GlobalSearch } from './GlobalSearch';
@@ -137,6 +137,12 @@ export default function Navbar() {
                     <FileSpreadsheet className="w-4 h-4" />
                     Business Intelligence
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin/integracoes')} className="gap-2 cursor-pointer focus:bg-accent">
+                      <Zap className="w-4 h-4" />
+                      Integrações
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => navigate('/admin/configuracoes')} className="gap-2 cursor-pointer focus:bg-accent">
                     <Settings className="w-4 h-4" />
                     Configurações
