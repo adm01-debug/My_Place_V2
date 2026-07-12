@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -248,6 +248,19 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').update({ lida: true }).in('id', unreadIds);
   };
 
+  const togglePin = async (id: string, isPinned: boolean) => {
+    const novoFixadaEm = isPinned ? null : new Date().toISOString();
+    setNotificacoes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, fixada_em: novoFixadaEm } : n))
+    );
+    await supabase.from('notificacoes').update({ fixada_em: novoFixadaEm }).eq('id', id);
+  };
+
+  const deleteNotif = async (id: string) => {
+    setNotificacoes((prev) => prev.filter((n) => n.id !== id));
+    await supabase.from('notificacoes').delete().eq('id', id);
+  };
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
@@ -383,10 +396,18 @@ export default function NotificationBell() {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
                   return (
-                    <button
+                    <div
                       key={n.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleClick(n)}
-                      className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 border-b border-border/20 ${
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleClick(n);
+                        }
+                      }}
+                      className={`group relative w-full flex items-start gap-3 px-4 py-3 text-left cursor-pointer transition-colors hover:bg-muted/50 border-b border-border/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                         !n.lida ? 'bg-primary/5' : ''
                       } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
                     >
@@ -406,7 +427,7 @@ export default function NotificationBell() {
                             )}
                             <span className="truncate">{n.titulo}</span>
                           </p>
-                          <span className="text-[10px] text-muted-foreground shrink-0">
+                          <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
                           </span>
                         </div>
@@ -415,9 +436,55 @@ export default function NotificationBell() {
                         </p>
                       </div>
                       {!n.lida && (
-                        <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0" />
+                        <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0 group-hover:opacity-0 transition-opacity" />
                       )}
-                    </button>
+
+                      {/* Quick actions on hover */}
+                      <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity bg-background/95 backdrop-blur border border-border/50 rounded-md shadow-sm p-0.5">
+                        {!n.lida && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(n.id);
+                            }}
+                            className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            aria-label="Marcar como lida"
+                            title="Marcar como lida"
+                          >
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePin(n.id, fixada);
+                          }}
+                          className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                          aria-label={fixada ? 'Desafixar' : 'Fixar'}
+                          title={fixada ? 'Desafixar' : 'Fixar'}
+                        >
+                          {fixada ? (
+                            <PinOff className="w-3.5 h-3.5 text-muted-foreground" />
+                          ) : (
+                            <Pin className="w-3.5 h-3.5 text-primary" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotif(n.id);
+                          }}
+                          className="h-6 w-6 flex items-center justify-center rounded hover:bg-destructive/10 transition-colors"
+                          aria-label="Excluir"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
