@@ -607,6 +607,55 @@ export default function NotificationBell() {
             );
           })}
         </div>
+
+        {/* Chips de filtro por tipo (multi-seleção) */}
+        <div
+          role="group"
+          aria-label="Filtrar por tipo"
+          className="flex items-center gap-1 px-2 py-1.5 border-b border-border/50 overflow-x-auto"
+        >
+          {tiposAtivos.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setTiposAtivos(new Set())}
+              className="shrink-0 text-[10px] px-2 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              aria-label="Limpar filtros de tipo"
+              title="Limpar filtros de tipo"
+            >
+              Limpar
+            </button>
+          )}
+          {TIPOS_ALL.map((t) => {
+            const Icon = tipoIcons[t];
+            const ativo = tiposAtivos.has(t);
+            const count = notificacoes.filter((n) => n.tipo === t).length;
+            const disabled = count === 0;
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => !disabled && toggleTipo(t)}
+                disabled={disabled}
+                aria-pressed={ativo}
+                title={`${tipoLabels[t]} (${count})`}
+                className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full border transition-colors ${
+                  disabled
+                    ? 'opacity-40 cursor-not-allowed border-transparent text-muted-foreground'
+                    : ativo
+                      ? `border-primary/40 bg-primary/10 ${tipoColors[t]}`
+                      : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                }`}
+              >
+                <Icon className={`w-3 h-3 ${ativo ? tipoColors[t] : ''}`} />
+                {tipoLabels[t]}
+                {count > 0 && (
+                  <span className="text-[9px] opacity-70">{count > 99 ? '99+' : count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         <ScrollArea className="max-h-80">
           {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
