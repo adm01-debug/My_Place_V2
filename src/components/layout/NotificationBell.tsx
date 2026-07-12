@@ -1034,6 +1034,7 @@ export default function NotificationBell() {
     clearSelection();
   }, [selected, notificacoes, scheduleDelete, clearSelection]);
 
+  const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
     if (n.link) {
