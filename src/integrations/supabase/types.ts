@@ -143,6 +143,51 @@ export type Database = {
         }
         Relationships: []
       }
+      bi_snapshots: {
+        Row: {
+          absenteismo_medio: number
+          compliance_score: number
+          created_at: string
+          criado_por: string | null
+          custo_total: number
+          engajamento_score: number
+          headcount_total: number
+          id: string
+          kpis_detalhados: Json
+          mes_referencia: string
+          observacoes: string | null
+          turnover_medio: number
+        }
+        Insert: {
+          absenteismo_medio?: number
+          compliance_score?: number
+          created_at?: string
+          criado_por?: string | null
+          custo_total?: number
+          engajamento_score?: number
+          headcount_total?: number
+          id?: string
+          kpis_detalhados?: Json
+          mes_referencia: string
+          observacoes?: string | null
+          turnover_medio?: number
+        }
+        Update: {
+          absenteismo_medio?: number
+          compliance_score?: number
+          created_at?: string
+          criado_por?: string | null
+          custo_total?: number
+          engajamento_score?: number
+          headcount_total?: number
+          id?: string
+          kpis_detalhados?: Json
+          mes_referencia?: string
+          observacoes?: string | null
+          turnover_medio?: number
+        }
+        Relationships: []
+      }
       chamados: {
         Row: {
           assunto: string
@@ -2968,6 +3013,67 @@ export type Database = {
       }
     }
     Views: {
+      bi_absenteismo_mensal: {
+        Row: {
+          departamento: string | null
+          dias_afastados: number | null
+          mes: string | null
+          taxa_absenteismo_pct: number | null
+          total_atestados: number | null
+        }
+        Relationships: []
+      }
+      bi_compliance: {
+        Row: {
+          departamento: string | null
+          epis_pct: number | null
+          politicas_pct: number | null
+          score_geral: number | null
+          treinamentos_pct: number | null
+        }
+        Relationships: []
+      }
+      bi_custo_pessoal_mensal: {
+        Row: {
+          departamento: string | null
+          mes: string | null
+          reembolsos: number | null
+          salarios: number | null
+          total: number | null
+          vales: number | null
+          viagens: number | null
+        }
+        Relationships: []
+      }
+      bi_engajamento_mensal: {
+        Row: {
+          clima_respostas: number | null
+          departamento: string | null
+          kudos: number | null
+          mes: string | null
+          score_engajamento: number | null
+          treinamentos_concluidos: number | null
+        }
+        Relationships: []
+      }
+      bi_headcount_mensal: {
+        Row: {
+          ativos: number | null
+          departamento: string | null
+          mes: string | null
+        }
+        Relationships: []
+      }
+      bi_turnover_trimestral: {
+        Row: {
+          admissoes: number | null
+          departamento: string | null
+          desligamentos: number | null
+          trimestre: string | null
+          turnover_pct: number | null
+        }
+        Relationships: []
+      }
       clima_resultados_agg: {
         Row: {
           detratores: number | null
@@ -3313,6 +3419,112 @@ export type Database = {
       }
       cleanup_old_login_attempts: { Args: never; Returns: number }
       cleanup_webauthn_challenges: { Args: never; Returns: number }
+      fn_bi_absenteismo: {
+        Args: { p_meses?: number }
+        Returns: {
+          departamento: string | null
+          dias_afastados: number | null
+          mes: string | null
+          taxa_absenteismo_pct: number | null
+          total_atestados: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_absenteismo_mensal"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_bi_compliance: {
+        Args: never
+        Returns: {
+          departamento: string | null
+          epis_pct: number | null
+          politicas_pct: number | null
+          score_geral: number | null
+          treinamentos_pct: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_compliance"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_bi_criar_snapshot: { Args: { p_mes?: string }; Returns: string }
+      fn_bi_custo: {
+        Args: { p_meses?: number }
+        Returns: {
+          departamento: string | null
+          mes: string | null
+          reembolsos: number | null
+          salarios: number | null
+          total: number | null
+          vales: number | null
+          viagens: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_custo_pessoal_mensal"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_bi_engajamento: {
+        Args: { p_meses?: number }
+        Returns: {
+          clima_respostas: number | null
+          departamento: string | null
+          kudos: number | null
+          mes: string | null
+          score_engajamento: number | null
+          treinamentos_concluidos: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_engajamento_mensal"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_bi_headcount: {
+        Args: { p_meses?: number }
+        Returns: {
+          ativos: number | null
+          departamento: string | null
+          mes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_headcount_mensal"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_bi_pode_ver: { Args: never; Returns: boolean }
+      fn_bi_refresh_all: {
+        Args: never
+        Returns: {
+          refreshed_at: string
+          view_name: string
+        }[]
+      }
+      fn_bi_turnover: {
+        Args: never
+        Returns: {
+          admissoes: number | null
+          departamento: string | null
+          desligamentos: number | null
+          trimestre: string | null
+          turnover_pct: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bi_turnover_trimestral"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       fn_calcular_saldo_ferias: {
         Args: { p_user_id: string }
         Returns: {
