@@ -2043,7 +2043,9 @@ export default function NotificationBell() {
                         !n.lida ? 'bg-primary/5' : ''
                       } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
                         isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
-                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''}`}
+                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''} ${
+                        isClusterMember ? 'pl-9 bg-muted/10 border-l-2 border-l-primary/20' : ''
+                      }`}
                     >
                       {/* Item 101: checkbox de seleção (visível no hover ou quando há seleção) */}
                       <input
