@@ -353,31 +353,90 @@ export default function NotificationBell() {
     await supabase.from('notificacoes').update({ fixada_em: novoFixadaEm }).eq('id', id);
   };
 
-  const deleteNotif = async (id: string) => {
-    setNotificacoes((prev) => prev.filter((n) => n.id !== id));
-    await supabase.from('notificacoes').delete().eq('id', id);
+  // Agenda o DELETE real no backend após UNDO_MS. Se o usuário desfizer,
+  // o timer é cancelado e o item volta a aparecer instantaneamente.
+  const scheduleDelete = useCallback((ids: string[], label: string) => {
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+    setPendingDeleteIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+
+    const toastId = toast(`${label} excluída${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: () => {
+          ids.forEach((id) => {
+            const t = undoTimers.current.get(id);
+            if (t) clearTimeout(t);
+            undoTimers.current.delete(id);
+          });
+          setPendingDeleteIds((prev) => {
+            const next = new Set(prev);
+            ids.forEach((id) => next.delete(id));
+            return next;
+          });
+        },
+      },
+    });
+
+    ids.forEach((id) => {
+      const t = setTimeout(async () => {
+        undoTimers.current.delete(id);
+        // commit: remove do estado local + backend
+        setNotificacoes((prev) => prev.filter((n) => n.id !== id));
+        setPendingDeleteIds((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        await supabase.from('notificacoes').delete().eq('id', id);
+      }, UNDO_MS);
+      undoTimers.current.set(id, t);
+    });
+
+    // Se a aba/janela for fechada, o cleanup do useEffect cancela os timers —
+    // as notificações "reaparecerão" na próxima carga (fonte da verdade = backend).
+    void toastId;
+    void idSet;
+  }, []);
+
+  const deleteNotif = (id: string) => {
+    const n = notificacoes.find((x) => x.id === id);
+    scheduleDelete([id], n ? `"${n.titulo.slice(0, 40)}"` : 'Notificação');
   };
 
-  // Marca como lidas apenas as notificações atualmente visíveis (aba + busca + tipos).
+  // Marca como lidas apenas as notificações atualmente visíveis (aba + busca + tipos),
+  // com Undo: guarda o snapshot dos ids alterados e reverte no backend se solicitado.
   const markVisibleAsRead = async () => {
     const ids = filtradas.filter((n) => !n.lida).map((n) => n.id);
     if (ids.length === 0) return;
     const idSet = new Set(ids);
     setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
     await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+    toast(`${ids.length} marcada${ids.length > 1 ? 's' : ''} como lida${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: false } : n)));
+          await supabase.from('notificacoes').update({ lida: false }).in('id', ids);
+        },
+      },
+    });
   };
 
-  // Exclui em lote todas as notificações visíveis (respeita filtros ativos).
-  // Preserva fixadas por segurança — para excluir uma fixada, use a ação individual.
-  const deleteVisible = async () => {
+  // Exclui em lote todas as notificações visíveis (respeita filtros ativos),
+  // sempre com Undo — fixadas são preservadas por segurança.
+  const deleteVisible = () => {
     const alvos = filtradas.filter((n) => !n.fixada_em);
     if (alvos.length === 0) return;
-    const label = alvos.length === 1 ? '1 notificação' : `${alvos.length} notificações`;
-    if (!window.confirm(`Excluir ${label} visíveis? Fixadas serão preservadas.`)) return;
     const ids = alvos.map((n) => n.id);
-    const idSet = new Set(ids);
-    setNotificacoes((prev) => prev.filter((n) => !idSet.has(n.id)));
-    await supabase.from('notificacoes').delete().in('id', ids);
+    scheduleDelete(ids, `${ids.length} notificaç${ids.length > 1 ? 'ões' : 'ão'}`);
   };
 
   const handleClick = (n: Notificacao) => {
