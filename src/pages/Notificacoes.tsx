@@ -17,7 +17,16 @@ import {
   Search,
   CheckCheck,
   X,
+  Clock,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -62,6 +71,7 @@ export default function Notificacoes() {
         .from('notificacoes')
         .select('*')
         .eq('user_id', user.id)
+        .or('adiada_ate.is.null,adiada_ate.lte.' + new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -138,6 +148,34 @@ export default function Notificacoes() {
     } catch (error) {
       console.error('Erro ao excluir notificação:', error);
       toast.error('Erro ao excluir notificação');
+    }
+  };
+
+  const adiarNotificacoes = async (ids: string[], minutos: number) => {
+    if (ids.length === 0) return;
+    const ate = new Date(Date.now() + minutos * 60_000).toISOString();
+    try {
+      const { error } = await supabase.rpc('fn_adiar_notificacoes', {
+        _ids: ids,
+        _ate: ate,
+      });
+      if (error) throw error;
+      setNotificacoes((prev) => prev.filter((n) => !ids.includes(n.id)));
+      setSelecionadas((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      const label =
+        minutos < 60
+          ? `${minutos} min`
+          : minutos < 1440
+            ? `${Math.round(minutos / 60)}h`
+            : `${Math.round(minutos / 1440)}d`;
+      toast.success(`Adiada${ids.length > 1 ? 's' : ''} por ${label}`);
+    } catch (error) {
+      console.error('Erro ao adiar notificação:', error);
+      toast.error('Não foi possível adiar');
     }
   };
 
@@ -293,6 +331,32 @@ export default function Notificacoes() {
                   <Button size="sm" variant="ghost" onClick={() => acaoEmMassa('ler')}>
                     <CheckCheck className="w-4 h-4 mr-1" /> Marcar lidas
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost">
+                        <Clock className="w-4 h-4 mr-1" /> Adiar
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Adiar seleção por…</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 30)}>
+                        30 minutos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60)}>
+                        1 hora
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 4)}>
+                        4 horas
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24)}>
+                        Amanhã
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24 * 7)}>
+                        Próxima semana
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -305,6 +369,7 @@ export default function Notificacoes() {
                     <X className="w-4 h-4" />
                   </Button>
                 </>
+
               ) : (
                 naoLidas > 0 && (
                   <Button size="sm" variant="ghost" onClick={marcarTodasComoLidas}>
@@ -397,18 +462,42 @@ export default function Notificacoes() {
                                 </div>
                               </div>
                             </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                excluirNotificacao(n.id);
-                              }}
-                              aria-label="Excluir notificação"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                    onClick={(e) => e.stopPropagation()}
+                                    aria-label="Adiar notificação"
+                                  >
+                                    <Clock className="w-3.5 h-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenuLabel>Adiar por…</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 30)}>30 minutos</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60)}>1 hora</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 4)}>4 horas</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24)}>Amanhã</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24 * 7)}>Próxima semana</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  excluirNotificacao(n.id);
+                                }}
+                                aria-label="Excluir notificação"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
