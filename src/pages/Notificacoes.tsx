@@ -168,6 +168,10 @@ export default function Notificacoes() {
   }, [modoFoco]);
 
   useEffect(() => {
+    localStorage.setItem('notif_densidade', densidade);
+  }, [densidade]);
+
+  useEffect(() => {
     localStorage.setItem('notif_filtro', filtro);
   }, [filtro]);
 
