@@ -1120,6 +1120,29 @@ export default function NotificationBell() {
     clearSelection();
   }, [selected, notificacoes, clearSelection]);
 
+  // Item 106: Bulk marcar como NÃO lidas (com Undo).
+  const bulkMarkUnread = useCallback(async () => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && n.lida;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: false } : n)));
+    await supabase.from('notificacoes').update({ lida: false }).in('id', ids);
+    toast(`${ids.length} marcada${ids.length > 1 ? 's' : ''} como não lida${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+          await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
   // Bulk: fixa/desafixa (decide por maioria — se maioria está fixada, desafixa todas).
   const bulkTogglePin = useCallback(async () => {
     const items = Array.from(selected)
