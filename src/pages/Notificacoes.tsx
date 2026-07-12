@@ -272,6 +272,44 @@ export default function Notificacoes() {
     return Array.from(map.entries());
   }, [filtradas]);
 
+  // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
+  type ThreadItem =
+    | { kind: 'single'; notif: Notificacao }
+    | { kind: 'thread'; key: string; titulo: string; tipo: Notificacao['tipo']; items: Notificacao[] };
+
+  const buildThreads = useCallback(
+    (label: string, itens: Notificacao[]): ThreadItem[] => {
+      if (!agruparSimilares) return itens.map((n) => ({ kind: 'single' as const, notif: n }));
+      const byTitle = new Map<string, Notificacao[]>();
+      for (const n of itens) {
+        const k = n.titulo.trim().toLowerCase();
+        if (!byTitle.has(k)) byTitle.set(k, []);
+        byTitle.get(k)!.push(n);
+      }
+      const result: ThreadItem[] = [];
+      const seen = new Set<string>();
+      for (const n of itens) {
+        const k = n.titulo.trim().toLowerCase();
+        if (seen.has(k)) continue;
+        const bucket = byTitle.get(k)!;
+        if (bucket.length >= 3) {
+          seen.add(k);
+          result.push({
+            kind: 'thread',
+            key: `${label}::${k}`,
+            titulo: bucket[0].titulo,
+            tipo: bucket[0].tipo,
+            items: bucket,
+          });
+        } else {
+          result.push({ kind: 'single', notif: n });
+        }
+      }
+      return result;
+    },
+    [agruparSimilares],
+  );
+
   const naoLidas = notificacoes.filter((n) => !n.lida).length;
   const todasSelecionadasVisiveis =
     filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
