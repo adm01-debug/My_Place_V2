@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,7 +27,35 @@ interface Notificacao {
   link: string | null;
   created_at: string;
   fixada_em: string | null;
+  adiada_ate: string | null;
 }
+
+// Opções de adiamento (snooze). "at" é uma função que recebe "agora" e devolve o alvo.
+type SnoozeOption = { id: string; label: string; at: (now: Date) => Date };
+const SNOOZE_OPTIONS: SnoozeOption[] = [
+  { id: '1h', label: 'Em 1 hora', at: (n) => new Date(n.getTime() + 60 * 60 * 1000) },
+  { id: '3h', label: 'Em 3 horas', at: (n) => new Date(n.getTime() + 3 * 60 * 60 * 1000) },
+  {
+    id: 'tomorrow',
+    label: 'Amanhã, 9h',
+    at: (n) => {
+      const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 9, 0, 0, 0);
+      return d;
+    },
+  },
+  {
+    id: 'nextweek',
+    label: 'Próxima semana',
+    at: (n) => {
+      // Próxima segunda-feira às 9h
+      const d = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 9, 0, 0, 0);
+      const dow = d.getDay(); // 0=dom
+      const daysUntilMon = ((8 - dow) % 7) || 7;
+      d.setDate(d.getDate() + daysUntilMon);
+      return d;
+    },
+  },
+];
 
 const tipoIcons = {
   info: Info,
@@ -38,8 +74,8 @@ const tipoColors = {
 const MAX_ITEMS = 30;
 const DESKTOP_KEY = 'bell_desktop_v1';
 
-type BellFilter = 'todas' | 'nao_lidas' | 'fixadas';
-const FILTER_KEY = 'bell_filter_v1';
+type BellFilter = 'todas' | 'nao_lidas' | 'fixadas' | 'adiadas';
+const FILTER_KEY = 'bell_filter_v2';
 const TIPOS_KEY = 'bell_tipos_v1';
 const PREVIEW_KEY = 'bell_preview_v1';
 
@@ -56,7 +92,7 @@ const tipoLabels: Record<TipoNotif, string> = {
 };
 
 const isBellFilter = (v: unknown): v is BellFilter =>
-  v === 'todas' || v === 'nao_lidas' || v === 'fixadas';
+  v === 'todas' || v === 'nao_lidas' || v === 'fixadas' || v === 'adiadas';
 
 const canUseDesktop = () =>
   typeof window !== 'undefined' && 'Notification' in window;
@@ -142,14 +178,32 @@ export default function NotificationBell() {
     });
   }, []);
 
+  // Tick "agora" a cada 30s para reavaliar snoozes expirados sem depender de refetch.
+  const [nowTs, setNowTs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isSnoozed = useCallback(
+    (n: Notificacao) => !!n.adiada_ate && new Date(n.adiada_ate).getTime() > nowTs,
+    [nowTs]
+  );
+
   const unreadCount = useMemo(
-    () => notificacoes.filter((n) => !n.lida).length,
-    [notificacoes]
+    // Snoozed não contam no badge — voltam automaticamente quando expira.
+    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n)).length,
+    [notificacoes, isSnoozed]
   );
 
   const fixadasCount = useMemo(
     () => notificacoes.filter((n) => !!n.fixada_em).length,
     [notificacoes]
+  );
+
+  const snoozedCount = useMemo(
+    () => notificacoes.filter(isSnoozed).length,
+    [notificacoes, isSnoozed]
   );
 
   // Fixadas primeiro (por fixada_em desc), depois por created_at desc.
@@ -166,8 +220,14 @@ export default function NotificationBell() {
   const filtradas = useMemo(() => {
     let base = ordenadas;
     if (pendingDeleteIds.size > 0) base = base.filter((n) => !pendingDeleteIds.has(n.id));
-    if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
-    else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    // Regra global: snoozed são ocultos em todas as abas exceto "adiadas".
+    if (filtro === 'adiadas') {
+      base = base.filter(isSnoozed);
+    } else {
+      base = base.filter((n) => !isSnoozed(n));
+      if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
+      else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    }
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
@@ -177,7 +237,7 @@ export default function NotificationBell() {
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
@@ -185,6 +245,35 @@ export default function NotificationBell() {
     const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startYesterday = startToday - 86400000;
     const startWeek = startToday - 6 * 86400000;
+
+    // Na aba "adiadas", agrupamos por horizonte do próprio adiamento.
+    if (filtro === 'adiadas') {
+      const startTomorrow = startToday + 86400000;
+      const startNextWeek = startToday + 7 * 86400000;
+      const b: Record<string, Notificacao[]> = {
+        'Ainda hoje': [],
+        Amanhã: [],
+        'Esta semana': [],
+        'Mais tarde': [],
+      };
+      for (const n of filtradas) {
+        if (!n.adiada_ate) continue;
+        const t = new Date(n.adiada_ate).getTime();
+        if (t < startTomorrow) b['Ainda hoje'].push(n);
+        else if (t < startTomorrow + 86400000) b.Amanhã.push(n);
+        else if (t < startNextWeek) b['Esta semana'].push(n);
+        else b['Mais tarde'].push(n);
+      }
+      // Ordena cada bucket por adiada_ate asc (mais próximo primeiro).
+      for (const k of Object.keys(b)) {
+        b[k].sort(
+          (a, x) => new Date(a.adiada_ate!).getTime() - new Date(x.adiada_ate!).getTime()
+        );
+      }
+      return (Object.entries(b) as [string, Notificacao[]][]).filter(
+        ([, items]) => items.length > 0
+      );
+    }
 
     const buckets: Record<string, Notificacao[]> = {
       Fixadas: [],
@@ -239,7 +328,7 @@ export default function NotificationBell() {
     if (!user) return;
     const { data } = await supabase
       .from('notificacoes')
-      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em')
+      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em, adiada_ate')
       .eq('user_id', user.id)
       .order('fixada_em', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
@@ -366,6 +455,68 @@ export default function NotificationBell() {
     );
     await supabase.from('notificacoes').update({ fixada_em: novoFixadaEm }).eq('id', id);
   };
+
+  // Adia (snooze) uma notificação até uma data futura. Optimista + Undo (5s).
+  const snoozeNotif = async (id: string, until: Date) => {
+    const n = notificacoes.find((x) => x.id === id);
+    if (!n) return;
+    const prevValue = n.adiada_ate;
+    const iso = until.toISOString();
+    // Optimista: atualiza estado local imediatamente.
+    setNotificacoes((prev) => prev.map((x) => (x.id === id ? { ...x, adiada_ate: iso } : x)));
+    const { error } = await supabase
+      .from('notificacoes')
+      .update({ adiada_ate: iso })
+      .eq('id', id);
+    if (error) {
+      // Rollback em falha.
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+      );
+      toast.error('Não foi possível adiar');
+      return;
+    }
+    const quando = until.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    toast(`Adiada até ${quando}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) =>
+            prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+          );
+          await supabase
+            .from('notificacoes')
+            .update({ adiada_ate: prevValue })
+            .eq('id', id);
+        },
+      },
+    });
+  };
+
+  const unsnoozeNotif = async (id: string) => {
+    const n = notificacoes.find((x) => x.id === id);
+    if (!n) return;
+    const prevValue = n.adiada_ate;
+    setNotificacoes((prev) => prev.map((x) => (x.id === id ? { ...x, adiada_ate: null } : x)));
+    const { error } = await supabase
+      .from('notificacoes')
+      .update({ adiada_ate: null })
+      .eq('id', id);
+    if (error) {
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, adiada_ate: prevValue } : x))
+      );
+      toast.error('Não foi possível cancelar o adiamento');
+    }
+  };
+
+
 
   // Agenda o DELETE real no backend após UNDO_MS. Se o usuário desfizer,
   // o timer é cancelado e o item volta a aparecer instantaneamente.
@@ -539,6 +690,17 @@ export default function NotificationBell() {
           if (current) {
             e.preventDefault();
             togglePin(current.id, !!current.fixada_em);
+          }
+          break;
+        case 's':
+          // Snooze rápido: 1h (padrão). Se já estiver adiada, cancela o adiamento.
+          if (current) {
+            e.preventDefault();
+            if (isSnoozed(current)) {
+              unsnoozeNotif(current.id);
+            } else {
+              snoozeNotif(current.id, SNOOZE_OPTIONS[0].at(new Date()));
+            }
           }
           break;
         case 'v':
@@ -723,9 +885,10 @@ export default function NotificationBell() {
         >
           {(
             [
-              { id: 'todas', label: 'Todas', count: notificacoes.length },
+              { id: 'todas', label: 'Todas', count: notificacoes.filter((n) => !isSnoozed(n)).length },
               { id: 'nao_lidas', label: 'Não lidas', count: unreadCount },
               { id: 'fixadas', label: 'Fixadas', count: fixadasCount },
+              { id: 'adiadas', label: 'Adiadas', count: snoozedCount },
             ] as { id: BellFilter; label: string; count: number }[]
           ).map((tab) => {
             const ativo = filtro === tab.id;
@@ -853,7 +1016,9 @@ export default function NotificationBell() {
                       ? 'Nenhuma notificação não lida'
                       : filtro === 'fixadas'
                         ? 'Nenhuma notificação fixada'
-                        : 'Nenhuma notificação'}
+                        : filtro === 'adiadas'
+                          ? 'Nenhuma notificação adiada'
+                          : 'Nenhuma notificação'}
               </p>
               {tiposAtivos.size > 0 && (
                 <button
@@ -877,6 +1042,7 @@ export default function NotificationBell() {
                 {itens.map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
+                  const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
                   return (
                     <div
@@ -912,6 +1078,12 @@ export default function NotificationBell() {
                                 aria-label="Fixada"
                               />
                             )}
+                            {snoozed && (
+                              <Clock
+                                className="w-3 h-3 text-amber-500 shrink-0"
+                                aria-label="Adiada"
+                              />
+                            )}
                             <span className="truncate">{highlight(n.titulo)}</span>
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
@@ -921,6 +1093,12 @@ export default function NotificationBell() {
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                           {highlight(n.mensagem)}
                         </p>
+                        {snoozed && n.adiada_ate && (
+                          <p className="text-[10px] text-amber-500/90 mt-1 inline-flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            Volta em {formatAbsolute(n.adiada_ate)}
+                          </p>
+                        )}
                       </div>
                       {!n.lida && (
                         <span className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0 group-hover:opacity-0 transition-opacity" />
@@ -941,6 +1119,54 @@ export default function NotificationBell() {
                           >
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
                           </button>
+                        )}
+                        {snoozed ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              unsnoozeNotif(n.id);
+                            }}
+                            className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            aria-label="Cancelar adiamento"
+                            title="Cancelar adiamento"
+                          >
+                            <AlarmClockOff className="w-3.5 h-3.5 text-amber-500" />
+                          </button>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                                aria-label="Adiar"
+                                title="Adiar (snooze)"
+                              >
+                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-44"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                Adiar por
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {SNOOZE_OPTIONS.map((opt) => (
+                                <DropdownMenuItem
+                                  key={opt.id}
+                                  onSelect={() => snoozeNotif(n.id, opt.at(new Date()))}
+                                  className="text-xs"
+                                >
+                                  <Clock className="w-3.5 h-3.5 mr-2 text-amber-500" />
+                                  {opt.label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                         <button
                           type="button"
@@ -988,6 +1214,7 @@ export default function NotificationBell() {
               (() => {
                 const Icon = tipoIcons[activeItem.tipo] || Info;
                 const fixada = !!activeItem.fixada_em;
+                const snoozed = isSnoozed(activeItem);
                 return (
                   <>
                     <div className="flex items-start gap-2 px-4 py-3 border-b border-border/40">
@@ -1005,6 +1232,11 @@ export default function NotificationBell() {
                           {fixada && (
                             <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary inline-flex items-center gap-0.5">
                               <Pin className="w-2.5 h-2.5" /> Fixada
+                            </span>
+                          )}
+                          {snoozed && activeItem.adiada_ate && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 inline-flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5" /> Adiada até {formatAbsolute(activeItem.adiada_ate)}
                             </span>
                           )}
                         </div>
@@ -1057,6 +1289,48 @@ export default function NotificationBell() {
                           <Pin className="w-3.5 h-3.5 text-primary" />
                         )}
                       </Button>
+                      {snoozed ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => unsnoozeNotif(activeItem.id)}
+                          aria-label="Cancelar adiamento"
+                          title="Cancelar adiamento"
+                        >
+                          <AlarmClockOff className="w-3.5 h-3.5 text-amber-500" />
+                        </Button>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              aria-label="Adiar"
+                              title="Adiar (s)"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-amber-500" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Adiar por
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {SNOOZE_OPTIONS.map((opt) => (
+                              <DropdownMenuItem
+                                key={opt.id}
+                                onSelect={() => snoozeNotif(activeItem.id, opt.at(new Date()))}
+                                className="text-xs"
+                              >
+                                <Clock className="w-3.5 h-3.5 mr-2 text-amber-500" />
+                                {opt.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"
@@ -1100,6 +1374,7 @@ export default function NotificationBell() {
             <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">s</kbd> adiar ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">v</kbd> preview
           </p>
         </div>
