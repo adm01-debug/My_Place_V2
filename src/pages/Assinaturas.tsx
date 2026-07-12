@@ -23,7 +23,7 @@ type Documento = {
 };
 
 type Assinatura = {
-  id: string; documento_id: string; user_id: string; papel: string; status: string;
+  id: string; documento_id: string; user_id: string; ordem: number; papel: string; status: string;
   assinado_em: string | null; motivo_recusa: string | null;
 };
 
