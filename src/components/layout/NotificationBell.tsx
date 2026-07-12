@@ -1739,8 +1739,65 @@ export default function NotificationBell() {
           })}
         </div>
 
-        {/* Barra de ações em massa para o recorte visível */}
-        {filtradas.length > 0 && (
+        {/* Item 101: Barra contextual de SELEÇÃO — só aparece quando há itens selecionados */}
+        {selected.size > 0 ? (
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-primary/30 bg-primary/10 animate-in fade-in slide-in-from-top-1 duration-150">
+            <span className="text-[11px] font-medium text-foreground">
+              {selected.size} selecionada{selected.size > 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={bulkMarkRead}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Marcar selecionadas como lidas"
+              >
+                <Check className="w-3 h-3" /> Lidas
+              </button>
+              <button
+                type="button"
+                onClick={bulkTogglePin}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Fixar/desafixar selecionadas"
+              >
+                <Pin className="w-3 h-3" /> Fixar
+              </button>
+              <button
+                type="button"
+                onClick={bulkSnooze1h}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Adiar selecionadas por 1h"
+              >
+                <Clock className="w-3 h-3" /> 1h
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-destructive/10 text-foreground/80 hover:text-destructive transition-colors"
+                title="Excluir selecionadas (preserva fixadas)"
+              >
+                <Trash2 className="w-3 h-3" /> Excluir
+              </button>
+              <div className="w-px h-4 bg-border/60 mx-1" aria-hidden />
+              <button
+                type="button"
+                onClick={selectAllFiltradas}
+                className="text-[10px] px-2 py-1 rounded hover:bg-background/60 text-muted-foreground hover:text-foreground transition-colors"
+                title="Selecionar todas visíveis (Ctrl/Cmd+A)"
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="text-[10px] px-2 py-1 rounded hover:bg-background/60 text-muted-foreground hover:text-foreground transition-colors"
+                title="Limpar seleção (Esc)"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+        ) : filtradas.length > 0 && (
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10">
             <span className="text-[10px] text-muted-foreground">
               {filtradas.length === notificacoes.length
