@@ -678,6 +678,41 @@ export default function NotificationBell() {
           })}
         </div>
 
+        {/* Barra de ações em massa para o recorte visível */}
+        {filtradas.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10">
+            <span className="text-[10px] text-muted-foreground">
+              {filtradas.length === notificacoes.length
+                ? `${filtradas.length} ${filtradas.length === 1 ? 'notificação' : 'notificações'}`
+                : `${filtradas.length} de ${notificacoes.length} visíveis`}
+            </span>
+            <div className="flex items-center gap-1">
+              {filtradas.some((n) => !n.lida) && (
+                <button
+                  type="button"
+                  onClick={markVisibleAsRead}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Marcar visíveis como lidas"
+                >
+                  <Check className="w-3 h-3" />
+                  Marcar visíveis
+                </button>
+              )}
+              {filtradas.some((n) => !n.fixada_em) && (
+                <button
+                  type="button"
+                  onClick={deleteVisible}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title="Excluir visíveis (preserva fixadas)"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Excluir visíveis
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <ScrollArea className="max-h-80">
           {filtradas.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-muted-foreground">
