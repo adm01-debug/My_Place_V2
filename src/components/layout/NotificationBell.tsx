@@ -1203,6 +1203,7 @@ export default function NotificationBell() {
               (() => {
                 const Icon = tipoIcons[activeItem.tipo] || Info;
                 const fixada = !!activeItem.fixada_em;
+                const snoozed = isSnoozed(activeItem);
                 return (
                   <>
                     <div className="flex items-start gap-2 px-4 py-3 border-b border-border/40">
