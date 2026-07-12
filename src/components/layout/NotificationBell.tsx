@@ -192,6 +192,11 @@ export default function NotificationBell() {
   const focusModeRef = useRef(focusMode);
   useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
 
+  // Item 101 (state elevado): usado tanto por ações em lote quanto pelo
+  // clustering (Item 102), que precisa não esconder itens selecionados.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const lastSelectedIdRef = useRef<string | null>(null);
+
   // ─── Item 102: Agrupamento inteligente (clustering) ───────────────────────
   // Agrupa notificações consecutivas do mesmo tipo + título normalizado dentro
   // do mesmo bucket temporal. Reduz ruído em bursts (ex.: 5 avisos de "novo
