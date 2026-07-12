@@ -133,6 +133,10 @@ export default function Navbar() {
                     <FileSpreadsheet className="w-4 h-4" />
                     Relatórios Gerenciais
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/bi')} className="gap-2 cursor-pointer focus:bg-accent">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Business Intelligence
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/admin/configuracoes')} className="gap-2 cursor-pointer focus:bg-accent">
                     <Settings className="w-4 h-4" />
                     Configurações
