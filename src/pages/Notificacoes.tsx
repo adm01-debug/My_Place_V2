@@ -61,7 +61,9 @@ import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
+import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
+import { useAutoRules } from '@/hooks/useAutoRules';
 
 interface Notificacao {
   id: string;
