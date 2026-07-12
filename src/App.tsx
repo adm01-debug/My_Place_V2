@@ -55,6 +55,7 @@ const Politicas = lazy(() => import("./pages/Politicas"));
 const Treinamentos = lazy(() => import("./pages/Treinamentos"));
 const Epis = lazy(() => import("./pages/Epis"));
 const Patrimonio = lazy(() => import("./pages/Patrimonio"));
+const Viagens = lazy(() => import("./pages/Viagens"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
