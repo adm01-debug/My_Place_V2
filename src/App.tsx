@@ -53,6 +53,7 @@ const Reservas = lazy(() => import("./pages/Reservas"));
 const Chamados = lazy(() => import("./pages/Chamados"));
 const Politicas = lazy(() => import("./pages/Politicas"));
 const Treinamentos = lazy(() => import("./pages/Treinamentos"));
+const Epis = lazy(() => import("./pages/Epis"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
