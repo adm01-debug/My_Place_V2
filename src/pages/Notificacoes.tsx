@@ -65,6 +65,24 @@ export default function Notificacoes() {
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todas');
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
+  const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('notif_agrupar_similares') !== '0';
+  });
+  const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
+  }, [agruparSimilares]);
+
+  const toggleThread = (key: string) => {
+    setThreadsExpandidas((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
