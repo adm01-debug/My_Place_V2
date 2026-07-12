@@ -886,7 +886,154 @@ export default function NotificationBell() {
     scheduleDelete(ids, `${ids.length} notificaç${ids.length > 1 ? 'ões' : 'ão'}`);
   };
 
-  const handleClick = (n: Notificacao) => {
+  // ─── Item 101: Seleção múltipla + ações em lote ─────────────────────────────
+  // - Set<id> das seleções; shift+click faz intervalo sobre a lista filtrada.
+  // - Ações: marcar lidas, fixar/desafixar, adiar 1h, excluir — com Undo.
+  // - Auto-limpa itens que somem (após delete/backend). Ctrl/Cmd+A seleciona
+  //   todas visíveis; Escape limpa a seleção.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const lastSelectedIdRef = useRef<string | null>(null);
+
+  // Purga IDs que não existem mais em `notificacoes` (delete/backend/refetch).
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const alive = new Set(notificacoes.map((n) => n.id));
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (alive.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [notificacoes]);
+
+  const toggleSelect = useCallback(
+    (id: string, opts?: { shift?: boolean }) => {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        // Shift+click: seleciona intervalo entre última seleção e este item
+        // dentro da ordem visível (filtradas). Se não houver âncora, cai no toggle.
+        if (opts?.shift && lastSelectedIdRef.current && lastSelectedIdRef.current !== id) {
+          const ids = filtradas.map((n) => n.id);
+          const a = ids.indexOf(lastSelectedIdRef.current);
+          const b = ids.indexOf(id);
+          if (a >= 0 && b >= 0) {
+            const [lo, hi] = a < b ? [a, b] : [b, a];
+            for (let i = lo; i <= hi; i++) next.add(ids[i]);
+            lastSelectedIdRef.current = id;
+            return next;
+          }
+        }
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        lastSelectedIdRef.current = id;
+        return next;
+      });
+    },
+    [filtradas]
+  );
+
+  const clearSelection = useCallback(() => {
+    setSelected(new Set());
+    lastSelectedIdRef.current = null;
+  }, []);
+
+  const selectAllFiltradas = useCallback(() => {
+    setSelected(new Set(filtradas.map((n) => n.id)));
+    lastSelectedIdRef.current = filtradas[filtradas.length - 1]?.id ?? null;
+  }, [filtradas]);
+
+  // Bulk: marcar como lidas (com Undo).
+  const bulkMarkRead = useCallback(async () => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && !n.lida;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+    await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+    toast(`${ids.length} marcada${ids.length > 1 ? 's' : ''} como lida${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: false } : n)));
+          await supabase.from('notificacoes').update({ lida: false }).in('id', ids);
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: fixa/desafixa (decide por maioria — se maioria está fixada, desafixa todas).
+  const bulkTogglePin = useCallback(async () => {
+    const items = Array.from(selected)
+      .map((id) => notificacoes.find((n) => n.id === id))
+      .filter((n): n is Notificacao => !!n);
+    if (items.length === 0) { clearSelection(); return; }
+    const pinnedCount = items.filter((n) => n.fixada_em).length;
+    const shouldPin = pinnedCount < items.length / 2; // maioria dita a direção
+    const value = shouldPin ? new Date().toISOString() : null;
+    const ids = items.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) =>
+      prev.map((n) => (idSet.has(n.id) ? { ...n, fixada_em: value } : n))
+    );
+    await supabase.from('notificacoes').update({ fixada_em: value }).in('id', ids);
+    toast(shouldPin
+      ? `${ids.length} fixada${ids.length > 1 ? 's' : ''}`
+      : `${ids.length} desafixada${ids.length > 1 ? 's' : ''}`);
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: adia todas selecionadas por 1h (Undo restaura o adiada_ate anterior por item).
+  const bulkSnooze1h = useCallback(async () => {
+    const items = Array.from(selected)
+      .map((id) => notificacoes.find((n) => n.id === id))
+      .filter((n): n is Notificacao => !!n);
+    if (items.length === 0) { clearSelection(); return; }
+    const previous = new Map(items.map((n) => [n.id, n.adiada_ate]));
+    const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const ids = items.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) =>
+      prev.map((n) => (idSet.has(n.id) ? { ...n, adiada_ate: until } : n))
+    );
+    await supabase.from('notificacoes').update({ adiada_ate: until }).in('id', ids);
+    toast(`${ids.length} adiada${ids.length > 1 ? 's' : ''} por 1h`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) =>
+            prev.map((n) => (previous.has(n.id) ? { ...n, adiada_ate: previous.get(n.id) ?? null } : n))
+          );
+          // Rollback individual (valores heterogêneos) — Promise.all mantém batch.
+          await Promise.all(
+            Array.from(previous.entries()).map(([id, val]) =>
+              supabase.from('notificacoes').update({ adiada_ate: val }).eq('id', id)
+            )
+          );
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: exclui todas selecionadas (preserva fixadas por segurança) — reusa scheduleDelete.
+  const bulkDelete = useCallback(() => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && !n.fixada_em;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    scheduleDelete(ids, `${ids.length} notificaç${ids.length > 1 ? 'ões' : 'ão'}`);
+    clearSelection();
+  }, [selected, notificacoes, scheduleDelete, clearSelection]);
+
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
     if (n.link) {
