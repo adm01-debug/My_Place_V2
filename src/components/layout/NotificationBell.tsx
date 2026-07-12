@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2 } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -65,6 +65,15 @@ export default function NotificationBell() {
   }, [filtro]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [busca, setBusca] = useState('');
+  const buscaRef = useRef<HTMLInputElement>(null);
+
+  // Normaliza texto (case + acentos) para busca amigável em PT-BR.
+  const normalize = useCallback(
+    (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(),
+    []
+  );
+  const buscaNorm = useMemo(() => normalize(busca.trim()), [busca, normalize]);
 
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
@@ -88,10 +97,16 @@ export default function NotificationBell() {
   }, [notificacoes]);
 
   const filtradas = useMemo(() => {
-    if (filtro === 'nao_lidas') return ordenadas.filter((n) => !n.lida);
-    if (filtro === 'fixadas') return ordenadas.filter((n) => !!n.fixada_em);
-    return ordenadas;
-  }, [ordenadas, filtro]);
+    let base = ordenadas;
+    if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
+    else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    if (buscaNorm) {
+      base = base.filter(
+        (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
+      );
+    }
+    return base;
+  }, [ordenadas, filtro, buscaNorm, normalize]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
@@ -132,6 +147,7 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) {
       setActiveId(null);
+      setBusca('');
       return;
     }
     setActiveId((prev) => {
@@ -300,9 +316,33 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      // Não sequestra teclas quando o usuário digita em campo (search futuro, etc.)
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      const inField =
+        !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      // Dentro do campo de busca: Escape limpa/desfoca; ↑↓/Enter navegam a lista.
+      if (inField) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          if (busca) setBusca('');
+          else buscaRef.current?.blur();
+          return;
+        }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+          // deixa cair no switch abaixo tratando navegação
+        } else {
+          return;
+        }
+      }
+
+      // "/" foca a busca (fora de campo).
+      if (!inField && e.key === '/') {
+        e.preventDefault();
+        buscaRef.current?.focus();
+        buscaRef.current?.select();
+        return;
+      }
+
       if (flatList.length === 0) return;
 
       const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
@@ -366,7 +406,7 @@ export default function NotificationBell() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeId, flatList]);
+  }, [open, activeId, flatList, busca]);
 
 
 
@@ -383,6 +423,29 @@ export default function NotificationBell() {
     const days = Math.floor(hours / 24);
     return `${days}d`;
   };
+
+  // Realça o termo buscado no texto (respeitando acentos e case originais).
+  const highlight = useCallback(
+    (text: string) => {
+      if (!buscaNorm) return text;
+      const normText = normalize(text);
+      const start = normText.indexOf(buscaNorm);
+      if (start < 0) return text;
+      const end = start + buscaNorm.length;
+      return (
+        <>
+          {text.slice(0, start)}
+          <mark className="bg-primary/25 text-foreground rounded px-0.5">
+            {text.slice(start, end)}
+          </mark>
+          {text.slice(end)}
+        </>
+      );
+    },
+    [buscaNorm, normalize]
+  );
+
+
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -434,6 +497,36 @@ export default function NotificationBell() {
           </div>
         </div>
 
+        {/* Busca inline */}
+        <div className="relative px-2 py-1.5 border-b border-border/50">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            ref={buscaRef}
+            type="text"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar notificações…  ( / )"
+            aria-label="Buscar notificações"
+            className="w-full h-8 pl-7 pr-7 text-xs rounded-md bg-muted/40 border border-transparent focus:border-primary/40 focus:bg-background focus:outline-none placeholder:text-muted-foreground/70 transition-colors"
+          />
+          {busca && (
+            <button
+              type="button"
+              onClick={() => {
+                setBusca('');
+                buscaRef.current?.focus();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded hover:bg-muted transition-colors"
+              aria-label="Limpar busca"
+              title="Limpar busca (Esc)"
+            >
+              <X className="w-3 h-3 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+
+
         <div
           role="tablist"
           aria-label="Filtro de notificações"
@@ -478,11 +571,13 @@ export default function NotificationBell() {
             <div className="flex flex-col items-center py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">
-                {filtro === 'nao_lidas'
-                  ? 'Nenhuma notificação não lida'
-                  : filtro === 'fixadas'
-                    ? 'Nenhuma notificação fixada'
-                    : 'Nenhuma notificação'}
+                {buscaNorm
+                  ? `Nenhum resultado para "${busca.trim()}"`
+                  : filtro === 'nao_lidas'
+                    ? 'Nenhuma notificação não lida'
+                    : filtro === 'fixadas'
+                      ? 'Nenhuma notificação fixada'
+                      : 'Nenhuma notificação'}
               </p>
             </div>
           ) : (
@@ -532,14 +627,14 @@ export default function NotificationBell() {
                                 aria-label="Fixada"
                               />
                             )}
-                            <span className="truncate">{n.titulo}</span>
+                            <span className="truncate">{highlight(n.titulo)}</span>
                           </p>
                           <span className="text-[10px] text-muted-foreground shrink-0 group-hover:opacity-0 transition-opacity">
                             {formatTime(n.created_at)}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {n.mensagem}
+                          {highlight(n.mensagem)}
                         </p>
                       </div>
                       {!n.lida && (
@@ -612,7 +707,8 @@ export default function NotificationBell() {
             Ver todas as notificações
           </Button>
           <p className="text-[10px] text-muted-foreground/70 text-center px-2 leading-tight">
-            <kbd className="px-1 rounded bg-muted/60">j</kbd>/<kbd className="px-1 rounded bg-muted/60">k</kbd> navegar ·
+            <kbd className="px-1 rounded bg-muted/60">/</kbd> buscar ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">j</kbd>/<kbd className="px-1 rounded bg-muted/60">k</kbd> navegar ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">↵</kbd> abrir ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
