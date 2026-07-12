@@ -440,9 +440,14 @@ export default function Notificacoes() {
     });
   }, [notificacoes, filtro, busca, dataInicio, dataFim]);
 
+  const filtradasVisiveis = useMemo(
+    () => filtradas.slice(0, visibleCount),
+    [filtradas, visibleCount]
+  );
+
   const grupos = useMemo(() => {
     const map = new Map<string, Notificacao[]>();
-    for (const n of filtradas) {
+    for (const n of filtradasVisiveis) {
       const label = groupLabel(new Date(n.created_at));
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
@@ -453,7 +458,30 @@ export default function Notificacoes() {
       }
     }
     return Array.from(map.entries());
-  }, [filtradas, ordenarPorRelevancia]);
+  }, [filtradasVisiveis, ordenarPorRelevancia]);
+
+  // Reset paginação quando filtros mudam
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia]);
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    if (visibleCount >= filtradas.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((c) => Math.min(c + 50, filtradas.length));
+        }
+      },
+      { rootMargin: '400px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visibleCount, filtradas.length]);
+
 
   // ------------------- Exportação (CSV / PDF via print) -------------------
   const exportarCSV = useCallback(() => {
