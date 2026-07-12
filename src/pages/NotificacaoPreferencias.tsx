@@ -18,6 +18,8 @@ type Categoria =
 
 type Nivel = "info" | "aviso" | "critico";
 
+type DigestFreq = "imediato" | "horario" | "diario" | "semanal";
+
 interface Pref {
   categoria: Categoria;
   canal_in_app: boolean;
@@ -26,6 +28,7 @@ interface Pref {
   canal_whatsapp: boolean;
   nivel_minimo: Nivel;
   silenciar_ate: string | null;
+  digest_frequencia: DigestFreq;
 }
 
 interface Quiet {
