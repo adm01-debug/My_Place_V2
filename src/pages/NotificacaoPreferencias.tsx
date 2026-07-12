@@ -80,10 +80,10 @@ export default function NotificacaoPreferencias() {
     const map = {} as Record<Categoria, Pref>;
     for (const cat of CATEGORIAS) {
       const found = p?.find((x) => x.categoria === cat.id);
-      map[cat.id] = found ?? {
+      map[cat.id] = (found as Pref | undefined) ?? {
         categoria: cat.id,
         canal_in_app: true, canal_email: true, canal_push: true, canal_whatsapp: false,
-        nivel_minimo: "info", silenciar_ate: null,
+        nivel_minimo: "info", silenciar_ate: null, digest_frequencia: "imediato",
       };
     }
     setPrefs(map);
