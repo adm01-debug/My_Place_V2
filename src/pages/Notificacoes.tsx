@@ -275,6 +275,30 @@ export default function Notificacoes() {
     }
   };
 
+  const togglePin = async (n: Notificacao) => {
+    const proximoValor = n.fixada_em ? null : new Date().toISOString();
+    // Optimistic
+    setNotificacoes((prev) =>
+      prev.map((x) => (x.id === n.id ? { ...x, fixada_em: proximoValor } : x)),
+    );
+    try {
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ fixada_em: proximoValor })
+        .eq('id', n.id);
+      if (error) throw error;
+      toast.success(proximoValor ? 'Notificação fixada' : 'Notificação desafixada');
+    } catch (error) {
+      console.error('Erro ao alternar fixar:', error);
+      // Rollback
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, fixada_em: n.fixada_em } : x)),
+      );
+      toast.error('Não foi possível fixar a notificação');
+    }
+  };
+
+
   const marcarTodasComoLidas = async () => {
     if (!user) return;
     try {
