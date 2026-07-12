@@ -974,6 +974,108 @@ export default function NotificationBell() {
           )}
         </ScrollArea>
 
+        {showPreview && (
+          <aside
+            className="w-[320px] shrink-0 hidden md:flex flex-col max-h-80 overflow-hidden"
+            aria-label="Preview da notificação"
+          >
+            {activeItem ? (
+              (() => {
+                const Icon = tipoIcons[activeItem.tipo] || Info;
+                const fixada = !!activeItem.fixada_em;
+                return (
+                  <>
+                    <div className="flex items-start gap-2 px-4 py-3 border-b border-border/40">
+                      <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[activeItem.tipo]}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider ${tipoColors[activeItem.tipo]}`}>
+                            {tipoLabels[activeItem.tipo]}
+                          </span>
+                          {!activeItem.lida && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
+                              Não lida
+                            </span>
+                          )}
+                          {fixada && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary inline-flex items-center gap-0.5">
+                              <Pin className="w-2.5 h-2.5" /> Fixada
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-semibold text-foreground mt-1 leading-snug break-words">
+                          {activeItem.titulo}
+                        </h4>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {formatAbsolute(activeItem.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <ScrollArea className="flex-1">
+                      <p className="px-4 py-3 text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
+                        {activeItem.mensagem}
+                      </p>
+                    </ScrollArea>
+                    <div className="flex items-center gap-1 px-2 py-2 border-t border-border/40 bg-muted/10">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="flex-1 h-7 text-[11px] gap-1"
+                        onClick={() => handleClick(activeItem)}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Abrir
+                      </Button>
+                      {!activeItem.lida && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => markAsRead(activeItem.id)}
+                          aria-label="Marcar como lida"
+                          title="Marcar como lida (e)"
+                        >
+                          <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => togglePin(activeItem.id, fixada)}
+                        aria-label={fixada ? 'Desafixar' : 'Fixar'}
+                        title={fixada ? 'Desafixar (p)' : 'Fixar (p)'}
+                      >
+                        {fixada ? (
+                          <PinOff className="w-3.5 h-3.5 text-muted-foreground" />
+                        ) : (
+                          <Pin className="w-3.5 h-3.5 text-primary" />
+                        )}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 hover:bg-destructive/10"
+                        onClick={() => deleteNotif(activeItem.id)}
+                        aria-label="Excluir"
+                        title="Excluir (x)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center">
+                <Bell className="w-8 h-8 mb-2 opacity-30" />
+                <p className="text-xs">Selecione uma notificação para visualizar</p>
+              </div>
+            )}
+          </aside>
+        )}
+        </div>
+
         <div className="p-2 border-t border-border/50 space-y-1">
           <Button
             variant="ghost"
