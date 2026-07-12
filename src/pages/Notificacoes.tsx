@@ -163,7 +163,8 @@ export default function Notificacoes() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          setNotificacoes((prev) => [payload.new as Notificacao, ...prev]);
+          const nova = payload.new as Notificacao;
+          setNotificacoes((prev) => (prev.some((n) => n.id === nova.id) ? prev : [nova, ...prev]));
         },
       )
       .subscribe();
@@ -246,7 +247,62 @@ export default function Notificacoes() {
     }
   };
 
+  // Restaura notificações excluídas via botão "Desfazer" do toast.
+  const restaurarNotificacoes = async (snapshot: Notificacao[]) => {
+    if (!user || snapshot.length === 0) return;
+    try {
+      const rows = snapshot.map((n) => ({
+        id: n.id,
+        user_id: user.id,
+        titulo: n.titulo,
+        mensagem: n.mensagem,
+        tipo: n.tipo,
+        lida: n.lida,
+        link: n.link,
+        created_at: n.created_at,
+      }));
+      const { error } = await supabase.from('notificacoes').insert(rows);
+      if (error) throw error;
+      setNotificacoes((prev) => {
+        const existentes = new Set(prev.map((n) => n.id));
+        const novos = snapshot.filter((n) => !existentes.has(n.id));
+        return [...novos, ...prev].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+      });
+      toast.success(`${snapshot.length} restaurada(s)`);
+    } catch (error) {
+      console.error('Erro ao restaurar notificação:', error);
+      toast.error('Não foi possível desfazer a exclusão');
+    }
+  };
+
+  // Reverte um adiamento (limpa adiada_ate) e devolve os itens à lista.
+  const reverterAdiamento = async (snapshot: Notificacao[]) => {
+    if (snapshot.length === 0) return;
+    const ids = snapshot.map((n) => n.id);
+    try {
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ adiada_ate: null })
+        .in('id', ids);
+      if (error) throw error;
+      setNotificacoes((prev) => {
+        const existentes = new Set(prev.map((n) => n.id));
+        const novos = snapshot.filter((n) => !existentes.has(n.id));
+        return [...novos, ...prev].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+      });
+      toast.success('Adiamento cancelado');
+    } catch (error) {
+      console.error('Erro ao reverter adiamento:', error);
+      toast.error('Não foi possível desfazer');
+    }
+  };
+
   const excluirNotificacao = async (id: string) => {
+    const snapshot = notificacoes.find((n) => n.id === id);
     try {
       const { error } = await supabase.from('notificacoes').delete().eq('id', id);
       if (error) throw error;
@@ -256,7 +312,12 @@ export default function Notificacoes() {
         next.delete(id);
         return next;
       });
-      toast.success('Notificação removida');
+      toast.success('Notificação removida', {
+        duration: 6000,
+        action: snapshot
+          ? { label: 'Desfazer', onClick: () => restaurarNotificacoes([snapshot]) }
+          : undefined,
+      });
     } catch (error) {
       console.error('Erro ao excluir notificação:', error);
       toast.error('Erro ao excluir notificação');
@@ -265,6 +326,7 @@ export default function Notificacoes() {
 
   const adiarNotificacoes = async (ids: string[], minutos: number) => {
     if (ids.length === 0) return;
+    const snapshot = notificacoes.filter((n) => ids.includes(n.id));
     const ate = new Date(Date.now() + minutos * 60_000).toISOString();
     try {
       const { error } = await supabase.rpc('fn_adiar_notificacoes', {
@@ -284,7 +346,13 @@ export default function Notificacoes() {
           : minutos < 1440
             ? `${Math.round(minutos / 60)}h`
             : `${Math.round(minutos / 1440)}d`;
-      toast.success(`Adiada${ids.length > 1 ? 's' : ''} por ${label}`);
+      toast.success(`Adiada${ids.length > 1 ? 's' : ''} por ${label}`, {
+        duration: 6000,
+        action:
+          snapshot.length > 0
+            ? { label: 'Desfazer', onClick: () => reverterAdiamento(snapshot) }
+            : undefined,
+      });
     } catch (error) {
       console.error('Erro ao adiar notificação:', error);
       toast.error('Não foi possível adiar');
@@ -294,6 +362,7 @@ export default function Notificacoes() {
   const acaoEmMassa = async (acao: 'ler' | 'excluir') => {
     const ids = Array.from(selecionadas);
     if (ids.length === 0) return;
+    const snapshot = notificacoes.filter((n) => selecionadas.has(n.id));
     try {
       if (acao === 'ler') {
         const { error } = await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
@@ -304,7 +373,10 @@ export default function Notificacoes() {
         const { error } = await supabase.from('notificacoes').delete().in('id', ids);
         if (error) throw error;
         setNotificacoes((prev) => prev.filter((n) => !selecionadas.has(n.id)));
-        toast.success(`${ids.length} removida(s)`);
+        toast.success(`${ids.length} removida(s)`, {
+          duration: 8000,
+          action: { label: 'Desfazer', onClick: () => restaurarNotificacoes(snapshot) },
+        });
       }
       setSelecionadas(new Set());
     } catch (error) {
