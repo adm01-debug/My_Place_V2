@@ -64,6 +64,8 @@ export default function NotificationBell() {
     }
   }, [filtro]);
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
     [notificacoes]
@@ -122,6 +124,28 @@ export default function NotificationBell() {
       ([, items]) => items.length > 0
     );
   }, [filtradas, filtro]);
+
+  // Lista plana na ordem visual — base para navegação por teclado (j/k).
+  const flatList = useMemo(() => grupos.flatMap(([, items]) => items), [grupos]);
+
+  // Reseta o item ativo quando popover abre/fecha ou a lista muda.
+  useEffect(() => {
+    if (!open) {
+      setActiveId(null);
+      return;
+    }
+    setActiveId((prev) => {
+      if (prev && flatList.some((n) => n.id === prev)) return prev;
+      return flatList[0]?.id ?? null;
+    });
+  }, [open, flatList]);
+
+  // Rola o item ativo para dentro da viewport do ScrollArea.
+  useEffect(() => {
+    if (!activeId) return;
+    const el = document.querySelector<HTMLElement>(`[data-notif-id="${activeId}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [activeId]);
 
 
   const fetchNotificacoes = useCallback(async () => {
@@ -271,6 +295,84 @@ export default function NotificationBell() {
     }
   };
 
+  // Navegação por teclado dentro do popover — j/k (ou setas) percorrem,
+  // Enter abre, e = marcar lida, p = fixar/desafixar, Delete/Backspace/x = excluir.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Não sequestra teclas quando o usuário digita em campo (search futuro, etc.)
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      if (flatList.length === 0) return;
+
+      const idx = activeId ? flatList.findIndex((n) => n.id === activeId) : -1;
+      const current = idx >= 0 ? flatList[idx] : null;
+
+      const move = (delta: number) => {
+        e.preventDefault();
+        const next = flatList[Math.max(0, Math.min(flatList.length - 1, (idx < 0 ? 0 : idx + delta)))];
+        if (next) setActiveId(next.id);
+      };
+
+      switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+          move(1);
+          break;
+        case 'k':
+        case 'ArrowUp':
+          move(-1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          setActiveId(flatList[0].id);
+          break;
+        case 'End':
+          e.preventDefault();
+          setActiveId(flatList[flatList.length - 1].id);
+          break;
+        case 'Enter':
+          if (current) {
+            e.preventDefault();
+            handleClick(current);
+          }
+          break;
+        case 'e':
+          if (current && !current.lida) {
+            e.preventDefault();
+            markAsRead(current.id);
+          }
+          break;
+        case 'p':
+          if (current) {
+            e.preventDefault();
+            togglePin(current.id, !!current.fixada_em);
+          }
+          break;
+        case 'x':
+        case 'Delete':
+        case 'Backspace': {
+          if (current) {
+            e.preventDefault();
+            const nextIdx = Math.min(idx + 1, flatList.length - 1);
+            const fallback = flatList[nextIdx]?.id !== current.id ? flatList[nextIdx]?.id : flatList[idx - 1]?.id ?? null;
+            setActiveId(fallback);
+            deleteNotif(current.id);
+          }
+          break;
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeId, flatList]);
+
+
+
+
+
+
   const formatTime = (d: string) => {
     const diff = Date.now() - new Date(d).getTime();
     const mins = Math.floor(diff / 60000);
@@ -395,11 +497,14 @@ export default function NotificationBell() {
                 {itens.map((n) => {
                   const Icon = tipoIcons[n.tipo] || Info;
                   const fixada = !!n.fixada_em;
+                  const isActive = activeId === n.id;
                   return (
                     <div
                       key={n.id}
                       role="button"
                       tabIndex={0}
+                      data-notif-id={n.id}
+                      onMouseEnter={() => setActiveId(n.id)}
                       onClick={() => handleClick(n)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -409,7 +514,9 @@ export default function NotificationBell() {
                       }}
                       className={`group relative w-full flex items-start gap-3 px-4 py-3 text-left cursor-pointer transition-colors hover:bg-muted/50 border-b border-border/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                         !n.lida ? 'bg-primary/5' : ''
-                      } ${fixada ? 'border-l-2 border-l-primary/60' : ''}`}
+                      } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
+                        isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
+                      }`}
                     >
                       <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
                       <div className="flex-1 min-w-0">
@@ -492,7 +599,7 @@ export default function NotificationBell() {
           )}
         </ScrollArea>
 
-        <div className="p-2 border-t border-border/50">
+        <div className="p-2 border-t border-border/50 space-y-1">
           <Button
             variant="ghost"
             size="sm"
@@ -504,6 +611,13 @@ export default function NotificationBell() {
           >
             Ver todas as notificações
           </Button>
+          <p className="text-[10px] text-muted-foreground/70 text-center px-2 leading-tight">
+            <kbd className="px-1 rounded bg-muted/60">j</kbd>/<kbd className="px-1 rounded bg-muted/60">k</kbd> navegar ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">↵</kbd> abrir ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">x</kbd> excluir
+          </p>
         </div>
       </PopoverContent>
     </Popover>
