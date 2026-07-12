@@ -849,10 +849,22 @@ export default function NotificationBell() {
               unreadCount > 0 ? 'animate-[wiggle_0.5s_ease-in-out]' : ''
             }`}
           />
-          {unreadCount > 0 && (
+          {unreadCount > 0 && !focusMode && (
             <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground animate-in zoom-in-50 duration-200">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
+          )}
+          {focusMode && unreadCount > 0 && (
+            <span
+              className="absolute top-0 right-0 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-background animate-in zoom-in-50 duration-200"
+              aria-label={`${unreadCount} urgentes (modo foco)`}
+            />
+          )}
+          {focusMode && (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary/80 ring-2 ring-background"
+              aria-hidden
+            />
           )}
         </Button>
       </PopoverTrigger>
