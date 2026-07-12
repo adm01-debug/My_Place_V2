@@ -707,7 +707,8 @@ export default function NotificationBell() {
             Ver todas as notificações
           </Button>
           <p className="text-[10px] text-muted-foreground/70 text-center px-2 leading-tight">
-            <kbd className="px-1 rounded bg-muted/60">j</kbd>/<kbd className="px-1 rounded bg-muted/60">k</kbd> navegar ·
+            <kbd className="px-1 rounded bg-muted/60">/</kbd> buscar ·
+            <kbd className="ml-1 px-1 rounded bg-muted/60">j</kbd>/<kbd className="px-1 rounded bg-muted/60">k</kbd> navegar ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">↵</kbd> abrir ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">e</kbd> lida ·
             <kbd className="ml-1 px-1 rounded bg-muted/60">p</kbd> fixar ·
