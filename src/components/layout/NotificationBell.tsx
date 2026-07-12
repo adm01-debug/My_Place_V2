@@ -2290,6 +2290,16 @@ export default function NotificationBell() {
                 ['?', 'Abrir/fechar esta ajuda'],
               ],
             },
+            {
+              titulo: 'Seleção múltipla',
+              itens: [
+                ['Espaço', 'Selecionar/desmarcar o item ativo'],
+                ['Shift + Clique', 'Selecionar intervalo de itens'],
+                ['Ctrl/⌘ + A', 'Selecionar todas visíveis'],
+                ['Esc', 'Limpar seleção'],
+                ['Del / ⌫ / X', 'Excluir seleção (se houver)'],
+              ],
+            },
           ].map((secao) => (
             <div key={secao.titulo}>
               <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
