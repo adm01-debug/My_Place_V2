@@ -114,7 +114,9 @@ export default function Notificacoes() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataFim, setDataFim] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState<number>(50);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
@@ -438,9 +440,14 @@ export default function Notificacoes() {
     });
   }, [notificacoes, filtro, busca, dataInicio, dataFim]);
 
+  const filtradasVisiveis = useMemo(
+    () => filtradas.slice(0, visibleCount),
+    [filtradas, visibleCount]
+  );
+
   const grupos = useMemo(() => {
     const map = new Map<string, Notificacao[]>();
-    for (const n of filtradas) {
+    for (const n of filtradasVisiveis) {
       const label = groupLabel(new Date(n.created_at));
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
@@ -451,7 +458,30 @@ export default function Notificacoes() {
       }
     }
     return Array.from(map.entries());
-  }, [filtradas, ordenarPorRelevancia]);
+  }, [filtradasVisiveis, ordenarPorRelevancia]);
+
+  // Reset paginação quando filtros mudam
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia]);
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    if (visibleCount >= filtradas.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((c) => Math.min(c + 50, filtradas.length));
+        }
+      },
+      { rootMargin: '400px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visibleCount, filtradas.length]);
+
 
   // ------------------- Exportação (CSV / PDF via print) -------------------
   const exportarCSV = useCallback(() => {
@@ -1149,8 +1179,38 @@ export default function Notificacoes() {
               );
             })
           )}
+
+          {!loading && filtradas.length > 0 && (
+            <div className="pt-2">
+              {visibleCount < filtradas.length ? (
+                <div
+                  ref={sentinelRef}
+                  className="flex flex-col items-center justify-center gap-2 py-6"
+                >
+                  <div className="text-xs text-muted-foreground">
+                    Mostrando <strong className="text-foreground">{filtradasVisiveis.length}</strong> de{' '}
+                    <strong className="text-foreground">{filtradas.length}</strong>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setVisibleCount((c) => Math.min(c + 50, filtradas.length))}
+                  >
+                    Carregar mais 50
+                  </Button>
+                </div>
+              ) : (
+                filtradas.length > 50 && (
+                  <div className="text-center text-xs text-muted-foreground py-4">
+                    Todas as {filtradas.length} notificações foram carregadas.
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </div>
+
 
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent className="max-w-md">
