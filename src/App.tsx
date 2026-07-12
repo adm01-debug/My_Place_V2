@@ -59,6 +59,7 @@ const Viagens = lazy(() => import("./pages/Viagens"));
 const Assinaturas = lazy(() => import("./pages/Assinaturas"));
 const BusinessIntelligence = lazy(() => import("./pages/BusinessIntelligence"));
 const AdminIntegracoes = lazy(() => import("./pages/AdminIntegracoes"));
+const AdminRateLimits = lazy(() => import("./pages/AdminRateLimits"));
 const NotificacaoPreferencias = lazy(() => import("./pages/NotificacaoPreferencias"));
 const NotificacaoHistorico = lazy(() => import("./pages/NotificacaoHistorico"));
 
@@ -155,6 +156,7 @@ const App = () => (
                 <Route path="/assinaturas" element={<Page name="Assinatura de Documentos"><Assinaturas /></Page>} />
                 <Route path="/bi" element={<Page name="Business Intelligence"><BusinessIntelligence /></Page>} />
                 <Route path="/admin/integracoes" element={<Page name="Integrações Externas"><AdminIntegracoes /></Page>} />
+                <Route path="/admin/rate-limits" element={<Page name="Rate Limits"><AdminRateLimits /></Page>} />
                 <Route path="/notificacoes/preferencias" element={<Page name="Preferências de Notificação"><NotificacaoPreferencias /></Page>} />
                 <Route path="/notificacoes/historico" element={<Page name="Histórico de Notificações"><NotificacaoHistorico /></Page>} />
               </Route>
