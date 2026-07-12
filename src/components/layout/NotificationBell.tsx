@@ -1120,6 +1120,29 @@ export default function NotificationBell() {
     clearSelection();
   }, [selected, notificacoes, clearSelection]);
 
+  // Item 106: Bulk marcar como NÃO lidas (com Undo).
+  const bulkMarkUnread = useCallback(async () => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && n.lida;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: false } : n)));
+    await supabase.from('notificacoes').update({ lida: false }).in('id', ids);
+    toast(`${ids.length} marcada${ids.length > 1 ? 's' : ''} como não lida${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+          await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
   // Bulk: fixa/desafixa (decide por maioria — se maioria está fixada, desafixa todas).
   const bulkTogglePin = useCallback(async () => {
     const items = Array.from(selected)
@@ -1919,6 +1942,14 @@ export default function NotificationBell() {
                 title="Marcar selecionadas como lidas"
               >
                 <Check className="w-3 h-3" /> Lidas
+              </button>
+              <button
+                type="button"
+                onClick={bulkMarkUnread}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Marcar selecionadas como não lidas"
+              >
+                <MailOpen className="w-3 h-3" /> Não lidas
               </button>
               <button
                 type="button"
