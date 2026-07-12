@@ -30,6 +30,8 @@ import {
   Focus,
   Volume2,
   VolumeX,
+  Mail,
+  MailOpen,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -256,6 +258,17 @@ export default function Notificacoes() {
       setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
     } catch (error) {
       console.error('Erro ao marcar como lida:', error);
+    }
+  };
+
+  const marcarComoNaoLida = async (id: string) => {
+    try {
+      const { error } = await supabase.from('notificacoes').update({ lida: false }).eq('id', id);
+      if (error) throw error;
+      setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: false } : n)));
+    } catch (error) {
+      console.error('Erro ao marcar como não lida:', error);
+      toast.error('Não foi possível marcar como não lida');
     }
   };
 
@@ -707,6 +720,10 @@ export default function Notificacoes() {
       } else if (e.key === 'e') {
         e.preventDefault();
         if (!alvo.lida) marcarComoLida(focusedId);
+      } else if (e.key === 'u') {
+        e.preventDefault();
+        if (alvo.lida) marcarComoNaoLida(focusedId);
+        else marcarComoLida(focusedId);
       } else if (e.key === '#') {
         e.preventDefault();
         excluirNotificacao(focusedId);
@@ -1163,6 +1180,20 @@ export default function Notificacoes() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (n.lida) marcarComoNaoLida(n.id);
+                              else marcarComoLida(n.id);
+                            }}
+                            aria-label={n.lida ? 'Marcar como não lida' : 'Marcar como lida'}
+                            title={n.lida ? 'Marcar como não lida (u)' : 'Marcar como lida (e)'}
+                          >
+                            {n.lida ? <Mail className="w-3.5 h-3.5" /> : <MailOpen className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1308,6 +1339,7 @@ export default function Notificacoes() {
               ['Enter', 'Abrir a notificação em foco'],
               ['x', 'Selecionar/desselecionar em foco'],
               ['e', 'Marcar em foco como lida'],
+              ['u', 'Alternar lida/não lida em foco'],
               ['#', 'Excluir a em foco'],
               ['Shift + A', 'Marcar todas como lidas'],
               ['Esc', 'Limpar seleção / foco'],
