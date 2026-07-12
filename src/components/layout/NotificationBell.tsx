@@ -578,7 +578,7 @@ export default function NotificationBell() {
           if (!actions.has('silent')) {
             showDesktopRef.current(nova);
             // Modo foco: só toca em alerta/erro (reduz ruído).
-            if (!focusMode || nova.tipo === 'alerta' || nova.tipo === 'erro') {
+            if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
               playSoundRef.current(nova.tipo);
             }
           }
