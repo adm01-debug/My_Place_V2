@@ -32,6 +32,8 @@ import {
   VolumeX,
   Mail,
   MailOpen,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -67,6 +69,7 @@ interface Notificacao {
   lida: boolean;
   link: string | null;
   created_at: string;
+  fixada_em: string | null;
 }
 
 type Filtro = 'todas' | 'nao_lidas' | 'sucesso' | 'erro' | 'alerta' | 'info';
