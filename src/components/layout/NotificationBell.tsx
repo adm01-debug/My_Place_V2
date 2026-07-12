@@ -655,6 +655,22 @@ export default function NotificationBell() {
     return hidden;
   }, [clustersByBucket, clustersExpanded]);
 
+  // Lookups O(1) para saber, no render, se um id é líder ou membro de cluster.
+  const clusterByLeader = useMemo(() => {
+    const m = new Map<string, ClusterInfo>();
+    clustersByBucket.forEach((cs) => cs.forEach((c) => m.set(c.leaderId, c)));
+    return m;
+  }, [clustersByBucket]);
+  const memberToLeader = useMemo(() => {
+    const m = new Map<string, string>();
+    clustersByBucket.forEach((cs) =>
+      cs.forEach((c) => c.memberIds.slice(1).forEach((id) => m.set(id, c.leaderId)))
+    );
+    return m;
+  }, [clustersByBucket]);
+
+
+
   // Lista plana na ordem visual — base para navegação por teclado (j/k).
   // Exclui membros escondidos por clusters colapsados.
   const flatList = useMemo(
