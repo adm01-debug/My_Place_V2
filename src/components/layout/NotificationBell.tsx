@@ -293,13 +293,32 @@ export default function NotificationBell() {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" className="text-xs h-7 gap-1" onClick={markAllAsRead}>
-              <CheckCheck className="w-3.5 h-3.5" />
-              Marcar todas
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {canUseDesktop() && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={toggleDesktop}
+                aria-label={desktopOn ? 'Desativar notificações desktop' : 'Ativar notificações desktop'}
+                title={desktopOn ? 'Notificações desktop ativas' : 'Ativar notificações desktop'}
+              >
+                {desktopOn ? (
+                  <Bell className="w-3.5 h-3.5 text-primary" />
+                ) : (
+                  <BellOff className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1" onClick={markAllAsRead}>
+                <CheckCheck className="w-3.5 h-3.5" />
+                Marcar todas
+              </Button>
+            )}
+          </div>
         </div>
+
         <div
           role="tablist"
           aria-label="Filtro de notificações"
