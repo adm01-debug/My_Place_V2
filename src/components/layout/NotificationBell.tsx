@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun, ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun, ChevronDown, ChevronUp, Layers, MailOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -867,6 +867,14 @@ export default function NotificationBell() {
     setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
     await supabase.from('notificacoes').update({ lida: true }).eq('id', id);
   };
+
+  // Item 105: Marcar como não lida — reverte "lida" para false (útil quando o usuário
+  // clica sem querer ou quer reencontrar depois). Optimista + persistência.
+  const markAsUnread = async (id: string) => {
+    setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: false } : n)));
+    await supabase.from('notificacoes').update({ lida: false }).eq('id', id);
+  };
+
 
   const markAllAsRead = async () => {
     if (!user) return;
@@ -2148,7 +2156,7 @@ export default function NotificationBell() {
                               role="toolbar"
                               aria-label="Ações rápidas"
                             >
-                              {!n.lida && (
+                              {!n.lida ? (
                                 <button
                                   type="button"
                                   onClick={async (e) => {
@@ -2161,6 +2169,16 @@ export default function NotificationBell() {
                                   aria-label="Marcar como lida"
                                 >
                                   <Check className="w-3 h-3" />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); markAsUnread(n.id); }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Marcar como não lida"
+                                  aria-label="Marcar como não lida"
+                                >
+                                  <MailOpen className="w-3 h-3" />
                                 </button>
                               )}
                               <button
