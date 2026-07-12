@@ -30,7 +30,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -60,11 +60,13 @@ const groupLabel = (date: Date): string => {
 export default function Notificacoes() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todas');
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('notif_agrupar_similares') !== '0';
@@ -127,6 +129,53 @@ export default function Notificacoes() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  // Deep-linking: /notificacoes?focus=<id> — rola até o card, destaca, marca como lido
+  // e expande a thread se o item estiver dentro de uma.
+  useEffect(() => {
+    const focusId = searchParams.get('focus');
+    if (!focusId || loading || notificacoes.length === 0) return;
+
+    const alvo = notificacoes.find((n) => n.id === focusId);
+    if (!alvo) return;
+
+    // Expande a thread que contém o item, se houver
+    if (agruparSimilares) {
+      const label = groupLabel(new Date(alvo.created_at));
+      const key = `${label}::${alvo.titulo.trim().toLowerCase()}`;
+      const irmaos = notificacoes.filter(
+        (n) =>
+          groupLabel(new Date(n.created_at)) === label &&
+          n.titulo.trim().toLowerCase() === alvo.titulo.trim().toLowerCase(),
+      );
+      if (irmaos.length >= 3) {
+        setThreadsExpandidas((prev) => {
+          if (prev.has(key)) return prev;
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+      }
+    }
+
+    // Espera o DOM refletir a expansão antes de rolar
+    const t = window.setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(`[data-notif-id="${focusId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedId(focusId);
+        if (!alvo.lida) marcarComoLida(focusId);
+        window.setTimeout(() => setHighlightedId(null), 2600);
+      }
+      // limpa o parâmetro para não repetir o efeito
+      const next = new URLSearchParams(searchParams);
+      next.delete('focus');
+      setSearchParams(next, { replace: true });
+    }, 120);
+
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, notificacoes, loading, agruparSimilares]);
 
   const marcarComoLida = async (id: string) => {
     try {
@@ -480,11 +529,12 @@ export default function Notificacoes() {
                 return (
                   <Card
                     key={n.id}
+                    data-notif-id={n.id}
                     className={`group border-border/50 transition-all hover:shadow-md ${
                       !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
                     } ${selecionada ? 'ring-2 ring-primary/40' : ''} ${
                       opts?.inThread ? 'ml-6 border-l-2 border-l-primary/30' : ''
-                    }`}
+                    } ${highlightedId === n.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''}`}
                   >
                     <CardContent className="p-4">
                       <div className="flex gap-3">
