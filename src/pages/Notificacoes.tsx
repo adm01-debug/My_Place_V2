@@ -74,6 +74,10 @@ export default function Notificacoes() {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('notif_agrupar_similares') !== '0';
   });
+  const [ordenarPorRelevancia, setOrdenarPorRelevancia] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('notif_ordenar_relevancia') === '1';
+  });
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
