@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -189,6 +189,8 @@ export default function NotificationBell() {
   useEffect(() => {
     try { localStorage.setItem(FOCUS_KEY, focusMode ? '1' : '0'); } catch { /* quota */ }
   }, [focusMode]);
+  const focusModeRef = useRef(focusMode);
+  useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
 
   // Central de Atalhos (help modal).
   const [showHelp, setShowHelp] = useState<boolean>(false);
@@ -199,6 +201,48 @@ export default function NotificationBell() {
   // Item 97: Snooze Personalizado (data/hora customizada)
   const [customSnoozeFor, setCustomSnoozeFor] = useState<string | null>(null);
   const [customSnoozeValue, setCustomSnoozeValue] = useState<string>('');
+
+  // Item 98: Sons de notificação (Web Audio, síntese — sem asset externo)
+  const SOUND_KEY = 'notif_sound_enabled';
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(SOUND_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0'); } catch { /* quota */ }
+  }, [soundEnabled]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const playSound = useCallback((tipo: Notificacao['tipo']) => {
+    if (!soundEnabled) return;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new AC();
+      const ctx = audioCtxRef.current;
+      // Frequência distinta por tipo para reconhecimento auditivo.
+      const freqMap: Record<Notificacao['tipo'], number> = {
+        info: 660,      // Mi
+        sucesso: 880,   // Lá agudo
+        alerta: 520,    // Dó grave
+        erro: 300,      // grave/urgente
+      };
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freqMap[tipo] ?? 660, now);
+      // Envelope curto: attack 10ms, decay 250ms — não invasivo.
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch { /* som é opcional */ }
+  }, [soundEnabled]);
+  const playSoundRef = useRef(playSound);
+  useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -530,9 +574,13 @@ export default function NotificationBell() {
             const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
             supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
           }
-          // Só dispara desktop se nenhuma regra pediu silenciamento.
+          // Só dispara desktop e som se nenhuma regra pediu silenciamento.
           if (!actions.has('silent')) {
             showDesktopRef.current(nova);
+            // Modo foco: só toca em alerta/erro (reduz ruído).
+            if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
+              playSoundRef.current(nova.tipo);
+            }
           }
         }
       )
@@ -1054,6 +1102,28 @@ export default function NotificationBell() {
               title={focusMode ? 'Modo Foco ativo: só alertas/erros (z)' : 'Modo Foco: exibir só urgentes (z)'}
             >
               <Focus className={`w-3.5 h-3.5 ${focusMode ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                if (next) {
+                  // Toca um preview curto ao ativar para feedback imediato.
+                  playSound('sucesso');
+                }
+              }}
+              aria-pressed={soundEnabled}
+              aria-label={soundEnabled ? 'Desativar sons de notificação' : 'Ativar sons de notificação'}
+              title={soundEnabled ? 'Sons: ativados (clique para silenciar)' : 'Sons: desativados (clique para ativar)'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
             </Button>
             <Button
               variant="ghost"
