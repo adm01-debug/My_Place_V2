@@ -160,6 +160,7 @@ const App = () => (
                 <Route path="/admin/rate-limits" element={<Page name="Rate Limits"><AdminRateLimits /></Page>} />
                 <Route path="/notificacoes/preferencias" element={<Page name="Preferências de Notificação"><NotificacaoPreferencias /></Page>} />
                 <Route path="/notificacoes/historico" element={<Page name="Histórico de Notificações"><NotificacaoHistorico /></Page>} />
+                <Route path="/admin/notif-templates" element={<Page name="Templates de Notificação"><AdminNotifTemplates /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
