@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -243,6 +243,42 @@ export default function NotificationBell() {
   }, [soundEnabled]);
   const playSoundRef = useRef(playSound);
   useEffect(() => { playSoundRef.current = playSound; }, [playSound]);
+
+  // Item 99: Quiet Hours — janela silenciosa configurável (som + desktop mute).
+  // Itens continuam chegando na lista; apenas alertas audíveis/visuais são suprimidos.
+  // Suporta janelas atravessando meia-noite (ex.: 22:00 → 07:00).
+  const QUIET_KEY = 'notif_quiet_hours';
+  type QuietCfg = { enabled: boolean; start: string; end: string };
+  const [quiet, setQuiet] = useState<QuietCfg>(() => {
+    if (typeof window === 'undefined') return { enabled: false, start: '22:00', end: '07:00' };
+    try {
+      const raw = localStorage.getItem(QUIET_KEY);
+      if (!raw) return { enabled: false, start: '22:00', end: '07:00' };
+      const p = JSON.parse(raw) as Partial<QuietCfg>;
+      return {
+        enabled: !!p.enabled,
+        start: /^\d{2}:\d{2}$/.test(p.start || '') ? p.start! : '22:00',
+        end: /^\d{2}:\d{2}$/.test(p.end || '') ? p.end! : '07:00',
+      };
+    } catch { return { enabled: false, start: '22:00', end: '07:00' }; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(QUIET_KEY, JSON.stringify(quiet)); } catch { /* quota */ }
+  }, [quiet]);
+  const isQuietNow = useCallback((cfg: QuietCfg = quiet): boolean => {
+    if (!cfg.enabled) return false;
+    const [sh, sm] = cfg.start.split(':').map(Number);
+    const [eh, em] = cfg.end.split(':').map(Number);
+    if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return false;
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const s = sh * 60 + sm;
+    const e = eh * 60 + em;
+    if (s === e) return false; // janela vazia
+    return s < e ? cur >= s && cur < e : cur >= s || cur < e; // overnight
+  }, [quiet]);
+  const quietRef = useRef(isQuietNow);
+  useEffect(() => { quietRef.current = isQuietNow; }, [isQuietNow]);
   const [regras, setRegras] = useState<BellRule[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -574,8 +610,10 @@ export default function NotificationBell() {
             const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
             supabase.from('notificacoes').update({ adiada_ate: until }).eq('id', nova.id).then(() => {});
           }
-          // Só dispara desktop e som se nenhuma regra pediu silenciamento.
-          if (!actions.has('silent')) {
+          // Só dispara desktop e som se nenhuma regra pediu silenciamento
+          // e não estamos em Quiet Hours (janela silenciosa configurável).
+          const quietNow = quietRef.current();
+          if (!actions.has('silent') && !quietNow) {
             showDesktopRef.current(nova);
             // Modo foco: só toca em alerta/erro (reduz ruído).
             if (!focusModeRef.current || nova.tipo === 'alerta' || nova.tipo === 'erro') {
@@ -1125,6 +1163,71 @@ export default function NotificationBell() {
                 <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
               )}
             </Button>
+            {/* Item 99: Quiet Hours — Popover configurável (janela silenciosa) */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 relative"
+                  aria-label={quiet.enabled ? `Quiet Hours ativo (${quiet.start}–${quiet.end})` : 'Configurar Quiet Hours'}
+                  title={quiet.enabled ? `Silêncio: ${quiet.start} → ${quiet.end}` : 'Quiet Hours (silêncio programado)'}
+                >
+                  {quiet.enabled ? (
+                    <Moon className={`w-3.5 h-3.5 ${isQuietNow() ? 'text-primary' : 'text-foreground/70'}`} />
+                  ) : (
+                    <Sun className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                  {quiet.enabled && isQuietNow() && (
+                    <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-sm font-medium">Quiet Hours</div>
+                    <div className="text-xs text-muted-foreground">Silencia som e desktop na janela</div>
+                  </div>
+                  <Switch
+                    checked={quiet.enabled}
+                    onCheckedChange={(v) => setQuiet((q) => ({ ...q, enabled: !!v }))}
+                    aria-label="Ativar Quiet Hours"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs text-muted-foreground space-y-1">
+                    <span>Início</span>
+                    <input
+                      type="time"
+                      value={quiet.start}
+                      onChange={(e) => setQuiet((q) => ({ ...q, start: e.target.value || q.start }))}
+                      disabled={!quiet.enabled}
+                      className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                    />
+                  </label>
+                  <label className="text-xs text-muted-foreground space-y-1">
+                    <span>Fim</span>
+                    <input
+                      type="time"
+                      value={quiet.end}
+                      onChange={(e) => setQuiet((q) => ({ ...q, end: e.target.value || q.end }))}
+                      disabled={!quiet.enabled}
+                      className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm disabled:opacity-50"
+                    />
+                  </label>
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-relaxed">
+                  {quiet.enabled ? (
+                    isQuietNow()
+                      ? <>🌙 <strong>Silêncio ativo agora.</strong> Notificações continuam chegando na lista — sem som/desktop.</>
+                      : <>Programado: <strong>{quiet.start} → {quiet.end}</strong>{quiet.start > quiet.end ? ' (atravessa meia-noite)' : ''}.</>
+                  ) : (
+                    <>Ative para pausar sons e pop-ups desktop em horários específicos (ex.: madrugada).</>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button
               variant="ghost"
               size="icon"
