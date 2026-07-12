@@ -668,10 +668,18 @@ export default function Notificacoes() {
               <TabsTrigger value="nao_lidas" className="flex-1 min-w-[80px]">
                 Não lidas <Badge variant="secondary" className="ml-2">{naoLidas}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="erro" className="flex-1 min-w-[80px]">Erros</TabsTrigger>
-              <TabsTrigger value="alerta" className="flex-1 min-w-[80px]">Alertas</TabsTrigger>
-              <TabsTrigger value="sucesso" className="flex-1 min-w-[80px]">Sucessos</TabsTrigger>
-              <TabsTrigger value="info" className="flex-1 min-w-[80px]">Info</TabsTrigger>
+              <TabsTrigger value="erro" className="flex-1 min-w-[80px]">
+                Erros {contadoresPorTipo.erro > 0 && <Badge variant="destructive" className="ml-2">{contadoresPorTipo.erro}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="alerta" className="flex-1 min-w-[80px]">
+                Alertas {contadoresPorTipo.alerta > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.alerta}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="sucesso" className="flex-1 min-w-[80px]">
+                Sucessos {contadoresPorTipo.sucesso > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.sucesso}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="info" className="flex-1 min-w-[80px]">
+                Info {contadoresPorTipo.info > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.info}</Badge>}
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
