@@ -641,6 +641,21 @@ export default function NotificationBell() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:inline-flex h-7 w-7"
+              onClick={() => setShowPreview((v) => !v)}
+              aria-pressed={showPreview}
+              aria-label={showPreview ? 'Ocultar painel de preview' : 'Mostrar painel de preview'}
+              title={showPreview ? 'Ocultar preview (v)' : 'Mostrar preview (v)'}
+            >
+              {showPreview ? (
+                <PanelRightClose className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <PanelRightOpen className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
+            </Button>
             {canUseDesktop() && (
               <Button
                 variant="ghost"
