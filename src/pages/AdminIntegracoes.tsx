@@ -97,7 +97,7 @@ export default function AdminIntegracoes() {
         nome: f.nome, tipo: f.tipo, descricao: f.descricao || null,
         endpoint: f.endpoint, secret_ref: f.secret_ref || null,
         hmac_secret_ref: f.hmac_secret_ref || null,
-        timeout_ms: f.timeout_ms, headers_extra, ativo: f.ativo,
+        timeout_ms: f.timeout_ms, headers_extra: headers_extra as never, ativo: f.ativo,
       };
       if (f.id) {
         const { error } = await supabase.from("integracoes").update(payload).eq("id", f.id);
