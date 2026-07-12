@@ -886,6 +886,154 @@ export default function NotificationBell() {
     scheduleDelete(ids, `${ids.length} notificaç${ids.length > 1 ? 'ões' : 'ão'}`);
   };
 
+  // ─── Item 101: Seleção múltipla + ações em lote ─────────────────────────────
+  // - Set<id> das seleções; shift+click faz intervalo sobre a lista filtrada.
+  // - Ações: marcar lidas, fixar/desafixar, adiar 1h, excluir — com Undo.
+  // - Auto-limpa itens que somem (após delete/backend). Ctrl/Cmd+A seleciona
+  //   todas visíveis; Escape limpa a seleção.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const lastSelectedIdRef = useRef<string | null>(null);
+
+  // Purga IDs que não existem mais em `notificacoes` (delete/backend/refetch).
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const alive = new Set(notificacoes.map((n) => n.id));
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (alive.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [notificacoes]);
+
+  const toggleSelect = useCallback(
+    (id: string, opts?: { shift?: boolean }) => {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        // Shift+click: seleciona intervalo entre última seleção e este item
+        // dentro da ordem visível (filtradas). Se não houver âncora, cai no toggle.
+        if (opts?.shift && lastSelectedIdRef.current && lastSelectedIdRef.current !== id) {
+          const ids = filtradas.map((n) => n.id);
+          const a = ids.indexOf(lastSelectedIdRef.current);
+          const b = ids.indexOf(id);
+          if (a >= 0 && b >= 0) {
+            const [lo, hi] = a < b ? [a, b] : [b, a];
+            for (let i = lo; i <= hi; i++) next.add(ids[i]);
+            lastSelectedIdRef.current = id;
+            return next;
+          }
+        }
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        lastSelectedIdRef.current = id;
+        return next;
+      });
+    },
+    [filtradas]
+  );
+
+  const clearSelection = useCallback(() => {
+    setSelected(new Set());
+    lastSelectedIdRef.current = null;
+  }, []);
+
+  const selectAllFiltradas = useCallback(() => {
+    setSelected(new Set(filtradas.map((n) => n.id)));
+    lastSelectedIdRef.current = filtradas[filtradas.length - 1]?.id ?? null;
+  }, [filtradas]);
+
+  // Bulk: marcar como lidas (com Undo).
+  const bulkMarkRead = useCallback(async () => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && !n.lida;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    const idSet = new Set(ids);
+    setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: true } : n)));
+    await supabase.from('notificacoes').update({ lida: true }).in('id', ids);
+    toast(`${ids.length} marcada${ids.length > 1 ? 's' : ''} como lida${ids.length > 1 ? 's' : ''}`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) => prev.map((n) => (idSet.has(n.id) ? { ...n, lida: false } : n)));
+          await supabase.from('notificacoes').update({ lida: false }).in('id', ids);
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: fixa/desafixa (decide por maioria — se maioria está fixada, desafixa todas).
+  const bulkTogglePin = useCallback(async () => {
+    const items = Array.from(selected)
+      .map((id) => notificacoes.find((n) => n.id === id))
+      .filter((n): n is Notificacao => !!n);
+    if (items.length === 0) { clearSelection(); return; }
+    const pinnedCount = items.filter((n) => n.fixada_em).length;
+    const shouldPin = pinnedCount < items.length / 2; // maioria dita a direção
+    const value = shouldPin ? new Date().toISOString() : null;
+    const ids = items.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) =>
+      prev.map((n) => (idSet.has(n.id) ? { ...n, fixada_em: value } : n))
+    );
+    await supabase.from('notificacoes').update({ fixada_em: value }).in('id', ids);
+    toast(shouldPin
+      ? `${ids.length} fixada${ids.length > 1 ? 's' : ''}`
+      : `${ids.length} desafixada${ids.length > 1 ? 's' : ''}`);
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: adia todas selecionadas por 1h (Undo restaura o adiada_ate anterior por item).
+  const bulkSnooze1h = useCallback(async () => {
+    const items = Array.from(selected)
+      .map((id) => notificacoes.find((n) => n.id === id))
+      .filter((n): n is Notificacao => !!n);
+    if (items.length === 0) { clearSelection(); return; }
+    const previous = new Map(items.map((n) => [n.id, n.adiada_ate]));
+    const until = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const ids = items.map((n) => n.id);
+    const idSet = new Set(ids);
+    setNotificacoes((prev) =>
+      prev.map((n) => (idSet.has(n.id) ? { ...n, adiada_ate: until } : n))
+    );
+    await supabase.from('notificacoes').update({ adiada_ate: until }).in('id', ids);
+    toast(`${ids.length} adiada${ids.length > 1 ? 's' : ''} por 1h`, {
+      duration: UNDO_MS,
+      action: {
+        label: 'Desfazer',
+        onClick: async () => {
+          setNotificacoes((prev) =>
+            prev.map((n) => (previous.has(n.id) ? { ...n, adiada_ate: previous.get(n.id) ?? null } : n))
+          );
+          // Rollback individual (valores heterogêneos) — Promise.all mantém batch.
+          await Promise.all(
+            Array.from(previous.entries()).map(([id, val]) =>
+              supabase.from('notificacoes').update({ adiada_ate: val }).eq('id', id)
+            )
+          );
+        },
+      },
+    });
+    clearSelection();
+  }, [selected, notificacoes, clearSelection]);
+
+  // Bulk: exclui todas selecionadas (preserva fixadas por segurança) — reusa scheduleDelete.
+  const bulkDelete = useCallback(() => {
+    const ids = Array.from(selected).filter((id) => {
+      const n = notificacoes.find((x) => x.id === id);
+      return n && !n.fixada_em;
+    });
+    if (ids.length === 0) { clearSelection(); return; }
+    scheduleDelete(ids, `${ids.length} notificaç${ids.length > 1 ? 'ões' : 'ão'}`);
+    clearSelection();
+  }, [selected, notificacoes, scheduleDelete, clearSelection]);
+
   const handleClick = (n: Notificacao) => {
     if (!n.lida) markAsRead(n.id);
     setOpen(false);
@@ -932,6 +1080,24 @@ export default function NotificationBell() {
       if (!inField && (e.key === '?' || (e.shiftKey && e.key === '/'))) {
         e.preventDefault();
         setShowHelp((v) => !v);
+        return;
+      }
+
+      // Item 101: Ctrl/Cmd+A → seleciona todas visíveis; Escape → limpa seleção.
+      if (!inField && (e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        selectAllFiltradas();
+        return;
+      }
+      if (!inField && e.key === 'Escape' && selected.size > 0) {
+        e.preventDefault();
+        clearSelection();
+        return;
+      }
+      // Item 101: barra de espaço alterna seleção do item ativo.
+      if (!inField && e.key === ' ' && activeId) {
+        e.preventDefault();
+        toggleSelect(activeId, { shift: e.shiftKey });
         return;
       }
 
@@ -1005,6 +1171,12 @@ export default function NotificationBell() {
         case 'x':
         case 'Delete':
         case 'Backspace': {
+          // Item 101: se há seleção ativa, Delete exclui em lote.
+          if (selected.size > 0) {
+            e.preventDefault();
+            bulkDelete();
+            break;
+          }
           if (current) {
             e.preventDefault();
             const nextIdx = Math.min(idx + 1, flatList.length - 1);
@@ -1019,7 +1191,7 @@ export default function NotificationBell() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, activeId, flatList, busca]);
+  }, [open, activeId, flatList, busca, selected]);
 
 
 
@@ -1567,8 +1739,65 @@ export default function NotificationBell() {
           })}
         </div>
 
-        {/* Barra de ações em massa para o recorte visível */}
-        {filtradas.length > 0 && (
+        {/* Item 101: Barra contextual de SELEÇÃO — só aparece quando há itens selecionados */}
+        {selected.size > 0 ? (
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-primary/30 bg-primary/10 animate-in fade-in slide-in-from-top-1 duration-150">
+            <span className="text-[11px] font-medium text-foreground">
+              {selected.size} selecionada{selected.size > 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={bulkMarkRead}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Marcar selecionadas como lidas"
+              >
+                <Check className="w-3 h-3" /> Lidas
+              </button>
+              <button
+                type="button"
+                onClick={bulkTogglePin}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Fixar/desafixar selecionadas"
+              >
+                <Pin className="w-3 h-3" /> Fixar
+              </button>
+              <button
+                type="button"
+                onClick={bulkSnooze1h}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-background/60 text-foreground/80 hover:text-foreground transition-colors"
+                title="Adiar selecionadas por 1h"
+              >
+                <Clock className="w-3 h-3" /> 1h
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-destructive/10 text-foreground/80 hover:text-destructive transition-colors"
+                title="Excluir selecionadas (preserva fixadas)"
+              >
+                <Trash2 className="w-3 h-3" /> Excluir
+              </button>
+              <div className="w-px h-4 bg-border/60 mx-1" aria-hidden />
+              <button
+                type="button"
+                onClick={selectAllFiltradas}
+                className="text-[10px] px-2 py-1 rounded hover:bg-background/60 text-muted-foreground hover:text-foreground transition-colors"
+                title="Selecionar todas visíveis (Ctrl/Cmd+A)"
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="text-[10px] px-2 py-1 rounded hover:bg-background/60 text-muted-foreground hover:text-foreground transition-colors"
+                title="Limpar seleção (Esc)"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+        ) : filtradas.length > 0 && (
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10">
             <span className="text-[10px] text-muted-foreground">
               {filtradas.length === notificacoes.length
@@ -1644,6 +1873,7 @@ export default function NotificationBell() {
                   const fixada = !!n.fixada_em;
                   const snoozed = isSnoozed(n);
                   const isActive = activeId === n.id;
+                  const isSelected = selected.has(n.id);
                   return (
                     <div
                       key={n.id}
@@ -1651,7 +1881,16 @@ export default function NotificationBell() {
                       tabIndex={0}
                       data-notif-id={n.id}
                       onMouseEnter={() => setActiveId(n.id)}
-                      onClick={() => handleClick(n)}
+                      onClick={(e) => {
+                        // Item 101: com seleção ativa OU shift/meta pressionado, clicar
+                        // toggle a seleção em vez de abrir — evita abrir por engano.
+                        if (selected.size > 0 || e.shiftKey || e.metaKey || e.ctrlKey) {
+                          e.preventDefault();
+                          toggleSelect(n.id, { shift: e.shiftKey });
+                          return;
+                        }
+                        handleClick(n);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
@@ -1662,9 +1901,24 @@ export default function NotificationBell() {
                         !n.lida ? 'bg-primary/5' : ''
                       } ${fixada ? 'border-l-2 border-l-primary/60' : ''} ${
                         isActive ? 'bg-muted/40 ring-1 ring-inset ring-primary/30' : ''
-                      }`}
+                      } ${isSelected ? 'bg-primary/10 ring-1 ring-inset ring-primary/50' : ''}`}
                     >
+                      {/* Item 101: checkbox de seleção (visível no hover ou quando há seleção) */}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => { /* controlado por onClick abaixo */ }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelect(n.id, { shift: (e.nativeEvent as MouseEvent).shiftKey });
+                        }}
+                        aria-label={isSelected ? 'Desmarcar notificação' : 'Selecionar notificação'}
+                        className={`mt-1 h-3.5 w-3.5 shrink-0 rounded border-input accent-primary cursor-pointer transition-opacity ${
+                          selected.size > 0 || isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-70 focus:opacity-100'
+                        }`}
+                      />
                       <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${tipoColors[n.tipo]}`} />
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p
@@ -2034,6 +2288,16 @@ export default function NotificationBell() {
                 ['V', 'Alternar painel lateral de preview'],
                 ['Z', 'Alternar Modo Foco (só urgentes)'],
                 ['?', 'Abrir/fechar esta ajuda'],
+              ],
+            },
+            {
+              titulo: 'Seleção múltipla',
+              itens: [
+                ['Espaço', 'Selecionar/desmarcar o item ativo'],
+                ['Shift + Clique', 'Selecionar intervalo de itens'],
+                ['Ctrl/⌘ + A', 'Selecionar todas visíveis'],
+                ['Esc', 'Limpar seleção'],
+                ['Del / ⌫ / X', 'Excluir seleção (se houver)'],
               ],
             },
           ].map((secao) => (
