@@ -60,6 +60,7 @@ import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
+import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 
 interface Notificacao {
@@ -1206,7 +1207,7 @@ export default function Notificacoes() {
                                       !n.lida ? 'text-primary' : 'text-foreground'
                                     }`}
                                   >
-                                    {n.titulo}
+                                    <HighlightText text={n.titulo} query={busca} />
                                   </h3>
                                   {relevanceScore(n) >= 130 && (
                                     <Badge
@@ -1225,7 +1226,7 @@ export default function Notificacoes() {
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                {n.mensagem}
+                                <HighlightText text={n.mensagem} query={busca} />
                               </p>
                               {n.link && (
                                 <span className="text-[10px] font-medium text-primary flex items-center gap-1 pt-1">
