@@ -1278,6 +1278,48 @@ export default function NotificationBell() {
                           <Pin className="w-3.5 h-3.5 text-primary" />
                         )}
                       </Button>
+                      {snoozed ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => unsnoozeNotif(activeItem.id)}
+                          aria-label="Cancelar adiamento"
+                          title="Cancelar adiamento"
+                        >
+                          <AlarmClockOff className="w-3.5 h-3.5 text-amber-500" />
+                        </Button>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              aria-label="Adiar"
+                              title="Adiar (s)"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-amber-500" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Adiar por
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {SNOOZE_OPTIONS.map((opt) => (
+                              <DropdownMenuItem
+                                key={opt.id}
+                                onSelect={() => snoozeNotif(activeItem.id, opt.at(new Date()))}
+                                className="text-xs"
+                              >
+                                <Clock className="w-3.5 h-3.5 mr-2 text-amber-500" />
+                                {opt.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"
