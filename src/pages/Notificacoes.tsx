@@ -545,6 +545,15 @@ export default function Notificacoes() {
                 )}
                 {ordenarPorRelevancia ? 'Relevância' : 'Recente'}
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHelpOpen(true)}
+                title="Atalhos de teclado (?)"
+                aria-label="Atalhos de teclado"
+              >
+                <Keyboard className="w-4 h-4" />
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
               </Button>
