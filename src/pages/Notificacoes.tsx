@@ -37,6 +37,8 @@ import {
   Wand2,
   Rows2,
   Rows3,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
