@@ -151,6 +151,7 @@ export default function NotificationBell() {
 
   const filtradas = useMemo(() => {
     let base = ordenadas;
+    if (pendingDeleteIds.size > 0) base = base.filter((n) => !pendingDeleteIds.has(n.id));
     if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
     else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
     if (tiposAtivos.size > 0) {
@@ -162,7 +163,7 @@ export default function NotificationBell() {
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
