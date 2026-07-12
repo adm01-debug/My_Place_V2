@@ -30,6 +30,8 @@ import {
   Focus,
   Volume2,
   VolumeX,
+  Mail,
+  MailOpen,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -256,6 +258,17 @@ export default function Notificacoes() {
       setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
     } catch (error) {
       console.error('Erro ao marcar como lida:', error);
+    }
+  };
+
+  const marcarComoNaoLida = async (id: string) => {
+    try {
+      const { error } = await supabase.from('notificacoes').update({ lida: false }).eq('id', id);
+      if (error) throw error;
+      setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: false } : n)));
+    } catch (error) {
+      console.error('Erro ao marcar como não lida:', error);
+      toast.error('Não foi possível marcar como não lida');
     }
   };
 
@@ -707,6 +720,10 @@ export default function Notificacoes() {
       } else if (e.key === 'e') {
         e.preventDefault();
         if (!alvo.lida) marcarComoLida(focusedId);
+      } else if (e.key === 'u') {
+        e.preventDefault();
+        if (alvo.lida) marcarComoNaoLida(focusedId);
+        else marcarComoLida(focusedId);
       } else if (e.key === '#') {
         e.preventDefault();
         excluirNotificacao(focusedId);
