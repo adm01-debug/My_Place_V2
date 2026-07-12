@@ -1301,7 +1301,7 @@ export default function Notificacoes() {
                                   {format(new Date(n.created_at), 'dd MMM, HH:mm', { locale: ptBR })}
                                 </span>
                               </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                              <p className={`text-xs text-muted-foreground leading-relaxed ${densidade === 'compact' ? 'line-clamp-1' : 'line-clamp-2'}`}>
                                 <HighlightText text={n.mensagem} query={busca} />
                               </p>
                               {n.link && (
