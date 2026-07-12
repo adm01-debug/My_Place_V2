@@ -97,10 +97,16 @@ export default function NotificationBell() {
   }, [notificacoes]);
 
   const filtradas = useMemo(() => {
-    if (filtro === 'nao_lidas') return ordenadas.filter((n) => !n.lida);
-    if (filtro === 'fixadas') return ordenadas.filter((n) => !!n.fixada_em);
-    return ordenadas;
-  }, [ordenadas, filtro]);
+    let base = ordenadas;
+    if (filtro === 'nao_lidas') base = base.filter((n) => !n.lida);
+    else if (filtro === 'fixadas') base = base.filter((n) => !!n.fixada_em);
+    if (buscaNorm) {
+      base = base.filter(
+        (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
+      );
+    }
+    return base;
+  }, [ordenadas, filtro, buscaNorm, normalize]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
