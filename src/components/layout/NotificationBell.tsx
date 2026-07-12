@@ -64,6 +64,8 @@ export default function NotificationBell() {
     }
   }, [filtro]);
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const unreadCount = useMemo(
     () => notificacoes.filter((n) => !n.lida).length,
     [notificacoes]
