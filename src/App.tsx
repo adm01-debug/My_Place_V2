@@ -58,6 +58,7 @@ const Patrimonio = lazy(() => import("./pages/Patrimonio"));
 const Viagens = lazy(() => import("./pages/Viagens"));
 const Assinaturas = lazy(() => import("./pages/Assinaturas"));
 const BusinessIntelligence = lazy(() => import("./pages/BusinessIntelligence"));
+const AdminIntegracoes = lazy(() => import("./pages/AdminIntegracoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -151,6 +152,7 @@ const App = () => (
                 <Route path="/viagens" element={<Page name="Viagens Corporativas"><Viagens /></Page>} />
                 <Route path="/assinaturas" element={<Page name="Assinatura de Documentos"><Assinaturas /></Page>} />
                 <Route path="/bi" element={<Page name="Business Intelligence"><BusinessIntelligence /></Page>} />
+                <Route path="/admin/integracoes" element={<Page name="Integrações Externas"><AdminIntegracoes /></Page>} />
               </Route>
               <Route path="*" element={<Page name="Não encontrado"><NotFound /></Page>} />
             </Routes>
