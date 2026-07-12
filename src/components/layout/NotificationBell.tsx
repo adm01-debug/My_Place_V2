@@ -219,8 +219,9 @@ export default function NotificationBell() {
 
   const unreadCount = useMemo(
     // Snoozed não contam no badge — voltam automaticamente quando expira.
-    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n)).length,
-    [notificacoes, isSnoozed]
+    // Em modo foco, somente alerta+erro entram na contagem visível.
+    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n) && (!focusMode || n.tipo === 'alerta' || n.tipo === 'erro')).length,
+    [notificacoes, isSnoozed, focusMode]
   );
 
   const fixadasCount = useMemo(
