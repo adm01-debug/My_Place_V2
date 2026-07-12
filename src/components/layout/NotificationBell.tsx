@@ -184,8 +184,10 @@ export default function NotificationBell() {
         /* alguns browsers exigem SW — ignora silenciosamente */
       }
     },
-    [desktopOn, navigate]
-  );
+  const showDesktopRef = useRef(showDesktop);
+  useEffect(() => {
+    showDesktopRef.current = showDesktop;
+  }, [showDesktop]);
 
   // Realtime: INSERT, UPDATE e DELETE — mantém o sino sincronizado
   // mesmo quando alterações acontecem na página /notificacoes ou em outro tab.
@@ -202,10 +204,9 @@ export default function NotificationBell() {
             if (prev.some((n) => n.id === nova.id)) return prev;
             return [nova, ...prev].slice(0, MAX_ITEMS);
           });
-          showDesktop(nova);
+          showDesktopRef.current(nova);
         }
       )
-
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
@@ -228,6 +229,7 @@ export default function NotificationBell() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
 
   const markAsRead = async (id: string) => {
     setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
