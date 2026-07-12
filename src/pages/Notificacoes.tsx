@@ -1180,6 +1180,20 @@ export default function Notificacoes() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (n.lida) marcarComoNaoLida(n.id);
+                              else marcarComoLida(n.id);
+                            }}
+                            aria-label={n.lida ? 'Marcar como não lida' : 'Marcar como lida'}
+                            title={n.lida ? 'Marcar como não lida (u)' : 'Marcar como lida (e)'}
+                          >
+                            {n.lida ? <Mail className="w-3.5 h-3.5" /> : <MailOpen className="w-3.5 h-3.5" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1325,6 +1339,7 @@ export default function Notificacoes() {
               ['Enter', 'Abrir a notificação em foco'],
               ['x', 'Selecionar/desselecionar em foco'],
               ['e', 'Marcar em foco como lida'],
+              ['u', 'Alternar lida/não lida em foco'],
               ['#', 'Excluir a em foco'],
               ['Shift + A', 'Marcar todas como lidas'],
               ['Esc', 'Limpar seleção / foco'],
