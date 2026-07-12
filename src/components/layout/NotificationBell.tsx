@@ -1091,6 +1091,19 @@ export default function NotificationBell() {
             <Button
               variant="ghost"
               size="icon"
+              className="h-7 w-7 relative"
+              onClick={() => setShowRules(true)}
+              aria-label="Regras de automação"
+              title="Regras de automação"
+            >
+              <Wand2 className={`w-3.5 h-3.5 ${regras.some((r) => r.enabled) ? 'text-primary' : 'text-muted-foreground'}`} />
+              {regras.some((r) => r.enabled) && (
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" aria-hidden />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden md:inline-flex h-7 w-7"
               onClick={() => setShowPreview((v) => !v)}
               aria-pressed={showPreview}
