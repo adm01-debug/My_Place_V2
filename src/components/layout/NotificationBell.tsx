@@ -740,6 +740,11 @@ export default function NotificationBell() {
           e.preventDefault();
           setShowPreview((v) => !v);
           break;
+        case 'z':
+          // Alterna Modo Foco (Zen): apenas alerta+erro visíveis, badge discreto.
+          e.preventDefault();
+          setFocusMode((v) => !v);
+          break;
         case 'x':
         case 'Delete':
         case 'Backspace': {
