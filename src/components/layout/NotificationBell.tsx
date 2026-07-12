@@ -785,6 +785,21 @@ export default function NotificationBell() {
     [filtradas, activeId]
   );
 
+  // Auto-read: quando o preview lateral está visível, o popover está aberto,
+  // o usuário optou por auto-marcar e o item ativo ainda está não lido,
+  // agenda uma marcação como lida após AUTO_READ_DELAY_MS. Cancela em troca.
+  useEffect(() => {
+    if (!open || !showPreview || !autoRead || !activeItem || activeItem.lida) return;
+    const targetId = activeItem.id;
+    const t = setTimeout(() => {
+      markAsRead(targetId);
+    }, AUTO_READ_DELAY_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, showPreview, autoRead, activeItem?.id, activeItem?.lida]);
+
+
+
   const formatAbsolute = (iso: string) => {
     try {
       return new Date(iso).toLocaleString('pt-BR', {
