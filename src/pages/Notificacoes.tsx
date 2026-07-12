@@ -331,6 +331,32 @@ export default function Notificacoes() {
                   <Button size="sm" variant="ghost" onClick={() => acaoEmMassa('ler')}>
                     <CheckCheck className="w-4 h-4 mr-1" /> Marcar lidas
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost">
+                        <Clock className="w-4 h-4 mr-1" /> Adiar
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Adiar seleção por…</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 30)}>
+                        30 minutos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60)}>
+                        1 hora
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 4)}>
+                        4 horas
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24)}>
+                        Amanhã
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24 * 7)}>
+                        Próxima semana
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -343,6 +369,7 @@ export default function Notificacoes() {
                     <X className="w-4 h-4" />
                   </Button>
                 </>
+
               ) : (
                 naoLidas > 0 && (
                   <Button size="sm" variant="ghost" onClick={marcarTodasComoLidas}>
