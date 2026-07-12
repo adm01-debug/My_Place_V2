@@ -156,6 +156,7 @@ const App = () => (
                 <Route path="/assinaturas" element={<Page name="Assinatura de Documentos"><Assinaturas /></Page>} />
                 <Route path="/bi" element={<Page name="Business Intelligence"><BusinessIntelligence /></Page>} />
                 <Route path="/admin/integracoes" element={<Page name="Integrações Externas"><AdminIntegracoes /></Page>} />
+                <Route path="/admin/rate-limits" element={<Page name="Rate Limits"><AdminRateLimits /></Page>} />
                 <Route path="/notificacoes/preferencias" element={<Page name="Preferências de Notificação"><NotificacaoPreferencias /></Page>} />
                 <Route path="/notificacoes/historico" element={<Page name="Histórico de Notificações"><NotificacaoHistorico /></Page>} />
               </Route>
