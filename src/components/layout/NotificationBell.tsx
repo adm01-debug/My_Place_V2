@@ -1002,12 +1002,10 @@ export default function NotificationBell() {
   };
 
   // ─── Item 101: Seleção múltipla + ações em lote ─────────────────────────────
-  // - Set<id> das seleções; shift+click faz intervalo sobre a lista filtrada.
-  // - Ações: marcar lidas, fixar/desafixar, adiar 1h, excluir — com Undo.
-  // - Auto-limpa itens que somem (após delete/backend). Ctrl/Cmd+A seleciona
-  //   todas visíveis; Escape limpa a seleção.
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const lastSelectedIdRef = useRef<string | null>(null);
+  // (State `selected` + `lastSelectedIdRef` foram elevados para antes de
+  //  `grupos`/`clustersByBucket` — o clustering precisa ler `selected` para
+  //  não esconder itens selecionados. Ver seção "Item 102" no topo.)
+
 
   // Purga IDs que não existem mais em `notificacoes` (delete/backend/refetch).
   useEffect(() => {
