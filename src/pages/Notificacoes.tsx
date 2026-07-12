@@ -479,7 +479,8 @@ export default function Notificacoes() {
   // Reset paginação quando filtros mudam
   useEffect(() => {
     setVisibleCount(50);
-  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia]);
+  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco]);
+
 
   // Infinite scroll via IntersectionObserver
   useEffect(() => {
