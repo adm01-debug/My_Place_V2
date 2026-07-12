@@ -60,11 +60,13 @@ const groupLabel = (date: Date): string => {
 export default function Notificacoes() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todas');
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('notif_agrupar_similares') !== '0';
