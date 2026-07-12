@@ -529,11 +529,12 @@ export default function Notificacoes() {
                 return (
                   <Card
                     key={n.id}
+                    data-notif-id={n.id}
                     className={`group border-border/50 transition-all hover:shadow-md ${
                       !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
                     } ${selecionada ? 'ring-2 ring-primary/40' : ''} ${
                       opts?.inThread ? 'ml-6 border-l-2 border-l-primary/30' : ''
-                    }`}
+                    } ${highlightedId === n.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''}`}
                   >
                     <CardContent className="p-4">
                       <div className="flex gap-3">
