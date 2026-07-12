@@ -788,8 +788,13 @@ export default function Notificacoes() {
               const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => {
                 const selecionada = selecionadas.has(n.id);
                 return (
-                  <Card
+                  <SwipeableRow
                     key={n.id}
+                    onSwipeRight={n.lida ? undefined : () => marcarComoLida(n.id)}
+                    onSwipeLeft={() => excluirNotificacao(n.id)}
+                    rightLabel={n.lida ? 'Já lida' : 'Marcar lida'}
+                  >
+                  <Card
                     data-notif-id={n.id}
                     className={`group border-border/50 transition-all hover:shadow-md ${
                       !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
