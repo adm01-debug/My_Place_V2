@@ -32,6 +32,8 @@ import {
   VolumeX,
   Mail,
   MailOpen,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -67,6 +69,7 @@ interface Notificacao {
   lida: boolean;
   link: string | null;
   created_at: string;
+  fixada_em: string | null;
 }
 
 type Filtro = 'todas' | 'nao_lidas' | 'sucesso' | 'erro' | 'alerta' | 'info';
@@ -271,6 +274,30 @@ export default function Notificacoes() {
       toast.error('Não foi possível marcar como não lida');
     }
   };
+
+  const togglePin = async (n: Notificacao) => {
+    const proximoValor = n.fixada_em ? null : new Date().toISOString();
+    // Optimistic
+    setNotificacoes((prev) =>
+      prev.map((x) => (x.id === n.id ? { ...x, fixada_em: proximoValor } : x)),
+    );
+    try {
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ fixada_em: proximoValor })
+        .eq('id', n.id);
+      if (error) throw error;
+      toast.success(proximoValor ? 'Notificação fixada' : 'Notificação desafixada');
+    } catch (error) {
+      console.error('Erro ao alternar fixar:', error);
+      // Rollback
+      setNotificacoes((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, fixada_em: n.fixada_em } : x)),
+      );
+      toast.error('Não foi possível fixar a notificação');
+    }
+  };
+
 
   const marcarTodasComoLidas = async () => {
     if (!user) return;
@@ -487,8 +514,13 @@ export default function Notificacoes() {
   );
 
   const grupos = useMemo(() => {
+    const fixadas: Notificacao[] = [];
     const map = new Map<string, Notificacao[]>();
     for (const n of filtradasVisiveis) {
+      if (n.fixada_em) {
+        fixadas.push(n);
+        continue;
+      }
       const label = groupLabel(new Date(n.created_at));
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
@@ -497,8 +529,17 @@ export default function Notificacoes() {
       for (const [, itens] of map) {
         itens.sort((a, b) => relevanceScore(b) - relevanceScore(a));
       }
+      fixadas.sort((a, b) => relevanceScore(b) - relevanceScore(a));
+    } else {
+      // Mais recentemente fixadas primeiro
+      fixadas.sort(
+        (a, b) => new Date(b.fixada_em ?? 0).getTime() - new Date(a.fixada_em ?? 0).getTime(),
+      );
     }
-    return Array.from(map.entries());
+    const result: Array<[string, Notificacao[]]> = [];
+    if (fixadas.length > 0) result.push(['📌 Fixadas', fixadas]);
+    for (const entry of map.entries()) result.push(entry);
+    return result;
   }, [filtradasVisiveis, ordenarPorRelevancia]);
 
   // Reset paginação quando filtros mudam
@@ -1177,6 +1218,19 @@ export default function Notificacoes() {
                               <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24 * 7)}>Próxima semana</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-7 w-7 ${n.fixada_em ? 'text-amber-500 hover:text-amber-600' : 'text-muted-foreground hover:text-amber-500'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePin(n);
+                            }}
+                            aria-label={n.fixada_em ? 'Desafixar notificação' : 'Fixar notificação'}
+                            title={n.fixada_em ? 'Desafixar do topo' : 'Fixar no topo'}
+                          >
+                            {n.fixada_em ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
