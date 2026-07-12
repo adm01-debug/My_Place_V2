@@ -21,6 +21,8 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Flame,
+  ArrowDownWideNarrow,
 } from 'lucide-react';
 import {
   DropdownMenu,
