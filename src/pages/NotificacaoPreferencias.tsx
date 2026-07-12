@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, BellOff, RotateCcw, Moon, Save } from "lucide-react";
+import { Loader2, BellOff, RotateCcw, Moon, Save, Clock, Layers } from "lucide-react";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
 
 type Categoria =
@@ -145,6 +145,40 @@ export default function NotificacaoPreferencias() {
     [prefs]
   );
 
+  const [bulkFreq, setBulkFreq] = useState<DigestFreq>("imediato");
+
+  const aplicarDigestATodas = () => {
+    setPrefs((s) => Object.fromEntries(
+      Object.entries(s).map(([k, v]) => [k, { ...v, digest_frequencia: bulkFreq }])
+    ) as Record<Categoria, Pref>);
+    toast.info(`Digest "${bulkFreq}" aplicado a todas as categorias — clique em Salvar`);
+  };
+
+  const proximaEntrega = useMemo(() => {
+    // Backend: horario a cada hora; diario 08:00 BRT (11 UTC); semanal seg 08:00 BRT.
+    const freqs = new Set(Object.values(prefs).map((p) => p.digest_frequencia));
+    const items: string[] = [];
+    const fmt = (d: Date) => d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    const now = new Date();
+    if (freqs.has("horario")) {
+      const next = new Date(now); next.setMinutes(0, 0, 0); next.setHours(next.getHours() + 1);
+      items.push(`⏱️ Horário → ${fmt(next)}`);
+    }
+    if (freqs.has("diario")) {
+      const next = new Date(now); next.setUTCHours(11, 0, 0, 0);
+      if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+      items.push(`📅 Diário → ${fmt(next)}`);
+    }
+    if (freqs.has("semanal")) {
+      const next = new Date(now); next.setUTCHours(11, 0, 0, 0);
+      const daysUntilMon = (8 - next.getUTCDay()) % 7 || 7;
+      next.setUTCDate(next.getUTCDate() + (next.getUTCDay() === 1 && next > now ? 0 : daysUntilMon));
+      items.push(`🗓️ Semanal → ${fmt(next)}`);
+    }
+    return items;
+  }, [prefs]);
+
+
   if (loading) return (
     <div className="flex items-center justify-center py-20">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -229,6 +263,48 @@ export default function NotificacaoPreferencias() {
                 />
               </div>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Digest global — aplica a todas as categorias */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Layers className="w-4 h-4" /> Agrupamento global (digest)
+          </CardTitle>
+          <CardDescription>
+            Defina uma frequência de resumo e aplique a todas as categorias de uma vez.
+            Alertas críticos são sempre entregues imediatamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1">
+              <Label className="text-xs">Frequência global</Label>
+              <Select value={bulkFreq} onValueChange={(v) => setBulkFreq(v as DigestFreq)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="imediato">Imediato (sem agrupar)</SelectItem>
+                  <SelectItem value="horario">A cada hora</SelectItem>
+                  <SelectItem value="diario">1x por dia (08:00 BRT)</SelectItem>
+                  <SelectItem value="semanal">1x por semana (Seg 08:00 BRT)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={aplicarDigestATodas} variant="secondary">
+              Aplicar a todas categorias
+            </Button>
+          </div>
+          {proximaEntrega.length > 0 && (
+            <div className="rounded-md bg-muted/50 p-3 space-y-1">
+              <p className="text-xs font-medium flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Próximas entregas previstas
+              </p>
+              {proximaEntrega.map((t, i) => (
+                <p key={i} className="text-xs text-muted-foreground">{t}</p>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
