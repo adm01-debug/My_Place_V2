@@ -60,6 +60,7 @@ import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
+import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 
 interface Notificacao {
   id: string;
@@ -781,6 +782,7 @@ export default function Notificacoes() {
 
 
   const naoLidas = notificacoes.filter((n) => !n.lida).length;
+  useFaviconBadge(naoLidas, 'Notificações');
   const contadoresPorTipo = useMemo(() => {
     const acc = { erro: 0, alerta: 0, sucesso: 0, info: 0 } as Record<Notificacao['tipo'], number>;
     for (const n of notificacoes) {
