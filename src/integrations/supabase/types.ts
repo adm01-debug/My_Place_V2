@@ -2081,6 +2081,119 @@ export type Database = {
           },
         ]
       }
+      treinamentos: {
+        Row: {
+          ativo: boolean
+          carga_horaria_minutos: number
+          cargos_obrigatorios: string[]
+          categoria: string
+          codigo: string
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          obrigatorio_para_todos: boolean
+          titulo: string
+          updated_at: string
+          validade_meses: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          carga_horaria_minutos?: number
+          cargos_obrigatorios?: string[]
+          categoria?: string
+          codigo: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          obrigatorio_para_todos?: boolean
+          titulo: string
+          updated_at?: string
+          validade_meses?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          carga_horaria_minutos?: number
+          cargos_obrigatorios?: string[]
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          obrigatorio_para_todos?: boolean
+          titulo?: string
+          updated_at?: string
+          validade_meses?: number | null
+        }
+        Relationships: []
+      }
+      treinamentos_matriculas: {
+        Row: {
+          certificado_url: string | null
+          created_at: string
+          data_conclusao: string | null
+          data_inicio: string | null
+          data_matricula: string
+          data_vencimento: string | null
+          id: string
+          instrutor: string | null
+          matriculado_por: string | null
+          nota: number | null
+          notificado_vencimento: boolean
+          observacoes: string | null
+          status: string
+          treinamento_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificado_url?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          data_matricula?: string
+          data_vencimento?: string | null
+          id?: string
+          instrutor?: string | null
+          matriculado_por?: string | null
+          nota?: number | null
+          notificado_vencimento?: boolean
+          observacoes?: string | null
+          status?: string
+          treinamento_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificado_url?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          data_matricula?: string
+          data_vencimento?: string | null
+          id?: string
+          instrutor?: string | null
+          matriculado_por?: string | null
+          nota?: number | null
+          notificado_vencimento?: boolean
+          observacoes?: string | null
+          status?: string
+          treinamento_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamentos_matriculas_treinamento_id_fkey"
+            columns: ["treinamento_id"]
+            isOneToOne: false
+            referencedRelation: "treinamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trilhas_desenvolvimento: {
         Row: {
           ativo: boolean
@@ -2476,6 +2589,37 @@ export type Database = {
           versao_vigente_id: string | null
         }
         Relationships: []
+      }
+      vw_treinamentos_status: {
+        Row: {
+          carga_horaria_minutos: number | null
+          categoria: string | null
+          certificado_url: string | null
+          codigo: string | null
+          data_conclusao: string | null
+          data_inicio: string | null
+          data_matricula: string | null
+          data_vencimento: string | null
+          dias_ate_vencimento: number | null
+          matricula_id: string | null
+          nota: number | null
+          obrigatorio_para_todos: boolean | null
+          situacao: string | null
+          status: string | null
+          titulo: string | null
+          treinamento_id: string | null
+          user_id: string | null
+          validade_meses: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamentos_matriculas_treinamento_id_fkey"
+            columns: ["treinamento_id"]
+            isOneToOne: false
+            referencedRelation: "treinamentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
