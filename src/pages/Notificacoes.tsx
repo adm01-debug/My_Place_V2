@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
+import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
 
 interface Notificacao {
   id: string;
