@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { NotificacaoSimulador } from '@/components/notificacoes/NotificacaoSimulador';
 
 type Canal = 'in_app' | 'email' | 'push' | 'whatsapp';
 type Status = 'enviado' | 'bloqueado';
@@ -136,6 +137,8 @@ export default function NotificacaoHistorico() {
             </Button>
           }
         />
+
+        <NotificacaoSimulador onDispatched={fetch} />
 
         <div className="grid grid-cols-3 gap-3">
           <StatCard label="Total" value={stats.total} tone="bg-muted/50" />
