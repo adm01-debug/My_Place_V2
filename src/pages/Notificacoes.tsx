@@ -34,6 +34,7 @@ import {
   MailOpen,
   Pin,
   PinOff,
+  Wand2,
 } from 'lucide-react';
 import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
@@ -881,6 +882,20 @@ export default function Notificacoes() {
                 {modoFoco ? 'Foco ativo' : 'Foco'}
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRulesDialogOpen(true)}
+                title="Regras automáticas: aplicar ações a novas notificações que casem com um padrão"
+                aria-label="Abrir regras automáticas"
+              >
+                <Wand2 className="w-4 h-4 mr-1" />
+                Regras {rules.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {rules.filter((r) => r.ativa).length}
+                  </Badge>
+                )}
+              </Button>
+              <Button
                 variant={alertasAtivos ? 'default' : 'outline'}
                 size="sm"
                 onClick={toggleAlertas}
@@ -1490,5 +1505,13 @@ export default function Notificacoes() {
         </DialogContent>
       </Dialog>
     </PullToRefresh>
+    <AutoRulesDialog
+      open={rulesDialogOpen}
+      onOpenChange={setRulesDialogOpen}
+      rules={rules}
+      addRule={addRule}
+      removeRule={removeRule}
+      toggleRule={toggleRule}
+    />
   );
 }
