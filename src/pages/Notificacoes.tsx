@@ -106,6 +106,9 @@ export default function Notificacoes() {
     return localStorage.getItem('notif_ordenar_relevancia') === '1';
   });
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
