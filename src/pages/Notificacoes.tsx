@@ -48,6 +48,7 @@ import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { toast } from 'sonner';
 import { AnexoPreview } from '@/components/notificacoes/AnexoPreview';
+import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 
 interface Notificacao {
   id: string;
@@ -787,8 +788,13 @@ export default function Notificacoes() {
               const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => {
                 const selecionada = selecionadas.has(n.id);
                 return (
-                  <Card
+                  <SwipeableRow
                     key={n.id}
+                    onSwipeRight={n.lida ? undefined : () => marcarComoLida(n.id)}
+                    onSwipeLeft={() => excluirNotificacao(n.id)}
+                    rightLabel={n.lida ? 'Já lida' : 'Marcar lida'}
+                  >
+                  <Card
                     data-notif-id={n.id}
                     className={`group border-border/50 transition-all hover:shadow-md ${
                       !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
@@ -896,6 +902,7 @@ export default function Notificacoes() {
                       </div>
                     </CardContent>
                   </Card>
+                  </SwipeableRow>
                 );
               };
               return (
