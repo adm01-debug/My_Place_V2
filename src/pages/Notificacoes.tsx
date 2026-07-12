@@ -1380,6 +1380,11 @@ export default function Notificacoes() {
                             <AnexoPreview url={n.link} titulo={n.titulo} />
                           </div>
                         )}
+                        {n.link && n.link.startsWith('http') && !n.link.includes('/object/public/') && !n.link.includes('/storage/') && (
+                          <div className="pl-11">
+                            <LinkPreview url={n.link} />
+                          </div>
+                        )}
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
