@@ -1259,7 +1259,7 @@ export default function Notificacoes() {
                     }`}
                     onMouseEnter={() => setFocusedId(n.id)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className={densidade === 'compact' ? 'p-2.5' : 'p-4'}>
                       <div className="flex gap-3">
                         <div className="pt-1">
                           <Checkbox
