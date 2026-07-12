@@ -692,6 +692,17 @@ export default function NotificationBell() {
             togglePin(current.id, !!current.fixada_em);
           }
           break;
+        case 's':
+          // Snooze rápido: 1h (padrão). Se já estiver adiada, cancela o adiamento.
+          if (current) {
+            e.preventDefault();
+            if (isSnoozed(current)) {
+              unsnoozeNotif(current.id);
+            } else {
+              snoozeNotif(current.id, SNOOZE_OPTIONS[0].at(new Date()));
+            }
+          }
+          break;
         case 'v':
           // Alterna painel lateral de preview (só faz sentido em md+, mas o estado persiste).
           e.preventDefault();
