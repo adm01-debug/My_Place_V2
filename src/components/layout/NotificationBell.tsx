@@ -1223,6 +1223,11 @@ export default function NotificationBell() {
                               <Pin className="w-2.5 h-2.5" /> Fixada
                             </span>
                           )}
+                          {snoozed && activeItem.adiada_ate && (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 inline-flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5" /> Adiada até {formatAbsolute(activeItem.adiada_ate)}
+                            </span>
+                          )}
                         </div>
                         <h4 className="text-sm font-semibold text-foreground mt-1 leading-snug break-words">
                           {activeItem.titulo}
