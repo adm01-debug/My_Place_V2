@@ -161,9 +161,9 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
   const { data: usuarios = [] } = useQuery({
     queryKey: ["profiles_min"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id, nome_completo").order("nome_completo");
+      const { data, error } = await supabase.from("profiles").select("id, nome").order("nome");
       if (error) throw error;
-      return data as { id: string; nome_completo: string }[];
+      return data as { id: string; nome: string }[];
     },
   });
 
@@ -218,7 +218,7 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
                   checked={signatarios.includes(u.id)}
                   onCheckedChange={(c) => setSignatarios((prev) => c ? [...prev, u.id] : prev.filter((x) => x !== u.id))}
                 />
-                {u.nome_completo}
+                {u.nome}
               </label>
             ))}
           </div>
@@ -257,8 +257,8 @@ function AssinarDialog({ doc, onClose, onDone }: { doc: Documento | null; onClos
     enabled: assinaturas.length > 0,
     queryFn: async () => {
       const ids = Array.from(new Set(assinaturas.map((a) => a.user_id)));
-      const { data } = await supabase.from("profiles").select("id, nome_completo").in("id", ids);
-      return Object.fromEntries((data ?? []).map((p) => [p.id, p.nome_completo])) as Record<string, string>;
+      const { data } = await supabase.from("profiles").select("id, nome").in("id", ids);
+      return Object.fromEntries((data ?? []).map((p) => [p.id, p.nome])) as Record<string, string>;
     },
   });
 
