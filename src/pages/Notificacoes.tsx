@@ -902,6 +902,7 @@ export default function Notificacoes() {
                       </div>
                     </CardContent>
                   </Card>
+                  </SwipeableRow>
                 );
               };
               return (
