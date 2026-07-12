@@ -1005,7 +1005,9 @@ export default function NotificationBell() {
                       ? 'Nenhuma notificação não lida'
                       : filtro === 'fixadas'
                         ? 'Nenhuma notificação fixada'
-                        : 'Nenhuma notificação'}
+                        : filtro === 'adiadas'
+                          ? 'Nenhuma notificação adiada'
+                          : 'Nenhuma notificação'}
               </p>
               {tiposAtivos.size > 0 && (
                 <button
