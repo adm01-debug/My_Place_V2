@@ -858,6 +858,7 @@ export default function Notificacoes() {
     filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
 
   return (
+    <>
     <PullToRefresh onRefresh={fetchNotificacoes}>
       <div className="w-full max-w-4xl mx-auto p-4 space-y-6 pb-24">
         <ModuleHeader
