@@ -28,7 +28,10 @@ import {
   FileText,
   FileSpreadsheet,
   Focus,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
+import { useNotificationAlert } from '@/hooks/useNotificationAlert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,6 +125,7 @@ export default function Notificacoes() {
   });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
@@ -182,14 +186,21 @@ export default function Notificacoes() {
         { event: 'INSERT', schema: 'public', table: 'notificacoes', filter: `user_id=eq.${user.id}` },
         (payload) => {
           const nova = payload.new as Notificacao;
-          setNotificacoes((prev) => (prev.some((n) => n.id === nova.id) ? prev : [nova, ...prev]));
+          setNotificacoes((prev) => {
+            if (prev.some((n) => n.id === nova.id)) return prev;
+            // Alerta sonoro/tátil: alta para erro, média para alerta, silêncio para o resto.
+            const prioridade =
+              nova.tipo === 'erro' ? 'alta' : nova.tipo === 'alerta' ? 'media' : 'baixa';
+            playAlert(prioridade);
+            return [nova, ...prev];
+          });
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, playAlert]);
 
   // Deep-linking: /notificacoes?focus=<id> — rola até o card, destaca, marca como lido
   // e expande a thread se o item estiver dentro de uma.
@@ -745,6 +756,25 @@ export default function Notificacoes() {
               >
                 <Focus className="w-4 h-4 mr-1" />
                 {modoFoco ? 'Foco ativo' : 'Foco'}
+              </Button>
+              <Button
+                variant={alertasAtivos ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleAlertas}
+                title={
+                  alertasAtivos
+                    ? 'Silenciar alertas sonoros de novas notificações prioritárias'
+                    : 'Ativar alertas sonoros e vibração para novas notificações prioritárias'
+                }
+                aria-pressed={alertasAtivos}
+                aria-label={alertasAtivos ? 'Silenciar alertas' : 'Ativar alertas'}
+              >
+                {alertasAtivos ? (
+                  <Volume2 className="w-4 h-4 mr-1" />
+                ) : (
+                  <VolumeX className="w-4 h-4 mr-1" />
+                )}
+                {alertasAtivos ? 'Som' : 'Silenciado'}
               </Button>
               <Button
                 variant={agruparSimilares ? 'default' : 'outline'}
