@@ -535,6 +535,131 @@ export type Database = {
         }
         Relationships: []
       }
+      epis_catalogo: {
+        Row: {
+          ativo: boolean
+          ca_validade: string | null
+          categoria: string
+          codigo: string
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          estoque_minimo: number
+          fabricante: string | null
+          foto_url: string | null
+          id: string
+          nome: string
+          numero_ca: string | null
+          updated_at: string
+          vida_util_dias: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          ca_validade?: string | null
+          categoria?: string
+          codigo: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          estoque_minimo?: number
+          fabricante?: string | null
+          foto_url?: string | null
+          id?: string
+          nome: string
+          numero_ca?: string | null
+          updated_at?: string
+          vida_util_dias?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          ca_validade?: string | null
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          estoque_minimo?: number
+          fabricante?: string | null
+          foto_url?: string | null
+          id?: string
+          nome?: string
+          numero_ca?: string | null
+          updated_at?: string
+          vida_util_dias?: number | null
+        }
+        Relationships: []
+      }
+      epis_entregas: {
+        Row: {
+          assinatura_em: string | null
+          assinatura_hash: string | null
+          assinatura_ip: string | null
+          created_at: string
+          data_devolucao: string | null
+          data_entrega: string
+          entregue_por: string | null
+          epi_id: string
+          id: string
+          motivo: string
+          motivo_devolucao: string | null
+          numero_ca_entrega: string | null
+          observacoes: string | null
+          previsao_troca: string | null
+          quantidade: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assinatura_em?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
+          created_at?: string
+          data_devolucao?: string | null
+          data_entrega?: string
+          entregue_por?: string | null
+          epi_id: string
+          id?: string
+          motivo?: string
+          motivo_devolucao?: string | null
+          numero_ca_entrega?: string | null
+          observacoes?: string | null
+          previsao_troca?: string | null
+          quantidade?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assinatura_em?: string | null
+          assinatura_hash?: string | null
+          assinatura_ip?: string | null
+          created_at?: string
+          data_devolucao?: string | null
+          data_entrega?: string
+          entregue_por?: string | null
+          epi_id?: string
+          id?: string
+          motivo?: string
+          motivo_devolucao?: string | null
+          numero_ca_entrega?: string | null
+          observacoes?: string | null
+          previsao_troca?: string | null
+          quantidade?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epis_entregas_epi_id_fkey"
+            columns: ["epi_id"]
+            isOneToOne: false
+            referencedRelation: "epis_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos_corporativos: {
         Row: {
           created_at: string
@@ -2520,6 +2645,35 @@ export type Database = {
           total: number | null
         }
         Relationships: []
+      }
+      vw_epis_ativos: {
+        Row: {
+          assinatura_em: string | null
+          categoria: string | null
+          codigo: string | null
+          data_entrega: string | null
+          dias_ate_troca: number | null
+          entrega_id: string | null
+          epi_id: string | null
+          foto_url: string | null
+          motivo: string | null
+          nome: string | null
+          numero_ca_entrega: string | null
+          previsao_troca: string | null
+          quantidade: number | null
+          situacao: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epis_entregas_epi_id_fkey"
+            columns: ["epi_id"]
+            isOneToOne: false
+            referencedRelation: "epis_catalogo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_exit_interviews_stats: {
         Row: {
