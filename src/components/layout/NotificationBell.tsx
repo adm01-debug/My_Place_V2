@@ -140,6 +140,20 @@ export default function NotificationBell() {
     }
   }, [showPreview]);
 
+  // Auto-marcar como lida ao visualizar no painel de preview (opt-in, default ON).
+  const [autoRead, setAutoRead] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const raw = localStorage.getItem(AUTO_READ_KEY);
+    return raw === null ? true : raw === '1';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUTO_READ_KEY, autoRead ? '1' : '0');
+    } catch {
+      /* quota — ignore */
+    }
+  }, [autoRead]);
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
