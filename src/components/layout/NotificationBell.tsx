@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -80,6 +80,7 @@ const TIPOS_KEY = 'bell_tipos_v1';
 const PREVIEW_KEY = 'bell_preview_v1';
 const AUTO_READ_KEY = 'bell_auto_read_v1';
 const AUTO_READ_DELAY_MS = 1500;
+const FOCUS_KEY = 'bell_focus_mode_v1';
 
 type TipoNotif = 'info' | 'sucesso' | 'alerta' | 'erro';
 const TIPOS_ALL: TipoNotif[] = ['info', 'sucesso', 'alerta', 'erro'];
@@ -154,6 +155,16 @@ export default function NotificationBell() {
     }
   }, [autoRead]);
 
+  // Modo Foco (Zen): filtra apenas alerta+erro; badge fica discreto (ponto) e
+  // ignora as demais notificações no popover — ideal para reduzir ruído.
+  const [focusMode, setFocusMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(FOCUS_KEY) === '1';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(FOCUS_KEY, focusMode ? '1' : '0'); } catch { /* quota */ }
+  }, [focusMode]);
+
   useEffect(() => {
     const timers = undoTimers.current;
     return () => {
@@ -208,8 +219,9 @@ export default function NotificationBell() {
 
   const unreadCount = useMemo(
     // Snoozed não contam no badge — voltam automaticamente quando expira.
-    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n)).length,
-    [notificacoes, isSnoozed]
+    // Em modo foco, somente alerta+erro entram na contagem visível.
+    () => notificacoes.filter((n) => !n.lida && !isSnoozed(n) && (!focusMode || n.tipo === 'alerta' || n.tipo === 'erro')).length,
+    [notificacoes, isSnoozed, focusMode]
   );
 
   const fixadasCount = useMemo(
@@ -247,13 +259,17 @@ export default function NotificationBell() {
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
+    // Modo foco: restringe a alerta+erro (fixadas urgentes seguem visíveis).
+    if (focusMode) {
+      base = base.filter((n) => n.tipo === 'alerta' || n.tipo === 'erro');
+    }
     if (buscaNorm) {
       base = base.filter(
         (n) => normalize(n.titulo).includes(buscaNorm) || normalize(n.mensagem).includes(buscaNorm)
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed]);
+  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed, focusMode]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
@@ -724,6 +740,11 @@ export default function NotificationBell() {
           e.preventDefault();
           setShowPreview((v) => !v);
           break;
+        case 'z':
+          // Alterna Modo Foco (Zen): apenas alerta+erro visíveis, badge discreto.
+          e.preventDefault();
+          setFocusMode((v) => !v);
+          break;
         case 'x':
         case 'Delete':
         case 'Backspace': {
@@ -828,10 +849,22 @@ export default function NotificationBell() {
               unreadCount > 0 ? 'animate-[wiggle_0.5s_ease-in-out]' : ''
             }`}
           />
-          {unreadCount > 0 && (
+          {unreadCount > 0 && !focusMode && (
             <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground animate-in zoom-in-50 duration-200">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
+          )}
+          {focusMode && unreadCount > 0 && (
+            <span
+              className="absolute top-0 right-0 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-background animate-in zoom-in-50 duration-200"
+              aria-label={`${unreadCount} urgentes (modo foco)`}
+            />
+          )}
+          {focusMode && (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary/80 ring-2 ring-background"
+              aria-hidden
+            />
           )}
         </Button>
       </PopoverTrigger>
@@ -839,6 +872,17 @@ export default function NotificationBell() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
           <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setFocusMode((v) => !v)}
+              aria-pressed={focusMode}
+              aria-label={focusMode ? 'Desativar Modo Foco' : 'Ativar Modo Foco (só urgentes)'}
+              title={focusMode ? 'Modo Foco ativo: só alertas/erros (z)' : 'Modo Foco: exibir só urgentes (z)'}
+            >
+              <Focus className={`w-3.5 h-3.5 ${focusMode ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
