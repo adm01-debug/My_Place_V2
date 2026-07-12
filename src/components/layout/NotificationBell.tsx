@@ -875,6 +875,17 @@ export default function NotificationBell() {
             <Button
               variant="ghost"
               size="icon"
+              className="h-7 w-7"
+              onClick={() => setFocusMode((v) => !v)}
+              aria-pressed={focusMode}
+              aria-label={focusMode ? 'Desativar Modo Foco' : 'Ativar Modo Foco (só urgentes)'}
+              title={focusMode ? 'Modo Foco ativo: só alertas/erros (z)' : 'Modo Foco: exibir só urgentes (z)'}
+            >
+              <Focus className={`w-3.5 h-3.5 ${focusMode ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="hidden md:inline-flex h-7 w-7"
               onClick={() => setShowPreview((v) => !v)}
               aria-pressed={showPreview}
