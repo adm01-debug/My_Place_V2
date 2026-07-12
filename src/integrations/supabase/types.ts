@@ -1611,6 +1611,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao_entregas: {
+        Row: {
+          canal: string
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at: string
+          id: string
+          mensagem: string
+          motivo: string | null
+          nivel: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_id: string | null
+          status: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          canal: string
+          categoria: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          mensagem: string
+          motivo?: string | null
+          nivel?: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_id?: string | null
+          status: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          canal?: string
+          categoria?: Database["public"]["Enums"]["notif_categoria"]
+          created_at?: string
+          id?: string
+          mensagem?: string
+          motivo?: string | null
+          nivel?: Database["public"]["Enums"]["notif_nivel"]
+          notificacao_id?: string | null
+          status?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacao_entregas_notificacao_id_fkey"
+            columns: ["notificacao_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacao_preferencias: {
         Row: {
           canal_email: boolean
@@ -3846,6 +3896,15 @@ export type Database = {
           relacao: Database["public"]["Enums"]["feedback_relacao"]
           respondentes: number
         }[]
+      }
+      fn_motivo_bloqueio: {
+        Args: {
+          _canal: string
+          _categoria: Database["public"]["Enums"]["notif_categoria"]
+          _nivel?: Database["public"]["Enums"]["notif_nivel"]
+          _user_id: string
+        }
+        Returns: string
       }
       fn_notif_prefs_reset: { Args: { _user_id: string }; Returns: number }
       fn_notificar: {
