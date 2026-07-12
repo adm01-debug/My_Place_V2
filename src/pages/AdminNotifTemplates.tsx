@@ -215,6 +215,12 @@ export default function AdminNotifTemplates() {
                     <Badge variant="outline">{t.idioma}</Badge>
                     <Badge>v{t.versao}</Badge>
                     {t.ativo && <Badge className="bg-emerald-600">Ativo</Badge>}
+                    {statsById.get(t.id) && statsById.get(t.id)!.total_envios > 0 && (
+                      <Badge variant="outline" className="gap-1">
+                        <BarChart3 className="w-3 h-3" />
+                        {statsById.get(t.id)!.total_envios} envios · {statsById.get(t.id)!.taxa_sucesso}%
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" onClick={() => { setPreviewVars({}); setEditing(t); }}>
