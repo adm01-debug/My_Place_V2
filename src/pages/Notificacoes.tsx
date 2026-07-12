@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Flame,
   ArrowDownWideNarrow,
+  Keyboard,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +33,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -98,6 +106,9 @@ export default function Notificacoes() {
     return localStorage.getItem('notif_ordenar_relevancia') === '1';
   });
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
@@ -395,6 +406,104 @@ export default function Notificacoes() {
     [agruparSimilares],
   );
 
+  // IDs visíveis em ordem de renderização (respeitando threads colapsadas) — usados na navegação por teclado.
+  const visibleIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const [label, itens] of grupos) {
+      const threads = buildThreads(label, itens);
+      for (const t of threads) {
+        if (t.kind === 'single') ids.push(t.notif.id);
+        else if (threadsExpandidas.has(t.key)) t.items.forEach((n) => ids.push(n.id));
+      }
+    }
+    return ids;
+  }, [grupos, buildThreads, threadsExpandidas]);
+
+  // Atalhos de teclado: navegação (j/k), abrir (Enter), selecionar (x),
+  // marcar lido (e), excluir (#), marcar todas (Shift+A), buscar (/), ajuda (?).
+  useEffect(() => {
+    const isTypingTarget = (el: EventTarget | null): boolean => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tag = el.tagName;
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        el.isContentEditable
+      );
+    };
+
+    const handler = (e: KeyboardEvent) => {
+      // '/' foca a busca mesmo se nada estiver focado
+      if (e.key === '/' && !isTypingTarget(e.target)) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+      if (e.key === '?' && !isTypingTarget(e.target)) {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
+        return;
+      }
+      if (e.key === 'Escape') {
+        if (helpOpen) return; // Dialog trata
+        if (selecionadas.size > 0) {
+          setSelecionadas(new Set());
+          return;
+        }
+        if (focusedId) {
+          setFocusedId(null);
+          return;
+        }
+      }
+      if (isTypingTarget(e.target)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === 'j' || e.key === 'k') {
+        e.preventDefault();
+        if (visibleIds.length === 0) return;
+        const idx = focusedId ? visibleIds.indexOf(focusedId) : -1;
+        const nextIdx =
+          e.key === 'j'
+            ? Math.min(visibleIds.length - 1, idx + 1)
+            : Math.max(0, idx <= 0 ? 0 : idx - 1);
+        const nextId = visibleIds[nextIdx];
+        setFocusedId(nextId);
+        window.requestAnimationFrame(() => {
+          const el = document.querySelector<HTMLElement>(`[data-notif-id="${nextId}"]`);
+          el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+        return;
+      }
+
+      if (!focusedId) return;
+      const alvo = notificacoes.find((n) => n.id === focusedId);
+      if (!alvo) return;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAction(alvo);
+      } else if (e.key === 'x') {
+        e.preventDefault();
+        toggleSelecao(focusedId);
+      } else if (e.key === 'e') {
+        e.preventDefault();
+        if (!alvo.lida) marcarComoLida(focusedId);
+      } else if (e.key === '#') {
+        e.preventDefault();
+        excluirNotificacao(focusedId);
+      } else if (e.key === 'A' && e.shiftKey) {
+        e.preventDefault();
+        marcarTodasComoLidas();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleIds, focusedId, notificacoes, selecionadas, helpOpen]);
+
+
   const naoLidas = notificacoes.filter((n) => !n.lida).length;
   const todasSelecionadasVisiveis =
     filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
@@ -436,6 +545,15 @@ export default function Notificacoes() {
                 )}
                 {ordenarPorRelevancia ? 'Relevância' : 'Recente'}
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHelpOpen(true)}
+                title="Atalhos de teclado (?)"
+                aria-label="Atalhos de teclado"
+              >
+                <Keyboard className="w-4 h-4" />
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
                 Histórico
               </Button>
@@ -455,7 +573,8 @@ export default function Notificacoes() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por título ou mensagem..."
+              ref={searchInputRef}
+              placeholder="Buscar por título ou mensagem... ( / )"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="pl-9"
@@ -588,7 +707,10 @@ export default function Notificacoes() {
                       !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
                     } ${selecionada ? 'ring-2 ring-primary/40' : ''} ${
                       opts?.inThread ? 'ml-6 border-l-2 border-l-primary/30' : ''
-                    } ${highlightedId === n.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''}`}
+                    } ${highlightedId === n.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''} ${
+                      focusedId === n.id ? 'ring-2 ring-primary/60' : ''
+                    }`}
+                    onMouseEnter={() => setFocusedId(n.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex gap-3">
@@ -769,6 +891,43 @@ export default function Notificacoes() {
           )}
         </div>
       </div>
+
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Keyboard className="w-5 h-5" /> Atalhos de teclado
+            </DialogTitle>
+            <DialogDescription>
+              Navegue e gerencie suas notificações sem tirar as mãos do teclado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            {[
+              ['/', 'Focar campo de busca'],
+              ['j', 'Ir para a próxima notificação'],
+              ['k', 'Ir para a notificação anterior'],
+              ['Enter', 'Abrir a notificação em foco'],
+              ['x', 'Selecionar/desselecionar em foco'],
+              ['e', 'Marcar em foco como lida'],
+              ['#', 'Excluir a em foco'],
+              ['Shift + A', 'Marcar todas como lidas'],
+              ['Esc', 'Limpar seleção / foco'],
+              ['?', 'Mostrar esta ajuda'],
+            ].map(([k, desc]) => (
+              <div
+                key={k}
+                className="flex items-center justify-between gap-4 px-3 py-2 rounded-md bg-muted/40"
+              >
+                <span className="text-muted-foreground">{desc}</span>
+                <kbd className="px-2 py-0.5 rounded border border-border bg-background text-xs font-mono">
+                  {k}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </PullToRefresh>
   );
 }
