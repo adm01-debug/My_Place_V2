@@ -2176,6 +2176,18 @@ export default function NotificationBell() {
                               />
                             )}
                             <span className="truncate">{highlight(n.titulo)}</span>
+                            {(() => {
+                              const meta = getCategoriaMeta(n.categoria);
+                              return meta ? (
+                                <span
+                                  className={`shrink-0 px-1.5 py-0.5 rounded-full border text-[9px] font-semibold uppercase tracking-wide ${meta.className}`}
+                                  title={`Categoria: ${meta.label}`}
+                                >
+                                  {meta.label}
+                                </span>
+                              ) : null;
+                            })()}
+
                             {isClusterLeader && cluster && (
                               <button
                                 type="button"
