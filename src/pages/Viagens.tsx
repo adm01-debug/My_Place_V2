@@ -348,12 +348,13 @@ function DespesasDialog({ viagem, onClose }: { viagem: Viagem | null; onClose: (
 
   const add = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("viagens_despesas").insert({
+      const despesaInsert: Database["public"]["Tables"]["viagens_despesas"]["Insert"] = {
         viagem_id: viagem!.id, user_id: user!.id,
         categoria: nova.categoria, descricao: nova.descricao, data_despesa: nova.data_despesa,
         valor: parseFloat(nova.valor), reembolsavel: nova.reembolsavel,
         comprovante_url: nova.comprovante_url || null,
-      } as any);
+      };
+      const { error } = await supabase.from("viagens_despesas").insert(despesaInsert);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -362,7 +363,7 @@ function DespesasDialog({ viagem, onClose }: { viagem: Viagem | null; onClose: (
       qc.invalidateQueries({ queryKey: ["viagens"] });
       setNova({ categoria: "alimentacao", descricao: "", data_despesa: "", valor: "", reembolsavel: true, comprovante_url: "" });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const del = useMutation({
