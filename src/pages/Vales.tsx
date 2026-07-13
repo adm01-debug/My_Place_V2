@@ -325,10 +325,10 @@ export default function Vales() {
       setAmount('');
       setJustification('');
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Falha no processamento', {
         id: loadingToast,
-        description: error.message
+        description: getErrorMessage(error)
       });
     } finally {
       setIsSubmitting(false);
