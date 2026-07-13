@@ -1986,6 +1986,60 @@ export default function NotificationBell() {
           })}
         </div>
 
+        {/* Item 112: Chips de filtro por CATEGORIA (multi-seleção, dinâmico) */}
+        {(() => {
+          const counts = new Map<string, number>();
+          for (const n of notificacoes) {
+            if (n.categoria) counts.set(n.categoria, (counts.get(n.categoria) ?? 0) + 1);
+          }
+          if (counts.size === 0 && categoriasAtivas.size === 0) return null;
+          const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+          return (
+            <div
+              role="group"
+              aria-label="Filtrar por categoria"
+              className="flex items-center gap-1 px-2 py-1.5 border-b border-border/50 overflow-x-auto"
+            >
+              {categoriasAtivas.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCategoriasAtivas(new Set())}
+                  className="shrink-0 text-[10px] px-2 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  aria-label="Limpar filtros de categoria"
+                  title="Limpar filtros de categoria"
+                >
+                  Limpar
+                </button>
+              )}
+              {entries.map(([cat, count]) => {
+                const meta = getCategoriaMeta(cat)!;
+                const ativo = categoriasAtivas.has(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategoria(cat)}
+                    aria-pressed={ativo}
+                    title={`${meta.label} (${count})`}
+                    className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full border transition-colors ${
+                      ativo
+                        ? meta.className
+                        : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    {meta.label}
+                    <span className="text-[9px] opacity-70 normal-case">
+                      {count > 99 ? '99+' : count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+
+
         {/* Item 101: Barra contextual de SELEÇÃO — só aparece quando há itens selecionados */}
         {selected.size > 0 ? (
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-primary/30 bg-primary/10 animate-in fade-in slide-in-from-top-1 duration-150">
