@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ interface Notificacao {
   created_at: string;
   fixada_em: string | null;
   adiada_ate: string | null;
+  categoria: string | null;
 }
 
 // Opções de adiamento (snooze). "at" é uma função que recebe "agora" e devolve o alvo.
@@ -713,7 +715,7 @@ export default function NotificationBell() {
     if (!user) return;
     const { data } = await supabase
       .from('notificacoes')
-      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em, adiada_ate')
+      .select('id, titulo, mensagem, tipo, lida, link, created_at, fixada_em, adiada_ate, categoria')
       .eq('user_id', user.id)
       .order('fixada_em', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
@@ -2256,6 +2258,46 @@ export default function NotificationBell() {
                                   aria-label="Abrir link em nova aba"
                                 >
                                   <ExternalLink className="w-3 h-3" />
+                                </button>
+                              )}
+                              {n.categoria && (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!user) return;
+                                    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                    const untilIso = until.toISOString();
+                                    const categoria = n.categoria as Database['public']['Enums']['notif_categoria'];
+                                    const { error } = await supabase
+                                      .from('notificacao_preferencias')
+                                      .upsert(
+                                        [{ user_id: user.id, categoria, silenciar_ate: untilIso }],
+                                        { onConflict: 'user_id,categoria' }
+                                      );
+                                    if (error) {
+                                      toast.error('Não foi possível silenciar');
+                                      return;
+                                    }
+                                    toast.success(`Categoria "${categoria}" silenciada por 24h`, {
+                                      action: {
+                                        label: 'Desfazer',
+                                        onClick: async () => {
+                                          await supabase
+                                            .from('notificacao_preferencias')
+                                            .update({ silenciar_ate: null })
+                                            .eq('user_id', user.id)
+                                            .eq('categoria', categoria);
+                                          toast.success('Silêncio removido');
+                                        },
+                                      },
+                                    });
+                                  }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title={`Silenciar categoria "${n.categoria}" por 24h`}
+                                  aria-label="Silenciar categoria por 24 horas"
+                                >
+                                  <VolumeX className="w-3 h-3" />
                                 </button>
                               )}
                               <button
