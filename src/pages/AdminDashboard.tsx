@@ -39,10 +39,10 @@ import type { Database } from "@/integrations/supabase/types";
 import type { LucideIcon } from "lucide-react";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
-type PontoTipo = Database["public"]["Enums"]["tipo_ponto"];
+type RegistroPontoRow = Database["public"]["Tables"]["registros_ponto"]["Row"];
 
 interface RoleChartDatum { name: string; value: number }
-interface ActivityItem { id: string; user: string; type: PontoTipo; time: string }
+interface ActivityItem { id: string; user: string; type: RegistroPontoRow["tipo"]; time: string }
 interface StatCardProps {
   title: string;
   value: number | undefined;
