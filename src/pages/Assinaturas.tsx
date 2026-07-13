@@ -175,11 +175,11 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
         titulo: f.titulo, descricao: f.descricao, categoria: f.categoria,
         arquivo_url: f.arquivo_url, arquivo_hash: hash, criado_por: user!.id,
         data_limite: f.data_limite || null,
-      } as any).select().single();
+      }).select("id").single();
       if (error) throw error;
       if (signatarios.length > 0) {
         const { error: e2 } = await supabase.from("documentos_assinaturas").insert(
-          signatarios.map((uid, i) => ({ documento_id: (doc as any).id, user_id: uid, ordem: i + 1 })) as any
+          signatarios.map((uid, i) => ({ documento_id: doc.id, user_id: uid, ordem: i + 1, papel: "signatario" }))
         );
         if (e2) throw e2;
       }
