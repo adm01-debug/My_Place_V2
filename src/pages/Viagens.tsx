@@ -64,11 +64,11 @@ export default function Viagens() {
     queryKey: ["viagens"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vw_viagens_resumo" as any)
+        .from("vw_viagens_resumo")
         .select("*")
         .order("data_ida", { ascending: false });
       if (error) throw error;
-      return (data as unknown as Viagem[]) || [];
+      return (data ?? []) as unknown as Viagem[];
     },
   });
 
