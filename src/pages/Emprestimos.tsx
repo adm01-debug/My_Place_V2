@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Landmark, Plus, Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/errors";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -136,7 +137,7 @@ export default function Emprestimos() {
       setMotivo("");
       setParcelas("6");
     },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+    onError: (e: unknown) => toast({ title: "Erro", description: getErrorMessage(e), variant: "destructive" }),
   });
 
   const cancelar = useMutation({
@@ -151,7 +152,7 @@ export default function Emprestimos() {
       toast({ title: "Solicitação cancelada" });
       qc.invalidateQueries({ queryKey: ["emprestimos"] });
     },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+    onError: (e: unknown) => toast({ title: "Erro", description: getErrorMessage(e), variant: "destructive" }),
   });
 
   const ativos = emprestimos?.filter((e) => e.status === "aprovado") ?? [];

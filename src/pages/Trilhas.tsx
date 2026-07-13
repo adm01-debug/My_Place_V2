@@ -27,6 +27,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/errors";
 
 interface Trilha {
   id: string;
@@ -116,8 +117,8 @@ export default function Trilhas() {
       qc.invalidateQueries({ queryKey: ["trilhas_concluidas"] });
       toast({ title: "Etapa concluída ✅", description: "Continue aprendendo!" });
     },
-    onError: (e: any) =>
-      toast({ title: "Erro", description: e.message, variant: "destructive" }),
+    onError: (e: unknown) =>
+      toast({ title: "Erro", description: getErrorMessage(e), variant: "destructive" }),
   });
 
   const desmarcar = useMutation({

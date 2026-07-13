@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { getErrorMessage } from "@/lib/errors";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,7 @@ import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminConfiguracoes() {
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<Database["public"]["Tables"]["configuracoes_globais"]["Row"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -74,8 +76,8 @@ export default function AdminConfiguracoes() {
       toast.success("Configurações salvas com sucesso!");
       // Optionally reload to apply changes globally
       window.location.reload();
-    } catch (err: any) {
-      toast.error(`Erro ao salvar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao salvar: ${getErrorMessage(err)}`);
     } finally {
       setSaving(false);
     }
@@ -121,7 +123,7 @@ export default function AdminConfiguracoes() {
               <Input 
                 id="nome_empresa" 
                 value={config?.nome_empresa || ""} 
-                onChange={(e) => setConfig({ ...config, nome_empresa: e.target.value })}
+                onChange={(e) => setConfig((prev) => prev && { ...prev, nome_empresa: e.target.value })}
               />
             </div>
             
@@ -170,12 +172,12 @@ export default function AdminConfiguracoes() {
                   id="cor_primaria" 
                   type="color" 
                   value={config?.cor_primaria || "#0ea5e9"} 
-                  onChange={(e) => setConfig({ ...config, cor_primaria: e.target.value })}
+                  onChange={(e) => setConfig((prev) => prev && { ...prev, cor_primaria: e.target.value })}
                   className="w-12 h-10 p-1 rounded-md"
                 />
                 <Input 
                   value={config?.cor_primaria || "#0ea5e9"} 
-                  onChange={(e) => setConfig({ ...config, cor_primaria: e.target.value })}
+                  onChange={(e) => setConfig((prev) => prev && { ...prev, cor_primaria: e.target.value })}
                   className="font-mono"
                 />
               </div>
@@ -183,7 +185,7 @@ export default function AdminConfiguracoes() {
 
             <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
               <h4 className="text-sm font-semibold mb-2">Prévia do Botão</h4>
-              <Button style={{ backgroundColor: config?.cor_primaria }} className="w-full">
+              <Button style={{ backgroundColor: config?.cor_primaria ?? undefined }} className="w-full">
                 Exemplo de Botão
               </Button>
             </div>

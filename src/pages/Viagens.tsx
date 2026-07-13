@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { Plane, MapPin, Calendar, DollarSign, Plus, Receipt, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -63,17 +65,19 @@ export default function Viagens() {
     queryKey: ["viagens"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vw_viagens_resumo" as any)
+        .from("vw_viagens_resumo")
         .select("*")
         .order("data_ida", { ascending: false });
       if (error) throw error;
-      return (data as unknown as Viagem[]) || [];
+      return (data ?? []) as unknown as Viagem[];
     },
   });
 
   const criar = useMutation({
     mutationFn: async (payload: Partial<Viagem>) => {
-      const { error } = await supabase.from("viagens").insert({ ...payload, user_id: user!.id } as any);
+      const insertPayload = { ...payload, user_id: user!.id } as unknown as
+        Database["public"]["Tables"]["viagens"]["Insert"];
+      const { error } = await supabase.from("viagens").insert(insertPayload);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,12 +85,16 @@ export default function Viagens() {
       qc.invalidateQueries({ queryKey: ["viagens"] });
       setOpenNova(false);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const mudarStatus = useMutation({
     mutationFn: async ({ id, status, adiantamento_liberado }: { id: string; status: string; adiantamento_liberado?: number }) => {
-      const patch: any = { status, aprovador_id: user!.id, aprovado_em: new Date().toISOString() };
+      const patch: Database["public"]["Tables"]["viagens"]["Update"] = {
+        status,
+        aprovador_id: user!.id,
+        aprovado_em: new Date().toISOString(),
+      };
       if (typeof adiantamento_liberado === "number") patch.adiantamento_liberado = adiantamento_liberado;
       const { error } = await supabase.from("viagens").update(patch).eq("id", id);
       if (error) throw error;
@@ -95,7 +103,7 @@ export default function Viagens() {
       toast.success("Status atualizado.");
       qc.invalidateQueries({ queryKey: ["viagens"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const kpis = {
@@ -340,12 +348,13 @@ function DespesasDialog({ viagem, onClose }: { viagem: Viagem | null; onClose: (
 
   const add = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("viagens_despesas").insert({
+      const despesaInsert: Database["public"]["Tables"]["viagens_despesas"]["Insert"] = {
         viagem_id: viagem!.id, user_id: user!.id,
         categoria: nova.categoria, descricao: nova.descricao, data_despesa: nova.data_despesa,
         valor: parseFloat(nova.valor), reembolsavel: nova.reembolsavel,
         comprovante_url: nova.comprovante_url || null,
-      } as any);
+      };
+      const { error } = await supabase.from("viagens_despesas").insert(despesaInsert);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -354,7 +363,7 @@ function DespesasDialog({ viagem, onClose }: { viagem: Viagem | null; onClose: (
       qc.invalidateQueries({ queryKey: ["viagens"] });
       setNova({ categoria: "alimentacao", descricao: "", data_despesa: "", valor: "", reembolsavel: true, comprovante_url: "" });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const del = useMutation({
