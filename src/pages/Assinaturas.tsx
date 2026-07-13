@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { FileSignature, ShieldCheck, Clock, XCircle, CheckCircle2, Plus, ExternalLink, Users } from "lucide-react";
 import { format } from "date-fns";
+import { getErrorMessage } from "@/lib/errors";
 
 type Documento = {
   id: string; codigo: string; titulo: string; descricao: string | null;
@@ -58,11 +59,11 @@ export default function Assinaturas() {
     queryKey: ["assinaturas_docs"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vw_documentos_assinatura" as any)
+        .from("vw_documentos_assinatura")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as unknown as Documento[]) || [];
+      return (data ?? []) as Documento[];
     },
   });
 
@@ -174,11 +175,11 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
         titulo: f.titulo, descricao: f.descricao, categoria: f.categoria,
         arquivo_url: f.arquivo_url, arquivo_hash: hash, criado_por: user!.id,
         data_limite: f.data_limite || null,
-      } as any).select().single();
+      }).select("id").single();
       if (error) throw error;
       if (signatarios.length > 0) {
         const { error: e2 } = await supabase.from("documentos_assinaturas").insert(
-          signatarios.map((uid, i) => ({ documento_id: (doc as any).id, user_id: uid, ordem: i + 1 })) as any
+          signatarios.map((uid, i) => ({ documento_id: doc.id, user_id: uid, ordem: i + 1, papel: "signatario" }))
         );
         if (e2) throw e2;
       }
@@ -188,7 +189,7 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
       qc.invalidateQueries({ queryKey: ["assinaturas_docs"] });
       onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   return (
@@ -283,7 +284,7 @@ function AssinarDialog({ doc, onClose, onDone }: { doc: Documento | null; onClos
       toast.success("Documento assinado com sucesso.");
       refetch(); onDone(); onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const recusar = useMutation({
@@ -297,7 +298,7 @@ function AssinarDialog({ doc, onClose, onDone }: { doc: Documento | null; onClos
       toast.success("Recusa registrada.");
       refetch(); onDone(); onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   if (!doc) return null;
