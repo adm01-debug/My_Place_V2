@@ -52,7 +52,7 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const typeOptions: { id: TipoVale; label: string; icon: any; color: string; description: string }[] = [
+  const typeOptions: { id: TipoVale; label: string; icon: LucideIcon; color: string; description: string }[] = [
     { 
       id: 'adiantamento_salarial', 
       label: 'Adiantamento', 
