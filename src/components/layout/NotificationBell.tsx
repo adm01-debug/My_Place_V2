@@ -2235,6 +2235,29 @@ export default function NotificationBell() {
                                   <Clock className="w-3 h-3" />
                                 </button>
                               )}
+                              {n.link && (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const url = new URL(n.link!, window.location.origin).toString();
+                                      window.open(url, '_blank', 'noopener,noreferrer');
+                                      if (!n.lida) {
+                                        setNotificacoes((prev) => prev.map((x) => x.id === n.id ? { ...x, lida: true } : x));
+                                        await supabase.from('notificacoes').update({ lida: true }).eq('id', n.id);
+                                      }
+                                    } catch {
+                                      toast.error('Link inválido');
+                                    }
+                                  }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Abrir em nova aba"
+                                  aria-label="Abrir link em nova aba"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={async (e) => {
