@@ -20,7 +20,7 @@ import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminConfiguracoes() {
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<Database["public"]["Tables"]["configuracoes_globais"]["Row"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
