@@ -583,6 +583,10 @@ export default function NotificationBell() {
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
+    if (categoriasAtivas.size > 0) {
+      base = base.filter((n) => !!n.categoria && categoriasAtivas.has(n.categoria));
+    }
+
     // Modo foco: restringe a alerta+erro (fixadas urgentes seguem visíveis).
     if (focusMode) {
       base = base.filter((n) => n.tipo === 'alerta' || n.tipo === 'erro');
