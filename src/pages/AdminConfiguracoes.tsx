@@ -177,7 +177,7 @@ export default function AdminConfiguracoes() {
                 />
                 <Input 
                   value={config?.cor_primaria || "#0ea5e9"} 
-                  onChange={(e) => setConfig({ ...config, cor_primaria: e.target.value })}
+                  onChange={(e) => setConfig((prev) => prev && { ...prev, cor_primaria: e.target.value })}
                   className="font-mono"
                 />
               </div>
