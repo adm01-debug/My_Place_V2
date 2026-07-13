@@ -35,6 +35,22 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import type { Database } from "@/integrations/supabase/types";
+import type { LucideIcon } from "lucide-react";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
+type RegistroPontoRow = Database["public"]["Tables"]["registros_ponto"]["Row"];
+
+interface RoleChartDatum { name: string; value: number }
+interface ActivityItem { id: string; user: string; type: RegistroPontoRow["tipo"]; time: string }
+interface StatCardProps {
+  title: string;
+  value: number | undefined;
+  icon: LucideIcon;
+  description: string;
+  color?: string;
+  loading?: boolean;
+}
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -61,25 +77,29 @@ export default function AdminDashboard() {
       ]);
 
       // Process roles for pie chart
-      const roleCounts = (rolesData || []).reduce((acc: any, curr: any) => {
-        acc[curr.role] = (acc[curr.role] || 0) + 1;
+      const roleCounts = (rolesData ?? []).reduce<Record<string, number>>((acc, curr) => {
+        const key = curr.role as AppRole;
+        acc[key] = (acc[key] ?? 0) + 1;
         return acc;
       }, {});
 
-      const roleChartData = Object.entries(roleCounts).map(([name, value]) => ({ name, value }));
+      const roleChartData: RoleChartDatum[] = Object.entries(roleCounts).map(([name, value]) => ({ name, value }));
 
       return {
-        totalUsers: totalUsers || 0,
-        pendingFerias: pendingFerias || 0,
-        pendingSolicitacoes: pendingSolicitacoes || 0,
-        todayPunches: todayPunches?.length || 0,
+        totalUsers: totalUsers ?? 0,
+        pendingFerias: pendingFerias ?? 0,
+        pendingSolicitacoes: pendingSolicitacoes ?? 0,
+        todayPunches: todayPunches?.length ?? 0,
         roleChartData,
-        recentActivity: (recentActivity || []).map((a: any) => ({
-          id: a.id,
-          user: a.profiles?.nome || "Sistema",
-          type: a.tipo,
-          time: a.data_hora
-        }))
+        recentActivity: (recentActivity ?? []).map<ActivityItem>((a) => {
+          const profile = (a as unknown as { profiles: { nome: string | null } | null }).profiles;
+          return {
+            id: a.id,
+            user: profile?.nome ?? "Sistema",
+            type: a.tipo,
+            time: a.data_hora,
+          };
+        }),
       };
     }
   });
@@ -150,7 +170,7 @@ export default function AdminDashboard() {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {stats?.roleChartData.map((entry: any, index: number) => (
+                    {stats?.roleChartData.map((_entry: RoleChartDatum, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -235,7 +255,7 @@ export default function AdminDashboard() {
             ) : stats?.recentActivity.length === 0 ? (
               <p className="text-center py-6 text-muted-foreground text-sm">Nenhuma atividade recente.</p>
             ) : (
-              stats?.recentActivity.map((activity: any) => (
+              stats?.recentActivity.map((activity: ActivityItem) => (
                 <div key={activity.id} className="relative flex items-center gap-4 pl-2 group">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border shadow-sm z-10 transition-colors group-hover:border-primary/50">
                     <History className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -263,7 +283,7 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, description, color = "text-primary", loading }: any) {
+function StatCard({ title, value, icon: Icon, description, color = "text-primary", loading }: StatCardProps) {
   return (
     <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
