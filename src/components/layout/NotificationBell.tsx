@@ -33,6 +33,7 @@ interface Notificacao {
   created_at: string;
   fixada_em: string | null;
   adiada_ate: string | null;
+  categoria: string | null;
 }
 
 // Opções de adiamento (snooze). "at" é uma função que recebe "agora" e devolve o alvo.
