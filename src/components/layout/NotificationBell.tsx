@@ -2267,11 +2267,11 @@ export default function NotificationBell() {
                                     if (!user) return;
                                     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
                                     const untilIso = until.toISOString();
-                                    const categoria = n.categoria!;
+                                    const categoria = n.categoria as Database['public']['Enums']['notif_categoria'];
                                     const { error } = await supabase
                                       .from('notificacao_preferencias')
                                       .upsert(
-                                        { user_id: user.id, categoria, silenciar_ate: untilIso },
+                                        [{ user_id: user.id, categoria, silenciar_ate: untilIso }],
                                         { onConflict: 'user_id,categoria' }
                                       );
                                     if (error) {
