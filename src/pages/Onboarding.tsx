@@ -164,7 +164,7 @@ export default function Onboarding() {
           <Card className="p-10 text-center text-muted-foreground">Nenhum plano de onboarding disponível.</Card>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
-            {templates.map((t: any) => (
+            {templates.map((t) => (
               <Card key={t.id} className="p-5 space-y-3">
                 <div>
                   <div className="font-semibold text-lg">{t.nome}</div>
