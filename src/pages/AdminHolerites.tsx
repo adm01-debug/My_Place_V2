@@ -31,6 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { getErrorMessage } from "@/lib/errors";
 
 interface UploadFile {
   file: File;
@@ -152,8 +153,8 @@ export default function AdminHolerites() {
         });
 
         setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "success", progress: 100 } : f));
-      } catch (err: any) {
-        setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error", error: err.message } : f));
+      } catch (err: unknown) {
+        setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error", error: getErrorMessage(err) } : f));
       }
     }
 
