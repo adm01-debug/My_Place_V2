@@ -2258,6 +2258,46 @@ export default function NotificationBell() {
                                   <ExternalLink className="w-3 h-3" />
                                 </button>
                               )}
+                              {n.categoria && (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!user) return;
+                                    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                                    const untilIso = until.toISOString();
+                                    const categoria = n.categoria!;
+                                    const { error } = await supabase
+                                      .from('notificacao_preferencias')
+                                      .upsert(
+                                        { user_id: user.id, categoria, silenciar_ate: untilIso },
+                                        { onConflict: 'user_id,categoria' }
+                                      );
+                                    if (error) {
+                                      toast.error('Não foi possível silenciar');
+                                      return;
+                                    }
+                                    toast.success(`Categoria "${categoria}" silenciada por 24h`, {
+                                      action: {
+                                        label: 'Desfazer',
+                                        onClick: async () => {
+                                          await supabase
+                                            .from('notificacao_preferencias')
+                                            .update({ silenciar_ate: null })
+                                            .eq('user_id', user.id)
+                                            .eq('categoria', categoria);
+                                          toast.success('Silêncio removido');
+                                        },
+                                      },
+                                    });
+                                  }}
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                  title={`Silenciar categoria "${n.categoria}" por 24h`}
+                                  aria-label="Silenciar categoria por 24 horas"
+                                >
+                                  <VolumeX className="w-3 h-3" />
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={async (e) => {
