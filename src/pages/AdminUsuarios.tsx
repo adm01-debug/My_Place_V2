@@ -40,6 +40,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/errors";
 import { 
   Search, 
   UserPlus, 
@@ -98,7 +99,7 @@ export default function AdminUsuarios() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<ProfileWithRole | null>(null);
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -149,8 +150,8 @@ export default function AdminUsuarios() {
       setIsDialogOpen(false);
       form.reset();
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao criar usuário: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Erro ao criar usuário: ${getErrorMessage(error)}`);
     },
   });
 
@@ -174,8 +175,8 @@ export default function AdminUsuarios() {
       setSelectedUser(null);
       form.reset();
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao atualizar usuário: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Erro ao atualizar usuário: ${getErrorMessage(error)}`);
     },
   });
 
@@ -194,8 +195,8 @@ export default function AdminUsuarios() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast.success("Usuário removido com sucesso");
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao remover usuário: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Erro ao remover usuário: ${getErrorMessage(error)}`);
     },
   });
 
@@ -207,7 +208,7 @@ export default function AdminUsuarios() {
     }
   };
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: ProfileWithRole) => {
     setSelectedUser(user);
     form.reset({
       nome: user.nome || "",
