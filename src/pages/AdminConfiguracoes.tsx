@@ -123,7 +123,7 @@ export default function AdminConfiguracoes() {
               <Input 
                 id="nome_empresa" 
                 value={config?.nome_empresa || ""} 
-                onChange={(e) => setConfig({ ...config, nome_empresa: e.target.value })}
+                onChange={(e) => setConfig((prev) => prev && { ...prev, nome_empresa: e.target.value })}
               />
             </div>
             
