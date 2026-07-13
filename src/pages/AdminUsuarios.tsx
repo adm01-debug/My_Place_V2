@@ -160,7 +160,7 @@ export default function AdminUsuarios() {
       const { data, error } = await supabase.functions.invoke("admin-user-mgmt", {
         body: {
           action: "updateUser",
-          userId: selectedUser.id,
+          userId: selectedUser!.id,
           userData: values,
           role: values.role
         },
