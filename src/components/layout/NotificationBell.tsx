@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun, ChevronDown, ChevronUp, Layers, MailOpen, Copy } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Info, CheckCircle2, AlertTriangle, XCircle, Pin, PinOff, Check, Trash2, Search, X, PanelRightOpen, PanelRightClose, ExternalLink, Clock, AlarmClockOff, Focus, Keyboard, Download, FileJson, FileSpreadsheet, Wand2, Plus, Volume2, VolumeX, Moon, Sun, ChevronDown, ChevronUp, Layers, MailOpen, Copy, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -2263,6 +2263,37 @@ export default function NotificationBell() {
                                 aria-label="Copiar conteúdo da notificação"
                               >
                                 <Copy className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const texto = `${n.titulo}\n\n${n.mensagem ?? ''}`.trim();
+                                  const shareData: ShareData = {
+                                    title: n.titulo,
+                                    text: texto,
+                                    ...(n.link ? { url: new URL(n.link, window.location.origin).toString() } : {}),
+                                  };
+                                  try {
+                                    if (typeof navigator.share === 'function' && (typeof navigator.canShare !== 'function' || navigator.canShare(shareData))) {
+                                      await navigator.share(shareData);
+                                    } else if (navigator.clipboard?.writeText) {
+                                      await navigator.clipboard.writeText(shareData.url ? `${texto}\n${shareData.url}` : texto);
+                                      toast.success('Link copiado para compartilhar');
+                                    } else {
+                                      toast.error('Compartilhamento indisponível neste navegador');
+                                    }
+                                  } catch (err) {
+                                    if ((err as DOMException)?.name !== 'AbortError') {
+                                      toast.error('Não foi possível compartilhar');
+                                    }
+                                  }
+                                }}
+                                className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                title="Compartilhar"
+                                aria-label="Compartilhar notificação"
+                              >
+                                <Share2 className="w-3 h-3" />
                               </button>
                               <button
                                 type="button"
