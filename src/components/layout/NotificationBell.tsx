@@ -506,6 +506,29 @@ export default function NotificationBell() {
     });
   }, []);
 
+  // Filtro por categoria (multi-seleção). Set vazio = todas.
+  const [categoriasAtivas, setCategoriasAtivas] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(CATEGORIAS_KEY) || '[]');
+      if (Array.isArray(raw)) return new Set(raw.filter((v) => typeof v === 'string'));
+    } catch { /* ignore */ }
+    return new Set();
+  });
+  useEffect(() => {
+    try { localStorage.setItem(CATEGORIAS_KEY, JSON.stringify([...categoriasAtivas])); }
+    catch { /* quota — ignore */ }
+  }, [categoriasAtivas]);
+  const toggleCategoria = useCallback((c: string) => {
+    setCategoriasAtivas((prev) => {
+      const next = new Set(prev);
+      if (next.has(c)) next.delete(c);
+      else next.add(c);
+      return next;
+    });
+  }, []);
+
+
   // Tick "agora" a cada 30s para reavaliar snoozes expirados sem depender de refetch.
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
