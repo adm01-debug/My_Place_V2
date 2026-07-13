@@ -5,7 +5,7 @@ import { PontoMetrics } from '@/components/ponto/PontoMetrics';
 import { PontoAnalytics } from '@/components/ponto/PontoAnalytics';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
