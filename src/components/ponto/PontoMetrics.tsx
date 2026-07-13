@@ -4,8 +4,13 @@ import { Progress } from '@/components/ui/progress';
 import { Clock, Timer, AlertCircle } from 'lucide-react';
 import { differenceInMinutes, differenceInSeconds, startOfToday, isAfter, setHours, setMinutes } from 'date-fns';
 
+interface PontoPunchLike {
+  tipo: string;
+  data_hora: string;
+}
+
 interface PontoMetricsProps {
-  punches: any[];
+  punches: PontoPunchLike[];
   expectedHours?: number; // default 8
 }
 
