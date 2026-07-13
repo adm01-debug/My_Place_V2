@@ -92,7 +92,7 @@ export default function AdminDashboard() {
         todayPunches: todayPunches?.length ?? 0,
         roleChartData,
         recentActivity: (recentActivity ?? []).map<ActivityItem>((a) => {
-          const profile = a.profiles as { nome: string | null } | null;
+          const profile = (a as unknown as { profiles: { nome: string | null } | null }).profiles;
           return {
             id: a.id,
             user: profile?.nome ?? "Sistema",
