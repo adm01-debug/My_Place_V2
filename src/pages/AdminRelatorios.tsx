@@ -22,13 +22,14 @@ import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function AdminRelatorios() {
   const [dateStart, setDateStart] = useState(format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd"));
   const [dateEnd, setDateEnd] = useState(format(new Date(), "yyyy-MM-dd"));
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
-  const exportToExcel = (data: any[], fileName: string) => {
+  const exportToExcel = (data: Record<string, unknown>[], fileName: string) => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório");
@@ -64,7 +65,7 @@ export default function AdminRelatorios() {
         return;
       }
 
-      const formattedData = data.map((item: any) => ({
+      const formattedData = data.map((item: Record<string, any>) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Email": item.profiles?.email,
@@ -76,8 +77,8 @@ export default function AdminRelatorios() {
 
       exportToExcel(formattedData, "Relatorio_Ponto");
       toast.success("Relatório de ponto exportado!");
-    } catch (err: any) {
-      toast.error(`Erro ao exportar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao exportar: ${getErrorMessage(err)}`);
     } finally {
       setIsExporting(null);
     }
@@ -105,7 +106,7 @@ export default function AdminRelatorios() {
 
       if (error) throw error;
 
-      const formattedData = data.map((item: any) => ({
+      const formattedData = data.map((item: Record<string, any>) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Data Início": format(new Date(item.data_inicio), "dd/MM/yyyy"),
@@ -119,8 +120,8 @@ export default function AdminRelatorios() {
 
       exportToExcel(formattedData, "Relatorio_Ferias");
       toast.success("Relatório de férias exportado!");
-    } catch (err: any) {
-      toast.error(`Erro ao exportar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao exportar: ${getErrorMessage(err)}`);
     } finally {
       setIsExporting(null);
     }
@@ -146,7 +147,7 @@ export default function AdminRelatorios() {
 
       if (error) throw error;
 
-      const formattedData = data.map((item: any) => ({
+      const formattedData = data.map((item: Record<string, any>) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Tipo": item.tipo,
@@ -158,8 +159,8 @@ export default function AdminRelatorios() {
 
       exportToExcel(formattedData, "Relatorio_Solicitacoes");
       toast.success("Relatório de solicitações exportado!");
-    } catch (err: any) {
-      toast.error(`Erro ao exportar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao exportar: ${getErrorMessage(err)}`);
     } finally {
       setIsExporting(null);
     }
