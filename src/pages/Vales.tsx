@@ -96,7 +96,7 @@ export default function Vales() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
-  const [valeHistory, setValeHistory] = useState<import('@/integrations/supabase/types').Database['public']['Tables']['solicitacoes_historico']['Row'][]>([]);
+  const [valeHistory, setValeHistory] = useState<ValeHistoryEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
