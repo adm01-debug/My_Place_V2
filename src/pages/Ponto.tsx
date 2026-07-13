@@ -23,10 +23,10 @@ interface PunchRecord {
   latitude: number | null;
   longitude: number | null;
   endereco: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 }
 
-const punchConfig: { tipo: PunchType; label: string; icon: any; iconColor: string; bgColor: string }[] = [
+const punchConfig: { tipo: PunchType; label: string; icon: LucideIcon; iconColor: string; bgColor: string }[] = [
   { tipo: 'entrada', label: 'Entrada', icon: LogIn, iconColor: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
   { tipo: 'saida_almoco', label: 'Saída Almoço', icon: Coffee, iconColor: 'text-amber-500', bgColor: 'bg-amber-500/10' },
   { tipo: 'retorno_almoco', label: 'Retorno Almoço', icon: DoorOpen, iconColor: 'text-blue-500', bgColor: 'bg-blue-500/10' },
