@@ -225,13 +225,28 @@ export default function Vales() {
   }, [user]);
 
   const fetchValeHistory = useCallback(async (valeId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('solicitacoes_historico')
-      .select('*, profiles:alterado_por(display_name)')
+      .select('*')
       .eq('solicitacao_id', valeId)
       .order('created_at', { ascending: false });
-    
-    if (data) setValeHistory(data);
+
+    if (!data) return;
+
+    const userIds = Array.from(new Set(data.map((d) => d.alterado_por).filter((v): v is string => !!v)));
+    let profilesMap: Record<string, { display_name: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', userIds);
+      profilesMap = Object.fromEntries((profs ?? []).map((p) => [p.user_id, { display_name: p.display_name }]));
+    }
+
+    setValeHistory(data.map((row) => ({
+      ...row,
+      profiles: row.alterado_por ? profilesMap[row.alterado_por] ?? null : null,
+    })));
   }, []);
 
   useEffect(() => {
