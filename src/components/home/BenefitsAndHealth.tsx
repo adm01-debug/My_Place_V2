@@ -20,16 +20,34 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import type { Database } from '@/integrations/supabase/types';
+
+type Beneficio = Database['public']['Tables']['beneficios']['Row'];
+type SaudeGasto = Database['public']['Tables']['plano_saude_gastos']['Row'];
+type Ocorrencia = Database['public']['Tables']['ocorrencias']['Row'];
+type Premio = Database['public']['Tables']['remuneracoes_variaveis']['Row'];
+type Transporte = Database['public']['Tables']['vale_transportes']['Row'];
+type DecimoTerceiro = Database['public']['Tables']['decimo_terceiro']['Row'];
+
+interface BenefitsState {
+  beneficios: Beneficio[];
+  saudeGastos: SaudeGasto[];
+  ocorrencias: Ocorrencia[];
+  premios: Premio[];
+  transporte: Transporte[];
+  decimoTerceiro: DecimoTerceiro | null;
+}
+
 export function BenefitsAndHealth() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    beneficios: [] as any[],
-    saudeGastos: [] as any[],
-    ocorrencias: [] as any[],
-    premios: [] as any[],
-    transporte: [] as any[],
-    decimoTerceiro: null as any
+  const [data, setData] = useState<BenefitsState>({
+    beneficios: [],
+    saudeGastos: [],
+    ocorrencias: [],
+    premios: [],
+    transporte: [],
+    decimoTerceiro: null,
   });
 
   const fetchData = useCallback(async () => {
