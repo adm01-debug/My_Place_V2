@@ -24,6 +24,7 @@ import {
   AlertCircle,
   HelpCircle
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -38,6 +39,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getErrorMessage } from '@/lib/errors';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
@@ -62,6 +64,11 @@ export interface ValeRequest {
   anexo_url?: string | null;
 }
 
+type SolicitacaoHistoricoRow = import('@/integrations/supabase/types').Database['public']['Tables']['solicitacoes_historico']['Row'];
+interface ValeHistoryEntry extends SolicitacaoHistoricoRow {
+  profiles?: { display_name: string | null } | null;
+}
+
 export const valeLabels: Record<TipoVale, string> = {
   adiantamento_salarial: 'Adiantamento Salarial',
   vale_refeicao: 'Vale Refeição / Alimentação',
@@ -69,7 +76,7 @@ export const valeLabels: Record<TipoVale, string> = {
   vale_combustivel: 'Vale Combustível',
 };
 
-const valeIcons: Record<TipoVale, any> = {
+const valeIcons: Record<TipoVale, LucideIcon> = {
   adiantamento_salarial: DollarSign,
   vale_refeicao: Utensils,
   vale_transporte: Bus,
@@ -95,7 +102,7 @@ export default function Vales() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedVale, setSelectedVale] = useState<ValeRequest | null>(null);
-  const [valeHistory, setValeHistory] = useState<any[]>([]);
+  const [valeHistory, setValeHistory] = useState<ValeHistoryEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusVale | 'todos'>('todos');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -219,13 +226,28 @@ export default function Vales() {
   }, [user]);
 
   const fetchValeHistory = useCallback(async (valeId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('solicitacoes_historico')
-      .select('*, profiles:alterado_por(display_name)')
+      .select('*')
       .eq('solicitacao_id', valeId)
       .order('created_at', { ascending: false });
-    
-    if (data) setValeHistory(data);
+
+    if (!data) return;
+
+    const userIds = Array.from(new Set(data.map((d) => d.alterado_por).filter((v): v is string => !!v)));
+    let profilesMap: Record<string, { display_name: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, nome')
+        .in('id', userIds);
+      profilesMap = Object.fromEntries((profs ?? []).map((p) => [p.id, { display_name: p.nome }]));
+    }
+
+    setValeHistory(data.map((row) => ({
+      ...row,
+      profiles: row.alterado_por ? profilesMap[row.alterado_por] ?? null : null,
+    })));
   }, []);
 
   useEffect(() => {
@@ -304,10 +326,10 @@ export default function Vales() {
       setAmount('');
       setJustification('');
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Falha no processamento', {
         id: loadingToast,
-        description: error.message
+        description: getErrorMessage(error)
       });
     } finally {
       setIsSubmitting(false);
@@ -894,8 +916,8 @@ export default function Vales() {
 
                           toast.success('Anexo adicionado com sucesso!', { id: loadingToast });
                           fetchData();
-                        } catch (error: any) {
-                          toast.error('Erro no upload: ' + error.message, { id: loadingToast });
+                        } catch (error: unknown) {
+                          toast.error('Erro no upload: ' + getErrorMessage(error), { id: loadingToast });
                         }
                       }}
                     />
