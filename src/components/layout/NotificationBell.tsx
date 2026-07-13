@@ -37,6 +37,34 @@ interface Notificacao {
   categoria: string | null;
 }
 
+// Mapa de categorias -> label + classes de cor (tokens semânticos)
+const CATEGORIA_META: Record<string, { label: string; className: string }> = {
+  ponto: { label: 'Ponto', className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+  ferias: { label: 'Férias', className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+  holerite: { label: 'Holerite', className: 'bg-violet-500/10 text-violet-500 border-violet-500/20' },
+  reembolso: { label: 'Reembolso', className: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
+  vale: { label: 'Vale', className: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+  emprestimo: { label: 'Empréstimo', className: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
+  documento: { label: 'Documento', className: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
+  treinamento: { label: 'Treinamento', className: 'bg-fuchsia-500/10 text-fuchsia-500 border-fuchsia-500/20' },
+  chamado: { label: 'Chamado', className: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
+  comunicado: { label: 'Comunicado', className: 'bg-sky-500/10 text-sky-500 border-sky-500/20' },
+  aniversario: { label: 'Aniversário', className: 'bg-pink-500/10 text-pink-500 border-pink-500/20' },
+  seguranca: { label: 'Segurança', className: 'bg-red-500/10 text-red-500 border-red-500/20' },
+  sistema: { label: 'Sistema', className: 'bg-slate-500/10 text-slate-500 border-slate-500/20' },
+};
+const getCategoriaMeta = (cat: string | null) => {
+  if (!cat) return null;
+  return (
+    CATEGORIA_META[cat] ?? {
+      label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      className: 'bg-muted text-muted-foreground border-border',
+    }
+  );
+};
+
+
+
 // Opções de adiamento (snooze). "at" é uma função que recebe "agora" e devolve o alvo.
 type SnoozeOption = { id: string; label: string; at: (now: Date) => Date };
 const SNOOZE_OPTIONS: SnoozeOption[] = [
