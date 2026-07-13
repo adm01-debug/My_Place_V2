@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Landmark, Plus, Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/errors";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
