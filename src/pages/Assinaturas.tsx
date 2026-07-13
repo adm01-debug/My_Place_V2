@@ -59,11 +59,11 @@ export default function Assinaturas() {
     queryKey: ["assinaturas_docs"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vw_documentos_assinatura" as any)
+        .from("vw_documentos_assinatura")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as unknown as Documento[]) || [];
+      return (data ?? []) as Documento[];
     },
   });
 
