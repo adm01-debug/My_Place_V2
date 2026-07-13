@@ -2237,6 +2237,35 @@ export default function NotificationBell() {
                               )}
                               <button
                                 type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const texto = `${n.titulo}\n\n${n.mensagem ?? ''}`.trim();
+                                  try {
+                                    if (navigator.clipboard?.writeText) {
+                                      await navigator.clipboard.writeText(texto);
+                                    } else {
+                                      const ta = document.createElement('textarea');
+                                      ta.value = texto;
+                                      ta.style.position = 'fixed';
+                                      ta.style.opacity = '0';
+                                      document.body.appendChild(ta);
+                                      ta.select();
+                                      document.execCommand('copy');
+                                      document.body.removeChild(ta);
+                                    }
+                                    toast.success('Conteúdo copiado');
+                                  } catch {
+                                    toast.error('Não foi possível copiar');
+                                  }
+                                }}
+                                className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                title="Copiar conteúdo"
+                                aria-label="Copiar conteúdo da notificação"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   scheduleDelete([n.id], `"${n.titulo.slice(0, 40)}"`);
