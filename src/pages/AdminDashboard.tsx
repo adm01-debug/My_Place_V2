@@ -35,6 +35,22 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import type { Database } from "@/integrations/supabase/types";
+import type { LucideIcon } from "lucide-react";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
+type PontoTipo = Database["public"]["Enums"]["tipo_ponto"];
+
+interface RoleChartDatum { name: string; value: number }
+interface ActivityItem { id: string; user: string; type: PontoTipo; time: string }
+interface StatCardProps {
+  title: string;
+  value: number | undefined;
+  icon: LucideIcon;
+  description: string;
+  color?: string;
+  loading?: boolean;
+}
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
