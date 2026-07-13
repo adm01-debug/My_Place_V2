@@ -69,7 +69,7 @@ export const valeLabels: Record<TipoVale, string> = {
   vale_combustivel: 'Vale Combustível',
 };
 
-const valeIcons: Record<TipoVale, any> = {
+const valeIcons: Record<TipoVale, LucideIcon> = {
   adiantamento_salarial: DollarSign,
   vale_refeicao: Utensils,
   vale_transporte: Bus,
