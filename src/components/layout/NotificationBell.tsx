@@ -112,6 +112,7 @@ const DESKTOP_KEY = 'bell_desktop_v1';
 type BellFilter = 'todas' | 'nao_lidas' | 'fixadas' | 'adiadas';
 const FILTER_KEY = 'bell_filter_v2';
 const TIPOS_KEY = 'bell_tipos_v1';
+const CATEGORIAS_KEY = 'bell_categorias_v1';
 const PREVIEW_KEY = 'bell_preview_v1';
 const AUTO_READ_KEY = 'bell_auto_read_v1';
 const AUTO_READ_DELAY_MS = 1500;
@@ -505,6 +506,29 @@ export default function NotificationBell() {
     });
   }, []);
 
+  // Filtro por categoria (multi-seleção). Set vazio = todas.
+  const [categoriasAtivas, setCategoriasAtivas] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(CATEGORIAS_KEY) || '[]');
+      if (Array.isArray(raw)) return new Set(raw.filter((v) => typeof v === 'string'));
+    } catch { /* ignore */ }
+    return new Set();
+  });
+  useEffect(() => {
+    try { localStorage.setItem(CATEGORIAS_KEY, JSON.stringify([...categoriasAtivas])); }
+    catch { /* quota — ignore */ }
+  }, [categoriasAtivas]);
+  const toggleCategoria = useCallback((c: string) => {
+    setCategoriasAtivas((prev) => {
+      const next = new Set(prev);
+      if (next.has(c)) next.delete(c);
+      else next.add(c);
+      return next;
+    });
+  }, []);
+
+
   // Tick "agora" a cada 30s para reavaliar snoozes expirados sem depender de refetch.
   const [nowTs, setNowTs] = useState(() => Date.now());
   useEffect(() => {
@@ -559,6 +583,10 @@ export default function NotificationBell() {
     if (tiposAtivos.size > 0) {
       base = base.filter((n) => tiposAtivos.has(n.tipo as TipoNotif));
     }
+    if (categoriasAtivas.size > 0) {
+      base = base.filter((n) => !!n.categoria && categoriasAtivas.has(n.categoria));
+    }
+
     // Modo foco: restringe a alerta+erro (fixadas urgentes seguem visíveis).
     if (focusMode) {
       base = base.filter((n) => n.tipo === 'alerta' || n.tipo === 'erro');
@@ -569,7 +597,7 @@ export default function NotificationBell() {
       );
     }
     return base;
-  }, [ordenadas, filtro, tiposAtivos, buscaNorm, normalize, pendingDeleteIds, isSnoozed, focusMode]);
+  }, [ordenadas, filtro, tiposAtivos, categoriasAtivas, buscaNorm, normalize, pendingDeleteIds, isSnoozed, focusMode]);
 
   // Agrupamento temporal: Fixadas | Hoje | Ontem | Esta semana | Anteriores
   const grupos = useMemo(() => {
@@ -1957,6 +1985,60 @@ export default function NotificationBell() {
             );
           })}
         </div>
+
+        {/* Item 112: Chips de filtro por CATEGORIA (multi-seleção, dinâmico) */}
+        {(() => {
+          const counts = new Map<string, number>();
+          for (const n of notificacoes) {
+            if (n.categoria) counts.set(n.categoria, (counts.get(n.categoria) ?? 0) + 1);
+          }
+          if (counts.size === 0 && categoriasAtivas.size === 0) return null;
+          const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+          return (
+            <div
+              role="group"
+              aria-label="Filtrar por categoria"
+              className="flex items-center gap-1 px-2 py-1.5 border-b border-border/50 overflow-x-auto"
+            >
+              {categoriasAtivas.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCategoriasAtivas(new Set())}
+                  className="shrink-0 text-[10px] px-2 py-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  aria-label="Limpar filtros de categoria"
+                  title="Limpar filtros de categoria"
+                >
+                  Limpar
+                </button>
+              )}
+              {entries.map(([cat, count]) => {
+                const meta = getCategoriaMeta(cat)!;
+                const ativo = categoriasAtivas.has(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategoria(cat)}
+                    aria-pressed={ativo}
+                    title={`${meta.label} (${count})`}
+                    className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full border transition-colors ${
+                      ativo
+                        ? meta.className
+                        : 'border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    {meta.label}
+                    <span className="text-[9px] opacity-70 normal-case">
+                      {count > 99 ? '99+' : count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+
 
         {/* Item 101: Barra contextual de SELEÇÃO — só aparece quando há itens selecionados */}
         {selected.size > 0 ? (
