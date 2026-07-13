@@ -77,25 +77,29 @@ export default function AdminDashboard() {
       ]);
 
       // Process roles for pie chart
-      const roleCounts = (rolesData || []).reduce((acc: any, curr: any) => {
-        acc[curr.role] = (acc[curr.role] || 0) + 1;
+      const roleCounts = (rolesData ?? []).reduce<Record<string, number>>((acc, curr) => {
+        const key = curr.role as AppRole;
+        acc[key] = (acc[key] ?? 0) + 1;
         return acc;
       }, {});
 
-      const roleChartData = Object.entries(roleCounts).map(([name, value]) => ({ name, value }));
+      const roleChartData: RoleChartDatum[] = Object.entries(roleCounts).map(([name, value]) => ({ name, value }));
 
       return {
-        totalUsers: totalUsers || 0,
-        pendingFerias: pendingFerias || 0,
-        pendingSolicitacoes: pendingSolicitacoes || 0,
-        todayPunches: todayPunches?.length || 0,
+        totalUsers: totalUsers ?? 0,
+        pendingFerias: pendingFerias ?? 0,
+        pendingSolicitacoes: pendingSolicitacoes ?? 0,
+        todayPunches: todayPunches?.length ?? 0,
         roleChartData,
-        recentActivity: (recentActivity || []).map((a: any) => ({
-          id: a.id,
-          user: a.profiles?.nome || "Sistema",
-          type: a.tipo,
-          time: a.data_hora
-        }))
+        recentActivity: (recentActivity ?? []).map<ActivityItem>((a) => {
+          const profile = a.profiles as { nome: string | null } | null;
+          return {
+            id: a.id,
+            user: profile?.nome ?? "Sistema",
+            type: a.tipo,
+            time: a.data_hora,
+          };
+        }),
       };
     }
   });
