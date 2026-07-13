@@ -24,6 +24,7 @@ import {
   AlertCircle,
   HelpCircle
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { ModuleHeader } from '@/components/layout/ModuleHeader';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
