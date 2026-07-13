@@ -170,7 +170,7 @@ export default function AdminDashboard() {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {stats?.roleChartData.map((entry: any, index: number) => (
+                    {stats?.roleChartData.map((_entry: RoleChartDatum, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -255,7 +255,7 @@ export default function AdminDashboard() {
             ) : stats?.recentActivity.length === 0 ? (
               <p className="text-center py-6 text-muted-foreground text-sm">Nenhuma atividade recente.</p>
             ) : (
-              stats?.recentActivity.map((activity: any) => (
+              stats?.recentActivity.map((activity: ActivityItem) => (
                 <div key={activity.id} className="relative flex items-center gap-4 pl-2 group">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background border border-border shadow-sm z-10 transition-colors group-hover:border-primary/50">
                     <History className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, description, color = "text-primary", loading }: any) {
+function StatCard({ title, value, icon: Icon, description, color = "text-primary", loading }: StatCardProps) {
   return (
     <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
