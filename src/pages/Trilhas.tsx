@@ -27,6 +27,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { getErrorMessage } from "@/lib/errors";
 
 interface Trilha {
   id: string;
