@@ -2603,9 +2603,22 @@ export default function NotificationBell() {
                         <h4 className="text-sm font-semibold text-foreground mt-1 leading-snug break-words">
                           {activeItem.titulo}
                         </h4>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {formatAbsolute(activeItem.created_at)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <p className="text-[10px] text-muted-foreground">
+                            {formatAbsolute(activeItem.created_at)}
+                          </p>
+                          {(() => {
+                            const meta = getCategoriaMeta(activeItem.categoria);
+                            return meta ? (
+                              <span
+                                className={`px-1.5 py-0.5 rounded-full border text-[9px] font-semibold uppercase tracking-wide ${meta.className}`}
+                              >
+                                {meta.label}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
+
                       </div>
                     </div>
                     <ScrollArea className="flex-1">
