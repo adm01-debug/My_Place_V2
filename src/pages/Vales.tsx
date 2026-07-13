@@ -238,9 +238,9 @@ export default function Vales() {
     if (userIds.length > 0) {
       const { data: profs } = await supabase
         .from('profiles')
-        .select('user_id, display_name')
-        .in('user_id', userIds);
-      profilesMap = Object.fromEntries((profs ?? []).map((p) => [p.user_id, { display_name: p.display_name }]));
+        .select('id, nome')
+        .in('id', userIds);
+      profilesMap = Object.fromEntries((profs ?? []).map((p) => [p.id, { display_name: p.nome }]));
     }
 
     setValeHistory(data.map((row) => ({
