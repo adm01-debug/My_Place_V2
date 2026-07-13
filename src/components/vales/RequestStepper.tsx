@@ -15,6 +15,8 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
