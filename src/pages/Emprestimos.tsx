@@ -137,7 +137,7 @@ export default function Emprestimos() {
       setMotivo("");
       setParcelas("6");
     },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+    onError: (e: unknown) => toast({ title: "Erro", description: getErrorMessage(e), variant: "destructive" }),
   });
 
   const cancelar = useMutation({
