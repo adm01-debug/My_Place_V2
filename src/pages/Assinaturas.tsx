@@ -189,7 +189,7 @@ function NovoDocDialog({ onClose }: { onClose: () => void }) {
       qc.invalidateQueries({ queryKey: ["assinaturas_docs"] });
       onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   return (
@@ -284,7 +284,7 @@ function AssinarDialog({ doc, onClose, onDone }: { doc: Documento | null; onClos
       toast.success("Documento assinado com sucesso.");
       refetch(); onDone(); onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const recusar = useMutation({
@@ -298,7 +298,7 @@ function AssinarDialog({ doc, onClose, onDone }: { doc: Documento | null; onClos
       toast.success("Recusa registrada.");
       refetch(); onDone(); onClose();
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   if (!doc) return null;
