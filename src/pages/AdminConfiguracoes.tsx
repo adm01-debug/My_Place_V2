@@ -76,8 +76,8 @@ export default function AdminConfiguracoes() {
       toast.success("Configurações salvas com sucesso!");
       // Optionally reload to apply changes globally
       window.location.reload();
-    } catch (err: any) {
-      toast.error(`Erro ao salvar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao salvar: ${getErrorMessage(err)}`);
     } finally {
       setSaving(false);
     }
