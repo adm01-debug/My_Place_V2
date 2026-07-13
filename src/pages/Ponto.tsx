@@ -309,8 +309,8 @@ export default function Ponto() {
   useEffect(() => {
     loadData();
 
-    const handleAction = (e: any) => {
-      const { type } = e.detail;
+    const handleAction = (e: Event) => {
+      const { type } = (e as CustomEvent<{ type: string }>).detail;
       if (type === 'punch-entrada') handlePunch('entrada');
       if (type === 'punch-almoco') handlePunch('saida_almoco');
       if (type === 'punch-retorno') handlePunch('retorno_almoco');
