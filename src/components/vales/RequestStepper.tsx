@@ -110,8 +110,8 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
 
       setAttachmentUrl(publicUrl);
       toast.success('Arquivo enviado!');
-    } catch (error: any) {
-      toast.error('Erro no upload', { description: error.message });
+    } catch (error: unknown) {
+      toast.error('Erro no upload', { description: getErrorMessage(error) });
     } finally {
       setIsUploading(false);
     }
