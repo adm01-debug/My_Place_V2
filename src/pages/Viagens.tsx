@@ -74,7 +74,9 @@ export default function Viagens() {
 
   const criar = useMutation({
     mutationFn: async (payload: Partial<Viagem>) => {
-      const { error } = await supabase.from("viagens").insert({ ...payload, user_id: user!.id } as any);
+      const insertPayload = { ...payload, user_id: user!.id } as unknown as
+        Database["public"]["Tables"]["viagens"]["Insert"];
+      const { error } = await supabase.from("viagens").insert(insertPayload);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -82,12 +84,16 @@ export default function Viagens() {
       qc.invalidateQueries({ queryKey: ["viagens"] });
       setOpenNova(false);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const mudarStatus = useMutation({
     mutationFn: async ({ id, status, adiantamento_liberado }: { id: string; status: string; adiantamento_liberado?: number }) => {
-      const patch: any = { status, aprovador_id: user!.id, aprovado_em: new Date().toISOString() };
+      const patch: Database["public"]["Tables"]["viagens"]["Update"] = {
+        status,
+        aprovador_id: user!.id,
+        aprovado_em: new Date().toISOString(),
+      };
       if (typeof adiantamento_liberado === "number") patch.adiantamento_liberado = adiantamento_liberado;
       const { error } = await supabase.from("viagens").update(patch).eq("id", id);
       if (error) throw error;
@@ -96,7 +102,7 @@ export default function Viagens() {
       toast.success("Status atualizado.");
       qc.invalidateQueries({ queryKey: ["viagens"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
   });
 
   const kpis = {
