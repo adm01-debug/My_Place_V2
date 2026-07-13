@@ -39,6 +39,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getErrorMessage } from '@/lib/errors';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
