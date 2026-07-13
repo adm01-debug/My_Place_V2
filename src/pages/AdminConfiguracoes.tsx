@@ -172,7 +172,7 @@ export default function AdminConfiguracoes() {
                   id="cor_primaria" 
                   type="color" 
                   value={config?.cor_primaria || "#0ea5e9"} 
-                  onChange={(e) => setConfig({ ...config, cor_primaria: e.target.value })}
+                  onChange={(e) => setConfig((prev) => prev && { ...prev, cor_primaria: e.target.value })}
                   className="w-12 h-10 p-1 rounded-md"
                 />
                 <Input 
