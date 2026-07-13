@@ -185,7 +185,7 @@ export default function AdminConfiguracoes() {
 
             <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
               <h4 className="text-sm font-semibold mb-2">Prévia do Botão</h4>
-              <Button style={{ backgroundColor: config?.cor_primaria }} className="w-full">
+              <Button style={{ backgroundColor: config?.cor_primaria ?? undefined }} className="w-full">
                 Exemplo de Botão
               </Button>
             </div>
