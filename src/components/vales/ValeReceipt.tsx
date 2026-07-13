@@ -1,8 +1,15 @@
 import { TipoVale, ValeRequest, valeLabels } from '@/pages/Vales';
 
+interface ValeReceiptProfile {
+  nome?: string | null;
+  cargo?: string | null;
+  matricula?: string | null;
+  cpf?: string | null;
+}
+
 interface ValeReceiptProps {
   vale: ValeRequest;
-  profile: any;
+  profile: ValeReceiptProfile | null;
 }
 
 export const ValeReceipt = ({ vale, profile }: ValeReceiptProps) => {

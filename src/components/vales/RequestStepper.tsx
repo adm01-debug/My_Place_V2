@@ -15,6 +15,8 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,7 +52,7 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const typeOptions: { id: TipoVale; label: string; icon: any; color: string; description: string }[] = [
+  const typeOptions: { id: TipoVale; label: string; icon: LucideIcon; color: string; description: string }[] = [
     { 
       id: 'adiantamento_salarial', 
       label: 'Adiantamento', 
@@ -108,8 +110,8 @@ export const RequestStepper = ({ onClose, onSubmit, isSubmitting, availableAdvan
 
       setAttachmentUrl(publicUrl);
       toast.success('Arquivo enviado!');
-    } catch (error: any) {
-      toast.error('Erro no upload', { description: error.message });
+    } catch (error: unknown) {
+      toast.error('Erro no upload', { description: getErrorMessage(error) });
     } finally {
       setIsUploading(false);
     }

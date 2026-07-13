@@ -5,7 +5,7 @@ import { PontoMetrics } from '@/components/ponto/PontoMetrics';
 import { PontoAnalytics } from '@/components/ponto/PontoAnalytics';
 import { PullToRefresh } from '@/components/portal/PullToRefresh';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Clock, MapPin, LogIn, LogOut, Coffee, DoorOpen, CheckCircle2, Loader2, ShieldAlert, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,10 +23,10 @@ interface PunchRecord {
   latitude: number | null;
   longitude: number | null;
   endereco: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 }
 
-const punchConfig: { tipo: PunchType; label: string; icon: any; iconColor: string; bgColor: string }[] = [
+const punchConfig: { tipo: PunchType; label: string; icon: LucideIcon; iconColor: string; bgColor: string }[] = [
   { tipo: 'entrada', label: 'Entrada', icon: LogIn, iconColor: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
   { tipo: 'saida_almoco', label: 'Saída Almoço', icon: Coffee, iconColor: 'text-amber-500', bgColor: 'bg-amber-500/10' },
   { tipo: 'retorno_almoco', label: 'Retorno Almoço', icon: DoorOpen, iconColor: 'text-blue-500', bgColor: 'bg-blue-500/10' },
@@ -309,8 +309,8 @@ export default function Ponto() {
   useEffect(() => {
     loadData();
 
-    const handleAction = (e: any) => {
-      const { type } = e.detail;
+    const handleAction = (e: Event) => {
+      const { type } = (e as CustomEvent<{ type: string }>).detail;
       if (type === 'punch-entrada') handlePunch('entrada');
       if (type === 'punch-almoco') handlePunch('saida_almoco');
       if (type === 'punch-retorno') handlePunch('retorno_almoco');

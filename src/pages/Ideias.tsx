@@ -295,7 +295,14 @@ function Comentarios({ ideiaId }: { ideiaId: string }) {
         .eq("ideia_id", ideiaId)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as any[];
+      type CommentRow = {
+        id: string;
+        user_id: string;
+        comentario: string;
+        created_at: string;
+        profiles: { nome: string | null } | null;
+      };
+      return (data ?? []) as unknown as CommentRow[];
     },
   });
 
