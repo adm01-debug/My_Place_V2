@@ -63,6 +63,11 @@ export interface ValeRequest {
   anexo_url?: string | null;
 }
 
+type SolicitacaoHistoricoRow = import('@/integrations/supabase/types').Database['public']['Tables']['solicitacoes_historico']['Row'];
+interface ValeHistoryEntry extends SolicitacaoHistoricoRow {
+  profiles?: { display_name: string | null } | null;
+}
+
 export const valeLabels: Record<TipoVale, string> = {
   adiantamento_salarial: 'Adiantamento Salarial',
   vale_refeicao: 'Vale Refeição / Alimentação',
