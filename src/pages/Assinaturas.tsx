@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { FileSignature, ShieldCheck, Clock, XCircle, CheckCircle2, Plus, ExternalLink, Users } from "lucide-react";
 import { format } from "date-fns";
+import { getErrorMessage } from "@/lib/errors";
 
 type Documento = {
   id: string; codigo: string; titulo: string; descricao: string | null;
