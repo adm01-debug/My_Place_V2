@@ -152,7 +152,7 @@ export default function Emprestimos() {
       toast({ title: "Solicitação cancelada" });
       qc.invalidateQueries({ queryKey: ["emprestimos"] });
     },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+    onError: (e: unknown) => toast({ title: "Erro", description: getErrorMessage(e), variant: "destructive" }),
   });
 
   const ativos = emprestimos?.filter((e) => e.status === "aprovado") ?? [];
