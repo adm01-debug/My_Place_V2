@@ -916,8 +916,8 @@ export default function Vales() {
 
                           toast.success('Anexo adicionado com sucesso!', { id: loadingToast });
                           fetchData();
-                        } catch (error: any) {
-                          toast.error('Erro no upload: ' + error.message, { id: loadingToast });
+                        } catch (error: unknown) {
+                          toast.error('Erro no upload: ' + getErrorMessage(error), { id: loadingToast });
                         }
                       }}
                     />
