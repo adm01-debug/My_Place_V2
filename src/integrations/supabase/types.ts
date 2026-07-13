@@ -1939,6 +1939,7 @@ export type Database = {
       notificacoes: {
         Row: {
           adiada_ate: string | null
+          categoria: Database["public"]["Enums"]["notif_categoria"] | null
           created_at: string
           fixada_em: string | null
           id: string
@@ -1951,6 +1952,7 @@ export type Database = {
         }
         Insert: {
           adiada_ate?: string | null
+          categoria?: Database["public"]["Enums"]["notif_categoria"] | null
           created_at?: string
           fixada_em?: string | null
           id?: string
@@ -1963,6 +1965,7 @@ export type Database = {
         }
         Update: {
           adiada_ate?: string | null
+          categoria?: Database["public"]["Enums"]["notif_categoria"] | null
           created_at?: string
           fixada_em?: string | null
           id?: string
