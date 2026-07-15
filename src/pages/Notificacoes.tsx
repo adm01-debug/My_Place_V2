@@ -72,6 +72,7 @@ import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
+import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
 
 export default function Notificacoes() {
@@ -566,18 +567,7 @@ export default function Notificacoes() {
     });
   };
 
-  const getIcon = (tipo: string) => {
-    switch (tipo) {
-      case 'sucesso':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
-      case 'erro':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'alerta':
-        return <AlertCircle className="w-5 h-5 text-amber-500" />;
-      default:
-        return <Info className="w-5 h-5 text-blue-500" />;
-    }
-  };
+  const getIcon = getNotificacaoIcon;
 
   const handleAction = (n: Notificacao) => {
     if (!n.lida) marcarComoLida(n.id);
@@ -1183,184 +1173,28 @@ export default function Notificacoes() {
           ) : (
             grupos.map(([label, itens]) => {
               const threads = buildThreads(label, itens);
-              const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => {
-                const selecionada = selecionadas.has(n.id);
-                return (
-                  <SwipeableRow
-                    key={n.id}
-                    onSwipeRight={n.lida ? undefined : () => marcarComoLida(n.id)}
-                    onSwipeLeft={() => excluirNotificacao(n.id)}
-                    rightLabel={n.lida ? 'Já lida' : 'Marcar lida'}
-                  >
-                  <Card
-                    data-notif-id={n.id}
-                    className={`group border-border/50 transition-all hover:shadow-md ${
-                      !n.lida ? 'bg-primary/5 border-primary/20' : 'bg-card'
-                    } ${selecionada ? 'ring-2 ring-primary/40' : ''} ${
-                      opts?.inThread ? 'ml-6 border-l-2 border-l-primary/30' : ''
-                    } ${highlightedId === n.id ? 'ring-2 ring-primary shadow-lg animate-pulse' : ''} ${
-                      focusedId === n.id ? 'ring-2 ring-primary/60' : ''
-                    }`}
-                    onMouseEnter={() => setFocusedId(n.id)}
-                  >
-                    <CardContent className={densidade === 'compact' ? 'p-2.5' : 'p-4'}>
-                      <div className="flex gap-3">
-                        <div className="pt-1">
-                          <Checkbox
-                            checked={selecionada}
-                            onCheckedChange={() => toggleSelecao(n.id)}
-                            aria-label="Selecionar notificação"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleAction(n)}
-                          className="flex-1 min-w-0 text-left"
-                        >
-                          <div className="flex gap-3">
-                            <div className="shrink-0 mt-1">{getIcon(n.tipo)}</div>
-                            <div className="flex-1 min-w-0 space-y-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <h3
-                                    className={`text-sm font-semibold truncate ${
-                                      !n.lida ? 'text-primary' : 'text-foreground'
-                                    }`}
-                                  >
-                                    <HighlightText text={n.titulo} query={busca} />
-                                  </h3>
-                                  {relevanceScore(n) >= 130 && (
-                                    <Badge
-                                      variant="destructive"
-                                      className="shrink-0 h-4 px-1.5 text-[9px] font-semibold uppercase tracking-wide gap-0.5"
-                                      title="Item de alta prioridade segundo o score de relevância"
-                                    >
-                                      <Flame className="w-2.5 h-2.5" />
-                                      Prioritária
-                                    </Badge>
-                                  )}
-                                </div>
-                                <span className="text-[10px] text-muted-foreground whitespace-nowrap mt-0.5 flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {format(new Date(n.created_at), 'dd MMM, HH:mm', { locale: ptBR })}
-                                </span>
-                              </div>
-                              <p className={`text-xs text-muted-foreground leading-relaxed ${densidade === 'compact' ? 'line-clamp-1' : 'line-clamp-2'}`}>
-                                <HighlightText text={n.mensagem} query={busca} />
-                              </p>
-                              {n.link && (
-                                <span className="text-[10px] font-medium text-primary flex items-center gap-1 pt-1">
-                                  Acessar <ExternalLink className="w-2.5 h-2.5" />
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                        {n.link && (n.link.startsWith('http') || n.link.startsWith('/storage/') || n.link.includes('/object/public/')) && (
-                          <div className="pl-11 -mt-1">
-                            <AnexoPreview url={n.link} titulo={n.titulo} />
-                          </div>
-                        )}
-                        {n.link && n.link.startsWith('http') && !n.link.includes('/object/public/') && !n.link.includes('/storage/') && (
-                          <div className="pl-11">
-                            <LinkPreview url={n.link} />
-                          </div>
-                        )}
-                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-primary"
-                                onClick={(e) => e.stopPropagation()}
-                                aria-label="Adiar notificação"
-                              >
-                                <Clock className="w-3.5 h-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuLabel>Adiar por…</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 30)}>30 minutos</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60)}>1 hora</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 4)}>4 horas</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24)}>Amanhã</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => adiarNotificacoes([n.id], 60 * 24 * 7)}>Próxima semana</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-7 w-7 ${n.fixada_em ? 'text-amber-500 hover:text-amber-600' : 'text-muted-foreground hover:text-amber-500'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePin(n);
-                            }}
-                            aria-label={n.fixada_em ? 'Desafixar notificação' : 'Fixar notificação'}
-                            title={n.fixada_em ? 'Desafixar do topo' : 'Fixar no topo'}
-                          >
-                            {n.fixada_em ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (n.lida) marcarComoNaoLida(n.id);
-                              else marcarComoLida(n.id);
-                            }}
-                            aria-label={n.lida ? 'Marcar como não lida' : 'Marcar como lida'}
-                            title={n.lida ? 'Marcar como não lida (u)' : 'Marcar como lida (e)'}
-                          >
-                            {n.lida ? <Mail className="w-3.5 h-3.5" /> : <MailOpen className="w-3.5 h-3.5" />}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copiarNotificacao(n);
-                            }}
-                            aria-label="Copiar notificação"
-                            title="Copiar título, mensagem e link"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              compartilharNotificacao(n);
-                            }}
-                            aria-label="Compartilhar notificação"
-                            title="Compartilhar (usa Web Share API quando disponível)"
-                          >
-                            <Share2 className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              excluirNotificacao(n.id);
-                            }}
-                            aria-label="Excluir notificação"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  </SwipeableRow>
-                );
-              };
+              const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => (
+                <NotificacaoListItem
+                  key={n.id}
+                  n={n}
+                  inThread={opts?.inThread}
+                  selecionada={selecionadas.has(n.id)}
+                  densidade={densidade}
+                  busca={busca}
+                  highlighted={highlightedId === n.id}
+                  focused={focusedId === n.id}
+                  onFocus={setFocusedId}
+                  onToggleSelecao={toggleSelecao}
+                  onAction={handleAction}
+                  onMarcarLida={marcarComoLida}
+                  onMarcarNaoLida={marcarComoNaoLida}
+                  onExcluir={excluirNotificacao}
+                  onAdiar={adiarNotificacoes}
+                  onTogglePin={togglePin}
+                  onCopiar={copiarNotificacao}
+                  onCompartilhar={compartilharNotificacao}
+                />
+              );
               return (
                 <div key={label} className="space-y-2">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
