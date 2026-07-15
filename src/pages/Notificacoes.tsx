@@ -73,6 +73,7 @@ import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
 import { NotificacaoBulkActionsBar } from '@/components/notificacoes/NotificacaoBulkActionsBar';
+import { NotificacaoHeaderActions } from '@/components/notificacoes/NotificacaoHeaderActions';
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
 import {
@@ -867,144 +868,24 @@ export default function Notificacoes() {
           description="Fique por dentro das novidades e atualizações"
           icon={Bell}
           actions={
-            <div className="flex gap-2">
-              <Button
-                variant={modoFoco ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setModoFoco((v) => !v)}
-                title={
-                  modoFoco
-                    ? 'Sair do modo Foco'
-                    : 'Modo Foco: mostrar apenas não-lidas prioritárias (erros, alertas e alta relevância)'
-                }
-                aria-pressed={modoFoco}
-                className={modoFoco ? 'bg-amber-500 hover:bg-amber-600 text-white' : ''}
-              >
-                <Focus className="w-4 h-4 mr-1" />
-                {modoFoco ? 'Foco ativo' : 'Foco'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDensidade((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
-                title={
-                  densidade === 'compact'
-                    ? 'Densidade compacta: mais itens visíveis. Clique para modo confortável.'
-                    : 'Densidade confortável. Clique para modo compacto (mais itens por tela).'
-                }
-                aria-pressed={densidade === 'compact'}
-                aria-label={densidade === 'compact' ? 'Alternar para densidade confortável' : 'Alternar para densidade compacta'}
-              >
-                {densidade === 'compact' ? (
-                  <Rows3 className="w-4 h-4 mr-1" />
-                ) : (
-                  <Rows2 className="w-4 h-4 mr-1" />
-                )}
-                {densidade === 'compact' ? 'Compacto' : 'Confortável'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRulesDialogOpen(true)}
-                title="Regras automáticas: aplicar ações a novas notificações que casem com um padrão"
-                aria-label="Abrir regras automáticas"
-              >
-                <Wand2 className="w-4 h-4 mr-1" />
-                Regras {rules.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
-                    {rules.filter((r) => r.ativa).length}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant={alertasAtivos ? 'default' : 'outline'}
-                size="sm"
-                onClick={toggleAlertas}
-                title={
-                  alertasAtivos
-                    ? 'Silenciar alertas sonoros de novas notificações prioritárias'
-                    : 'Ativar alertas sonoros e vibração para novas notificações prioritárias'
-                }
-                aria-pressed={alertasAtivos}
-                aria-label={alertasAtivos ? 'Silenciar alertas' : 'Ativar alertas'}
-              >
-                {alertasAtivos ? (
-                  <Volume2 className="w-4 h-4 mr-1" />
-                ) : (
-                  <VolumeX className="w-4 h-4 mr-1" />
-                )}
-                {alertasAtivos ? 'Som' : 'Silenciado'}
-              </Button>
-              <Button
-                variant={agruparSimilares ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setAgruparSimilares((v) => !v)}
-                title={agruparSimilares ? 'Desagrupar similares' : 'Agrupar similares'}
-                aria-pressed={agruparSimilares}
-              >
-                <Layers className="w-4 h-4 mr-1" />
-                {agruparSimilares ? 'Agrupadas' : 'Individuais'}
-              </Button>
-              <Button
-                variant={ordenarPorRelevancia ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setOrdenarPorRelevancia((v) => !v)}
-                title={
-                  ordenarPorRelevancia
-                    ? 'Ordenar cronologicamente'
-                    : 'Ordenar por relevância (urgência + não lidas + recência)'
-                }
-                aria-pressed={ordenarPorRelevancia}
-              >
-                {ordenarPorRelevancia ? (
-                  <Flame className="w-4 h-4 mr-1" />
-                ) : (
-                  <ArrowDownWideNarrow className="w-4 h-4 mr-1" />
-                )}
-                {ordenarPorRelevancia ? 'Relevância' : 'Recente'}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setHelpOpen(true)}
-                title="Atalhos de teclado (?)"
-                aria-label="Atalhos de teclado"
-              >
-                <Keyboard className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/notificacoes/historico')}>
-                Histórico
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    title="Exportar notificações filtradas"
-                    disabled={filtradas.length === 0}
-                  >
-                    <Download className="w-4 h-4 mr-1" /> Exportar
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Exportar {filtradas.length} registro(s)</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={exportarCSV}>
-                    <FileSpreadsheet className="w-4 h-4 mr-2" /> CSV (Excel)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportarPDF}>
-                    <FileText className="w-4 h-4 mr-2" /> PDF (imprimir)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/notificacoes/preferencias')}
-              >
-                Preferências
-              </Button>
-            </div>
+            <NotificacaoHeaderActions
+              modoFoco={modoFoco}
+              onToggleFoco={() => setModoFoco((v) => !v)}
+              densidade={densidade}
+              onToggleDensidade={() => setDensidade((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
+              rulesAtivas={rules.filter((r) => r.ativa).length}
+              onOpenRules={() => setRulesDialogOpen(true)}
+              alertasAtivos={alertasAtivos}
+              onToggleAlertas={toggleAlertas}
+              agruparSimilares={agruparSimilares}
+              onToggleAgrupar={() => setAgruparSimilares((v) => !v)}
+              ordenarPorRelevancia={ordenarPorRelevancia}
+              onToggleOrdenacao={() => setOrdenarPorRelevancia((v) => !v)}
+              onOpenHelp={() => setHelpOpen(true)}
+              totalFiltradas={filtradas.length}
+              onExportarCSV={exportarCSV}
+              onExportarPDF={exportarPDF}
+            />
           }
         />
 
