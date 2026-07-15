@@ -54,6 +54,8 @@ import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
 import { NotificacaoShortcutsDialog } from '@/components/notificacoes/NotificacaoShortcutsDialog';
+import { NotificacaoFocoBanner } from '@/components/notificacoes/NotificacaoFocoBanner';
+import { NotificacaoEmptyState } from '@/components/notificacoes/NotificacaoEmptyState';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
@@ -916,19 +918,7 @@ export default function Notificacoes() {
         />
 
 
-        {modoFoco && (
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-sm">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
-              <Focus className="w-4 h-4" />
-              <span>
-                <strong>Modo Foco ativo</strong> — exibindo apenas não-lidas prioritárias (erros, alertas e alta relevância).
-              </span>
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setModoFoco(false)} className="h-7">
-              Sair
-            </Button>
-          </div>
-        )}
+        {modoFoco && <NotificacaoFocoBanner onSair={() => setModoFoco(false)} />}
 
         {/* Lista agrupada */}
         <div className="space-y-6">
@@ -938,21 +928,8 @@ export default function Notificacoes() {
               .fill(0)
               .map((_, i) => <Card key={i} className="animate-pulse h-24 border-border/50" />)
           ) : filtradas.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                <Bell className="w-8 h-8 text-muted-foreground opacity-20" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-lg font-medium text-foreground">
-                  {busca || filtro !== 'todas' ? 'Nenhum resultado' : 'Tudo em dia!'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {busca || filtro !== 'todas'
-                    ? 'Tente ajustar a busca ou os filtros.'
-                    : 'Você não tem novas notificações no momento.'}
-                </p>
-              </div>
-            </div>
+            <NotificacaoEmptyState filtered={!!busca || filtro !== 'todas'} />
+
           ) : (
             grupos.map(([label, itens]) => {
               const threads = buildThreads(label, itens);
