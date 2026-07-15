@@ -990,32 +990,13 @@ export default function Notificacoes() {
           )}
 
           {!loading && filtradas.length > 0 && (
-            <div className="pt-2">
-              {visibleCount < filtradas.length ? (
-                <div
-                  ref={sentinelRef}
-                  className="flex flex-col items-center justify-center gap-2 py-6"
-                >
-                  <div className="text-xs text-muted-foreground">
-                    Mostrando <strong className="text-foreground">{filtradasVisiveis.length}</strong> de{' '}
-                    <strong className="text-foreground">{filtradas.length}</strong>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setVisibleCount((c) => Math.min(c + 50, filtradas.length))}
-                  >
-                    Carregar mais 50
-                  </Button>
-                </div>
-              ) : (
-                filtradas.length > 50 && (
-                  <div className="text-center text-xs text-muted-foreground py-4">
-                    Todas as {filtradas.length} notificações foram carregadas.
-                  </div>
-                )
-              )}
-            </div>
+            <NotificacaoLoadMore
+              ref={sentinelRef}
+              visibleCount={visibleCount}
+              totalCount={filtradas.length}
+              visibleFilteredCount={filtradasVisiveis.length}
+              onLoadMore={() => setVisibleCount((c) => Math.min(c + 50, filtradas.length))}
+            />
           )}
         </div>
       </div>
