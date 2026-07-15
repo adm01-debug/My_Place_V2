@@ -74,6 +74,10 @@ import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
+import {
+  buildThreads as buildThreadsPure,
+  NotificacaoThreadGroup,
+} from '@/components/notificacoes/NotificacaoThreadGroup';
 
 export default function Notificacoes() {
   const { user } = useAuth();
