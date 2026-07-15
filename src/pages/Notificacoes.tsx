@@ -68,6 +68,7 @@ import {
   buildThreads as buildThreadsPure,
   NotificacaoThreadGroup,
 } from '@/components/notificacoes/NotificacaoThreadGroup';
+import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMore';
 
 export default function Notificacoes() {
   const { user } = useAuth();
