@@ -63,6 +63,7 @@ import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros
 import { NotificacaoBulkActionsBar } from '@/components/notificacoes/NotificacaoBulkActionsBar';
 import { NotificacaoHeaderActions } from '@/components/notificacoes/NotificacaoHeaderActions';
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
+import { NotificacaoGroupList } from '@/components/notificacoes/NotificacaoGroupList';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
 import {
   buildThreads as buildThreadsPure,
