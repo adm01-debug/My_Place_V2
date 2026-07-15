@@ -72,6 +72,7 @@ import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
+import { NotificacaoBulkActionsBar } from '@/components/notificacoes/NotificacaoBulkActionsBar';
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
 import {
@@ -1031,79 +1032,22 @@ export default function Notificacoes() {
         />
 
         {/* Barra de ações em massa */}
-        {(naoLidas > 0 || selecionadas.size > 0) && (
-          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-muted/40 border border-border/50">
-            {filtradas.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={todasSelecionadasVisiveis}
-                  onCheckedChange={(checked) => {
-                    if (checked) setSelecionadas(new Set(filtradas.map((n) => n.id)));
-                    else setSelecionadas(new Set());
-                  }}
-                />
-                <span className="text-xs text-muted-foreground">
-                  {selecionadas.size > 0
-                    ? `${selecionadas.size} selecionada(s)`
-                    : 'Selecionar visíveis'}
-                </span>
-              </div>
-            )}
-            <div className="flex gap-2 ml-auto">
-              {selecionadas.size > 0 ? (
-                <>
-                  <Button size="sm" variant="ghost" onClick={() => acaoEmMassa('ler')}>
-                    <CheckCheck className="w-4 h-4 mr-1" /> Marcar lidas
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost">
-                        <Clock className="w-4 h-4 mr-1" /> Adiar
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Adiar seleção por…</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 30)}>
-                        30 minutos
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60)}>
-                        1 hora
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 4)}>
-                        4 horas
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24)}>
-                        Amanhã
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => adiarNotificacoes(Array.from(selecionadas), 60 * 24 * 7)}>
-                        Próxima semana
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => acaoEmMassa('excluir')}
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" /> Excluir
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelecionadas(new Set())}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </>
+        <NotificacaoBulkActionsBar
+          totalVisiveis={filtradas.length}
+          totalSelecionadas={selecionadas.size}
+          totalNaoLidas={naoLidas}
+          todasSelecionadasVisiveis={todasSelecionadasVisiveis}
+          onToggleSelecionarVisiveis={(checked) => {
+            if (checked) setSelecionadas(new Set(filtradas.map((n) => n.id)));
+            else setSelecionadas(new Set());
+          }}
+          onLimparSelecao={() => setSelecionadas(new Set())}
+          onMarcarSelecionadasLidas={() => acaoEmMassa('ler')}
+          onExcluirSelecionadas={() => acaoEmMassa('excluir')}
+          onAdiarSelecionadas={(min) => adiarNotificacoes(Array.from(selecionadas), min)}
+          onMarcarTodasLidas={marcarTodasComoLidas}
+        />
 
-              ) : (
-                naoLidas > 0 && (
-                  <Button size="sm" variant="ghost" onClick={marcarTodasComoLidas}>
-                    <CheckCheck className="w-4 h-4 mr-1" /> Marcar todas como lidas
-                  </Button>
-                )
-              )}
-            </div>
-          </div>
-        )}
 
         {modoFoco && (
           <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-sm">
