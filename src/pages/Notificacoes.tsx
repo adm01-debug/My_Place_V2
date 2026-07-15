@@ -68,6 +68,7 @@ import { LinkPreview } from '@/components/notificacoes/LinkPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
+import { NotificacaoShortcutsDialog } from '@/components/notificacoes/NotificacaoShortcutsDialog';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
