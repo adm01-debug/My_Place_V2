@@ -1045,111 +1045,27 @@ export default function Notificacoes() {
         />
 
         {/* Barra de busca + filtros */}
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              ref={searchInputRef}
-              placeholder="Buscar por título ou mensagem... ( / )"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="flex flex-col">
-              <label htmlFor="notif-data-inicio" className="text-xs text-muted-foreground mb-1">De</label>
-              <Input
-                id="notif-data-inicio"
-                type="date"
-                value={dataInicio}
-                max={dataFim || undefined}
-                onChange={(e) => setDataInicio(e.target.value)}
-                className="w-[160px]"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="notif-data-fim" className="text-xs text-muted-foreground mb-1">Até</label>
-              <Input
-                id="notif-data-fim"
-                type="date"
-                value={dataFim}
-                min={dataInicio || undefined}
-                onChange={(e) => setDataFim(e.target.value)}
-                className="w-[160px]"
-              />
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {[
-                { label: 'Hoje', dias: 0 },
-                { label: '7 dias', dias: 6 },
-                { label: '30 dias', dias: 29 },
-                { label: '90 dias', dias: 89 },
-              ].map((p) => (
-                <Button
-                  key={p.label}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const hoje = new Date();
-                    const ini = new Date();
-                    ini.setDate(hoje.getDate() - p.dias);
-                    setDataInicio(format(ini, 'yyyy-MM-dd'));
-                    setDataFim(format(hoje, 'yyyy-MM-dd'));
-                  }}
-                >
-                  {p.label}
-                </Button>
-              ))}
-              {(dataInicio || dataFim) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setDataInicio(''); setDataFim(''); }}
-                  title="Limpar intervalo de datas"
-                >
-                  Limpar
-                </Button>
-              )}
-              {(busca || filtro !== 'todas' || dataInicio || dataFim || modoFoco) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetarFiltros}
-                  title="Restaurar todos os filtros"
-                  className="ml-auto"
-                >
-                  <X className="w-3.5 h-3.5 mr-1" />
-                  Resetar filtros
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <Tabs value={filtro} onValueChange={(v) => setFiltro(v as Filtro)}>
-            <TabsList className="w-full flex-wrap h-auto">
-              <TabsTrigger value="todas" className="flex-1 min-w-[80px]">
-                Todas <Badge variant="secondary" className="ml-2">{notificacoes.length}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="nao_lidas" className="flex-1 min-w-[80px]">
-                Não lidas <Badge variant="secondary" className="ml-2">{naoLidas}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="erro" className="flex-1 min-w-[80px]">
-                Erros {contadoresPorTipo.erro > 0 && <Badge variant="destructive" className="ml-2">{contadoresPorTipo.erro}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="alerta" className="flex-1 min-w-[80px]">
-                Alertas {contadoresPorTipo.alerta > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.alerta}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="sucesso" className="flex-1 min-w-[80px]">
-                Sucessos {contadoresPorTipo.sucesso > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.sucesso}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="info" className="flex-1 min-w-[80px]">
-                Info {contadoresPorTipo.info > 0 && <Badge variant="secondary" className="ml-2">{contadoresPorTipo.info}</Badge>}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <NotificacaoFiltros
+          searchInputRef={searchInputRef}
+          busca={busca}
+          onBuscaChange={setBusca}
+          dataInicio={dataInicio}
+          dataFim={dataFim}
+          onDataInicioChange={setDataInicio}
+          onDataFimChange={setDataFim}
+          filtro={filtro}
+          onFiltroChange={setFiltro}
+          modoFoco={modoFoco}
+          onResetar={resetarFiltros}
+          totais={{
+            todas: notificacoes.length,
+            naoLidas,
+            erro: contadoresPorTipo.erro,
+            alerta: contadoresPorTipo.alerta,
+            sucesso: contadoresPorTipo.sucesso,
+            info: contadoresPorTipo.info,
+          }}
+        />
 
         {/* Barra de ações em massa */}
         {(naoLidas > 0 || selecionadas.size > 0) && (
