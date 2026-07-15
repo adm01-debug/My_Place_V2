@@ -72,6 +72,7 @@ import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
+import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
 
 export default function Notificacoes() {
