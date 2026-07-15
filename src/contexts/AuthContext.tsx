@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const role = useMemo((): UserRole => {
     if (!profile) return 'colaborador';
-    const roles = (userRoles || []) as any[];
+    const roles: UserRole[] = (userRoles || []) as UserRole[];
     if (roles.includes('admin')) return 'admin';
     if (roles.includes('gestor')) return 'gestor';
     if (roles.includes('rh')) return 'rh';
@@ -276,18 +276,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         let errorMsg = 'Erro ao criar conta';
-        const reasons = (error as any)?.reasons as string[] | undefined;
-        const isPwned = reasons?.includes('pwned') || 
-          error.message?.includes('breach') || 
-          error.message?.includes('leaked') || 
+        const errMeta = error as { reasons?: string[]; code?: string; message?: string };
+        const reasons = errMeta.reasons;
+        const isPwned = reasons?.includes('pwned') ||
+          error.message?.includes('breach') ||
+          error.message?.includes('leaked') ||
           error.message?.includes('HIBP') ||
           error.message?.includes('pwned');
-        
+
         if (error.message?.includes('already registered')) {
           errorMsg = 'Este email já está cadastrado';
         } else if (isPwned) {
           errorMsg = 'Senha encontrada em vazamentos de dados. Por favor, escolha outra senha';
-        } else if ((error as any)?.code === 'weak_password' || error.message?.includes('weak')) {
+        } else if (errMeta.code === 'weak_password' || error.message?.includes('weak')) {
           errorMsg = 'Senha muito fraca. Use pelo menos 8 caracteres com letras e números';
         }
         return { success: false, error: errorMsg };

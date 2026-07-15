@@ -23,11 +23,11 @@ export default function AdminRateLimits() {
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("notificacao_rate_limits" as any)
-      .select("*")
+      .from("notificacao_rate_limits")
+      .select("categoria, janela_minutos, max_por_janela, descricao")
       .order("categoria");
     if (error) toast.error("Erro ao carregar limites");
-    else setRows((data as unknown as RateLimit[]) ?? []);
+    else setRows((data as RateLimit[]) ?? []);
     setLoading(false);
   };
 
@@ -40,7 +40,7 @@ export default function AdminRateLimits() {
   const salvar = async (r: RateLimit) => {
     setSaving(r.categoria);
     const { error } = await supabase
-      .from("notificacao_rate_limits" as any)
+      .from("notificacao_rate_limits")
       .update({
         janela_minutos: r.janela_minutos,
         max_por_janela: r.max_por_janela,
