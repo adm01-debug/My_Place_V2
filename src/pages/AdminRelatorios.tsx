@@ -65,7 +65,8 @@ export default function AdminRelatorios() {
         return;
       }
 
-      const formattedData = data.map((item: Record<string, any>) => ({
+      type PontoRow = { data_hora: string; tipo: string; endereco: string | null; observacao: string | null; profiles: { nome: string | null; matricula: string | null; email: string | null } | null };
+      const formattedData = (data as unknown as PontoRow[]).map((item) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Email": item.profiles?.email,
@@ -106,7 +107,8 @@ export default function AdminRelatorios() {
 
       if (error) throw error;
 
-      const formattedData = data.map((item: Record<string, any>) => ({
+      type FeriasRow = { data_inicio: string; data_fim: string; dias: number; tipo: string; status: string; observacao: string | null; created_at: string; profiles: { nome: string | null; matricula: string | null } | null };
+      const formattedData = (data as unknown as FeriasRow[]).map((item) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Data Início": format(new Date(item.data_inicio), "dd/MM/yyyy"),
@@ -147,7 +149,8 @@ export default function AdminRelatorios() {
 
       if (error) throw error;
 
-      const formattedData = data.map((item: Record<string, any>) => ({
+      type SolicRow = { tipo: string; descricao: string | null; status: string; prioridade: string | null; created_at: string; profiles: { nome: string | null; matricula: string | null } | null };
+      const formattedData = (data as unknown as SolicRow[]).map((item) => ({
         "Colaborador": item.profiles?.nome,
         "Matrícula": item.profiles?.matricula,
         "Tipo": item.tipo,
