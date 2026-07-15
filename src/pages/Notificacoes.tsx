@@ -734,8 +734,8 @@ export default function Notificacoes() {
 
 
   // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
-  const buildThreadsMemo = useCallback(
-    (label: string, itens: Notificacao[]) => buildThreads(label, itens, agruparSimilares),
+  const buildThreads = useCallback(
+    (label: string, itens: Notificacao[]) => buildThreadsPure(label, itens, agruparSimilares),
     [agruparSimilares],
   );
 
