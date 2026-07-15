@@ -14,7 +14,7 @@ interface Props {
   agruparSimilares: boolean;
   threadsExpandidas: Set<string>;
   selecionadas: Set<string>;
-  densidade: 'compacta' | 'confortavel';
+  densidade: 'compact' | 'comfortable';
   busca: string;
   highlightedId: string | null;
   focusedId: string | null;
