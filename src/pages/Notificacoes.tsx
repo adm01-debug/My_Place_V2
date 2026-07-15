@@ -1175,69 +1175,24 @@ export default function Notificacoes() {
                   <div className="space-y-2">
                     {threads.map((t) => {
                       if (t.kind === 'single') return renderCard(t.notif);
-                      const expandida = threadsExpandidas.has(t.key);
-                      const naoLidasThread = t.items.filter((n) => !n.lida).length;
-                      const ids = t.items.map((n) => n.id);
-                      const todasSelThread = ids.every((id) => selecionadas.has(id));
                       return (
-                        <div key={t.key} className="space-y-1">
-                          <Card
-                            className={`border-border/50 transition-all hover:shadow-md cursor-pointer ${
-                              naoLidasThread > 0 ? 'bg-primary/5 border-primary/20' : 'bg-card'
-                            }`}
-                            onClick={() => toggleThread(t.key)}
-                          >
-                            <CardContent className="p-3">
-                              <div className="flex items-center gap-3">
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <Checkbox
-                                    checked={todasSelThread}
-                                    onCheckedChange={(checked) => {
-                                      setSelecionadas((prev) => {
-                                        const next = new Set(prev);
-                                        if (checked) ids.forEach((id) => next.add(id));
-                                        else ids.forEach((id) => next.delete(id));
-                                        return next;
-                                      });
-                                    }}
-                                    aria-label="Selecionar thread"
-                                  />
-                                </div>
-                                <div className="shrink-0">{getIcon(t.tipo)}</div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className={`text-sm font-semibold truncate ${
-                                      naoLidasThread > 0 ? 'text-primary' : 'text-foreground'
-                                    }`}>
-                                      {t.titulo}
-                                    </h3>
-                                    <Badge variant="secondary" className="text-[10px] shrink-0">
-                                      {t.items.length}
-                                    </Badge>
-                                    {naoLidasThread > 0 && (
-                                      <Badge className="text-[10px] shrink-0 bg-primary/20 text-primary hover:bg-primary/20">
-                                        {naoLidasThread} nova(s)
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] text-muted-foreground truncate">
-                                    Última: {format(new Date(t.items[0].created_at), 'dd MMM, HH:mm', { locale: ptBR })}
-                                  </p>
-                                </div>
-                                {expandida ? (
-                                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                          {expandida && (
-                            <div className="space-y-2">
-                              {t.items.map((n) => renderCard(n, { inThread: true }))}
-                            </div>
-                          )}
-                        </div>
+                        <NotificacaoThreadGroup
+                          key={t.key}
+                          thread={t}
+                          expandida={threadsExpandidas.has(t.key)}
+                          selecionadas={selecionadas}
+                          icon={getIcon(t.tipo)}
+                          onToggle={toggleThread}
+                          onToggleSelecionadas={(ids, checked) => {
+                            setSelecionadas((prev) => {
+                              const next = new Set(prev);
+                              if (checked) ids.forEach((id) => next.add(id));
+                              else ids.forEach((id) => next.delete(id));
+                              return next;
+                            });
+                          }}
+                          renderChild={(n) => renderCard(n, { inThread: true })}
+                        />
                       );
                     })}
                   </div>
