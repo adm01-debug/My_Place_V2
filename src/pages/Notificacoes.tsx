@@ -54,6 +54,8 @@ import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
 import { NotificacaoShortcutsDialog } from '@/components/notificacoes/NotificacaoShortcutsDialog';
+import { NotificacaoFocoBanner } from '@/components/notificacoes/NotificacaoFocoBanner';
+import { NotificacaoEmptyState } from '@/components/notificacoes/NotificacaoEmptyState';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
