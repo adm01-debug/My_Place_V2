@@ -932,62 +932,28 @@ export default function Notificacoes() {
             <NotificacaoEmptyState filtered={!!busca || filtro !== 'todas'} />
 
           ) : (
-            grupos.map(([label, itens]) => {
-              const threads = buildThreads(label, itens);
-              const renderCard = (n: Notificacao, opts?: { inThread?: boolean }) => (
-                <NotificacaoListItem
-                  key={n.id}
-                  n={n}
-                  inThread={opts?.inThread}
-                  selecionada={selecionadas.has(n.id)}
-                  densidade={densidade}
-                  busca={busca}
-                  highlighted={highlightedId === n.id}
-                  focused={focusedId === n.id}
-                  onFocus={setFocusedId}
-                  onToggleSelecao={toggleSelecao}
-                  onAction={handleAction}
-                  onMarcarLida={marcarComoLida}
-                  onMarcarNaoLida={marcarComoNaoLida}
-                  onExcluir={excluirNotificacao}
-                  onAdiar={adiarNotificacoes}
-                  onTogglePin={togglePin}
-                  onCopiar={copiarNotificacao}
-                  onCompartilhar={compartilharNotificacao}
-                />
-              );
-              return (
-                <div key={label} className="space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
-                    {label} · {itens.length}
-                  </h4>
-                  <div className="space-y-2">
-                    {threads.map((t) => {
-                      if (t.kind === 'single') return renderCard(t.notif);
-                      return (
-                        <NotificacaoThreadGroup
-                          key={t.key}
-                          thread={t}
-                          expandida={threadsExpandidas.has(t.key)}
-                          selecionadas={selecionadas}
-                          icon={getIcon(t.tipo)}
-                          onToggle={toggleThread}
-                          onToggleSelecionadas={(ids, checked) => {
-                            setSelecionadas((prev) => {
-                              const next = new Set(prev);
-                              if (checked) ids.forEach((id) => next.add(id));
-                              else ids.forEach((id) => next.delete(id));
-                              return next;
-                            });
-                          }}
-                          renderChild={(n) => renderCard(n, { inThread: true })}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })
+            <NotificacaoGroupList
+              grupos={grupos}
+              agruparSimilares={agruparSimilares}
+              threadsExpandidas={threadsExpandidas}
+              selecionadas={selecionadas}
+              densidade={densidade}
+              busca={busca}
+              highlightedId={highlightedId}
+              focusedId={focusedId}
+              onToggleThread={toggleThread}
+              onSetSelecionadas={setSelecionadas}
+              onFocus={setFocusedId}
+              onToggleSelecao={toggleSelecao}
+              onAction={handleAction}
+              onMarcarLida={marcarComoLida}
+              onMarcarNaoLida={marcarComoNaoLida}
+              onExcluir={excluirNotificacao}
+              onAdiar={adiarNotificacoes}
+              onTogglePin={togglePin}
+              onCopiar={copiarNotificacao}
+              onCompartilhar={compartilharNotificacao}
+            />
           )}
 
           {!loading && filtradas.length > 0 && (
