@@ -21,15 +21,7 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  Flame,
-  ArrowDownWideNarrow,
-  Keyboard,
-  Download,
-  FileText,
-  FileSpreadsheet,
   Focus,
-  Volume2,
-  VolumeX,
   Mail,
   MailOpen,
   Pin,
@@ -49,13 +41,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -68,6 +53,7 @@ import { LinkPreview } from '@/components/notificacoes/LinkPreview';
 import { SwipeableRow } from '@/components/notificacoes/SwipeableRow';
 import { HighlightText } from '@/components/notificacoes/HighlightText';
 import { AutoRulesDialog } from '@/components/notificacoes/AutoRulesDialog';
+import { NotificacaoShortcutsDialog } from '@/components/notificacoes/NotificacaoShortcutsDialog';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
@@ -1058,43 +1044,7 @@ export default function Notificacoes() {
       </div>
 
 
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Keyboard className="w-5 h-5" /> Atalhos de teclado
-            </DialogTitle>
-            <DialogDescription>
-              Navegue e gerencie suas notificações sem tirar as mãos do teclado.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 text-sm">
-            {[
-              ['/', 'Focar campo de busca'],
-              ['j', 'Ir para a próxima notificação'],
-              ['k', 'Ir para a notificação anterior'],
-              ['Enter', 'Abrir a notificação em foco'],
-              ['x', 'Selecionar/desselecionar em foco'],
-              ['e', 'Marcar em foco como lida'],
-              ['u', 'Alternar lida/não lida em foco'],
-              ['#', 'Excluir a em foco'],
-              ['Shift + A', 'Marcar todas como lidas'],
-              ['Esc', 'Limpar seleção / foco'],
-              ['?', 'Mostrar esta ajuda'],
-            ].map(([k, desc]) => (
-              <div
-                key={k}
-                className="flex items-center justify-between gap-4 px-3 py-2 rounded-md bg-muted/40"
-              >
-                <span className="text-muted-foreground">{desc}</span>
-                <kbd className="px-2 py-0.5 rounded border border-border bg-background text-xs font-mono">
-                  {k}
-                </kbd>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <NotificacaoShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
     </PullToRefresh>
     <AutoRulesDialog
       open={rulesDialogOpen}
