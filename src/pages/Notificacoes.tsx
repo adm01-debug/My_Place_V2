@@ -875,6 +875,9 @@ export default function Notificacoes() {
           }
         />
 
+        {/* Resumo agregado */}
+        <NotificacaoSummaryStats stats={stats} densidade={densidade} />
+
         {/* Barra de busca + filtros */}
         <NotificacaoFiltros
           searchInputRef={searchInputRef}
