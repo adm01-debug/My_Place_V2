@@ -57,6 +57,8 @@ import { NotificacaoShortcutsDialog } from '@/components/notificacoes/Notificaca
 import { NotificacaoFocoBanner } from '@/components/notificacoes/NotificacaoFocoBanner';
 import { NotificacaoEmptyState } from '@/components/notificacoes/NotificacaoEmptyState';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
+import { useNotificacaoStats } from '@/hooks/useNotificacaoStats';
+import { NotificacaoSummaryStats } from '@/components/notificacoes/NotificacaoSummaryStats';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
