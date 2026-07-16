@@ -837,15 +837,9 @@ export default function Notificacoes() {
   }, [visibleIds, focusedId, notificacoes, selecionadas, helpOpen]);
 
 
-  const naoLidas = notificacoes.filter((n) => !n.lida).length;
+  const stats = useNotificacaoStats(notificacoes);
+  const { naoLidas, porTipoNaoLidas: contadoresPorTipo } = stats;
   useFaviconBadge(naoLidas, 'Notificações');
-  const contadoresPorTipo = useMemo(() => {
-    const acc = { erro: 0, alerta: 0, sucesso: 0, info: 0 } as Record<Notificacao['tipo'], number>;
-    for (const n of notificacoes) {
-      if (!n.lida && acc[n.tipo] !== undefined) acc[n.tipo]++;
-    }
-    return acc;
-  }, [notificacoes]);
   const todasSelecionadasVisiveis =
     filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
 
