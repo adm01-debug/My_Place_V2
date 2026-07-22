@@ -80,74 +80,36 @@ export default function Notificacoes() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
-  const [filtro, setFiltro] = useState<Filtro>(() => {
-    if (typeof window === 'undefined') return 'todas';
-    const v = localStorage.getItem('notif_filtro') as Filtro | null;
-    return v && ['todas', 'nao_lidas', 'sucesso', 'erro', 'alerta', 'info'].includes(v)
-      ? v
-      : 'todas';
-  });
+  const {
+    prefs,
+    setFiltro,
+    setAgruparSimilares,
+    setOrdenarPorRelevancia,
+    setModoFoco,
+    setDensidade,
+    setDataInicio,
+    setDataFim,
+  } = useNotificacoesPreferences();
+  const {
+    filtro,
+    agruparSimilares,
+    ordenarPorRelevancia,
+    modoFoco,
+    densidade,
+    dataInicio,
+    dataFim,
+  } = prefs;
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [agruparSimilares, setAgruparSimilares] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    return localStorage.getItem('notif_agrupar_similares') !== '0';
-  });
-  const [ordenarPorRelevancia, setOrdenarPorRelevancia] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('notif_ordenar_relevancia') === '1';
-  });
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [dataInicio, setDataInicio] = useState<string>(() =>
-    typeof window === 'undefined' ? '' : localStorage.getItem('notif_data_inicio') || ''
-  );
-  const [dataFim, setDataFim] = useState<string>(() =>
-    typeof window === 'undefined' ? '' : localStorage.getItem('notif_data_fim') || ''
-  );
   const [visibleCount, setVisibleCount] = useState<number>(50);
-  const [modoFoco, setModoFoco] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('notif_modo_foco') === '1';
-  });
-  const [densidade, setDensidade] = useState<'compact' | 'comfortable'>(() => {
-    if (typeof window === 'undefined') return 'comfortable';
-    return localStorage.getItem('notif_densidade') === 'compact' ? 'compact' : 'comfortable';
-  });
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('notif_agrupar_similares', agruparSimilares ? '1' : '0');
-  }, [agruparSimilares]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_ordenar_relevancia', ordenarPorRelevancia ? '1' : '0');
-  }, [ordenarPorRelevancia]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_modo_foco', modoFoco ? '1' : '0');
-  }, [modoFoco]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_densidade', densidade);
-  }, [densidade]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_filtro', filtro);
-  }, [filtro]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_data_inicio', dataInicio);
-  }, [dataInicio]);
-
-  useEffect(() => {
-    localStorage.setItem('notif_data_fim', dataFim);
-  }, [dataFim]);
 
   const resetarFiltros = useCallback(() => {
     setBusca('');
