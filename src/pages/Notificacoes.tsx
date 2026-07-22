@@ -60,6 +60,7 @@ import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useNotificacaoStats } from '@/hooks/useNotificacaoStats';
 import { NotificacaoSummaryStats } from '@/components/notificacoes/NotificacaoSummaryStats';
 import { useAutoRules } from '@/hooks/useAutoRules';
+import { useNotificacoesPreferences } from '@/hooks/useNotificacoesPreferences';
 import type { Notificacao, Filtro } from '@/components/notificacoes/types';
 import { NotificacaoFiltros } from '@/components/notificacoes/NotificacaoFiltros';
 import { NotificacaoBulkActionsBar } from '@/components/notificacoes/NotificacaoBulkActionsBar';
