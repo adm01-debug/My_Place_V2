@@ -818,17 +818,17 @@ export default function Notificacoes() {
           actions={
             <NotificacaoHeaderActions
               modoFoco={modoFoco}
-              onToggleFoco={() => setModoFoco((v) => !v)}
+              onToggleFoco={() => setModoFoco(!modoFoco)}
               densidade={densidade}
-              onToggleDensidade={() => setDensidade((d) => (d === 'compact' ? 'comfortable' : 'compact'))}
+              onToggleDensidade={() => setDensidade(densidade === 'compact' ? 'comfortable' : 'compact')}
               rulesAtivas={rules.filter((r) => r.ativa).length}
               onOpenRules={() => setRulesDialogOpen(true)}
               alertasAtivos={alertasAtivos}
               onToggleAlertas={toggleAlertas}
               agruparSimilares={agruparSimilares}
-              onToggleAgrupar={() => setAgruparSimilares((v) => !v)}
+              onToggleAgrupar={() => setAgruparSimilares(!agruparSimilares)}
               ordenarPorRelevancia={ordenarPorRelevancia}
-              onToggleOrdenacao={() => setOrdenarPorRelevancia((v) => !v)}
+              onToggleOrdenacao={() => setOrdenarPorRelevancia(!ordenarPorRelevancia)}
               onOpenHelp={() => setHelpOpen(true)}
               totalFiltradas={filtradas.length}
               onExportarCSV={exportarCSV}
