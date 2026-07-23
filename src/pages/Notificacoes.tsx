@@ -58,6 +58,7 @@ import { NotificacaoFocoBanner } from '@/components/notificacoes/NotificacaoFoco
 import { NotificacaoEmptyState } from '@/components/notificacoes/NotificacaoEmptyState';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useNotificacaoStats } from '@/hooks/useNotificacaoStats';
+import { useNotificacaoKeyboardShortcuts } from '@/hooks/useNotificacaoKeyboardShortcuts';
 import { NotificacaoSummaryStats } from '@/components/notificacoes/NotificacaoSummaryStats';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import { useNotificacoesPreferences } from '@/hooks/useNotificacoesPreferences';
@@ -713,93 +714,25 @@ export default function Notificacoes() {
     return ids;
   }, [grupos, buildThreads, threadsExpandidas]);
 
-  // Atalhos de teclado: navegação (j/k), abrir (Enter), selecionar (x),
-  // marcar lido (e), excluir (#), marcar todas (Shift+A), buscar (/), ajuda (?).
-  useEffect(() => {
-    const isTypingTarget = (el: EventTarget | null): boolean => {
-      if (!(el instanceof HTMLElement)) return false;
-      const tag = el.tagName;
-      return (
-        tag === 'INPUT' ||
-        tag === 'TEXTAREA' ||
-        tag === 'SELECT' ||
-        el.isContentEditable
-      );
-    };
+  useNotificacaoKeyboardShortcuts({
+    visibleIds,
+    focusedId,
+    setFocusedId,
+    notificacoes,
+    selecionadas,
+    setSelecionadas,
+    helpOpen,
+    setHelpOpen,
+    searchInputRef,
+    handleAction,
+    toggleSelecao,
+    marcarComoLida,
+    marcarComoNaoLida,
+    excluirNotificacao,
+    marcarTodasComoLidas,
+  });
 
-    const handler = (e: KeyboardEvent) => {
-      // '/' foca a busca mesmo se nada estiver focado
-      if (e.key === '/' && !isTypingTarget(e.target)) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        return;
-      }
-      if (e.key === '?' && !isTypingTarget(e.target)) {
-        e.preventDefault();
-        setHelpOpen((v) => !v);
-        return;
-      }
-      if (e.key === 'Escape') {
-        if (helpOpen) return; // Dialog trata
-        if (selecionadas.size > 0) {
-          setSelecionadas(new Set());
-          return;
-        }
-        if (focusedId) {
-          setFocusedId(null);
-          return;
-        }
-      }
-      if (isTypingTarget(e.target)) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      if (e.key === 'j' || e.key === 'k') {
-        e.preventDefault();
-        if (visibleIds.length === 0) return;
-        const idx = focusedId ? visibleIds.indexOf(focusedId) : -1;
-        const nextIdx =
-          e.key === 'j'
-            ? Math.min(visibleIds.length - 1, idx + 1)
-            : Math.max(0, idx <= 0 ? 0 : idx - 1);
-        const nextId = visibleIds[nextIdx];
-        setFocusedId(nextId);
-        window.requestAnimationFrame(() => {
-          const el = document.querySelector<HTMLElement>(`[data-notif-id="${nextId}"]`);
-          el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        });
-        return;
-      }
-
-      if (!focusedId) return;
-      const alvo = notificacoes.find((n) => n.id === focusedId);
-      if (!alvo) return;
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleAction(alvo);
-      } else if (e.key === 'x') {
-        e.preventDefault();
-        toggleSelecao(focusedId);
-      } else if (e.key === 'e') {
-        e.preventDefault();
-        if (!alvo.lida) marcarComoLida(focusedId);
-      } else if (e.key === 'u') {
-        e.preventDefault();
-        if (alvo.lida) marcarComoNaoLida(focusedId);
-        else marcarComoLida(focusedId);
-      } else if (e.key === '#') {
-        e.preventDefault();
-        excluirNotificacao(focusedId);
-      } else if (e.key === 'A' && e.shiftKey) {
-        e.preventDefault();
-        marcarTodasComoLidas();
-      }
-    };
-
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleIds, focusedId, notificacoes, selecionadas, helpOpen]);
 
 
   const stats = useNotificacaoStats(notificacoes);
