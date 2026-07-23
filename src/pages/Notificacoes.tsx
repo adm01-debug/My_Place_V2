@@ -77,6 +77,8 @@ import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMo
 import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
 import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
+import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
+
 
 
 export default function Notificacoes() {
@@ -183,52 +185,16 @@ export default function Notificacoes() {
   // Realtime: novas notificações entram no topo automaticamente
   useNotificacoesRealtime({ user, setNotificacoes, playAlert, matchRule });
 
-  // Deep-linking: /notificacoes?focus=<id> — rola até o card, destaca, marca como lido
-  // e expande a thread se o item estiver dentro de uma.
-  useEffect(() => {
-    const focusId = searchParams.get('focus');
-    if (!focusId || loading || notificacoes.length === 0) return;
+  // Deep-linking: /notificacoes?focus=<id>
+  useNotificacaoDeepLink({
+    notificacoes,
+    loading,
+    agruparSimilares,
+    setThreadsExpandidas,
+    setHighlightedId,
+    marcarComoLida,
+  });
 
-    const alvo = notificacoes.find((n) => n.id === focusId);
-    if (!alvo) return;
-
-    // Expande a thread que contém o item, se houver
-    if (agruparSimilares) {
-      const label = groupLabel(new Date(alvo.created_at));
-      const key = `${label}::${alvo.titulo.trim().toLowerCase()}`;
-      const irmaos = notificacoes.filter(
-        (n) =>
-          groupLabel(new Date(n.created_at)) === label &&
-          n.titulo.trim().toLowerCase() === alvo.titulo.trim().toLowerCase(),
-      );
-      if (irmaos.length >= 3) {
-        setThreadsExpandidas((prev) => {
-          if (prev.has(key)) return prev;
-          const next = new Set(prev);
-          next.add(key);
-          return next;
-        });
-      }
-    }
-
-    // Espera o DOM refletir a expansão antes de rolar
-    const t = window.setTimeout(() => {
-      const el = document.querySelector<HTMLElement>(`[data-notif-id="${focusId}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedId(focusId);
-        if (!alvo.lida) marcarComoLida(focusId);
-        window.setTimeout(() => setHighlightedId(null), 2600);
-      }
-      // limpa o parâmetro para não repetir o efeito
-      const next = new URLSearchParams(searchParams);
-      next.delete('focus');
-      setSearchParams(next, { replace: true });
-    }, 120);
-
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, notificacoes, loading, agruparSimilares]);
 
 
   const buildShareText = (n: Notificacao) => {
