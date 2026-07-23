@@ -78,6 +78,7 @@ import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
 import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
 import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
+import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 
 
 
