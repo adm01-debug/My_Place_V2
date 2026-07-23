@@ -114,6 +114,23 @@ export default function Notificacoes() {
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
+  const {
+    marcarComoLida,
+    marcarComoNaoLida,
+    togglePin,
+    marcarTodasComoLidas,
+    excluirNotificacao,
+    adiarNotificacoes,
+    acaoEmMassa,
+    toggleSelecao,
+  } = useNotificacoesActions({
+    user,
+    notificacoes,
+    setNotificacoes,
+    selecionadas,
+    setSelecionadas,
+  });
+
   const resetarFiltros = useCallback(() => {
     setBusca('');
     setFiltro('todas');
