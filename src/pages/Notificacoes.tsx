@@ -228,67 +228,6 @@ export default function Notificacoes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, notificacoes, loading, agruparSimilares]);
 
-  const marcarComoLida = async (id: string) => {
-    try {
-      const { error } = await supabase.from('notificacoes').update({ lida: true }).eq('id', id);
-      if (error) throw error;
-      setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
-    } catch (error) {
-      console.error('Erro ao marcar como lida:', error);
-    }
-  };
-
-  const marcarComoNaoLida = async (id: string) => {
-    try {
-      const { error } = await supabase.from('notificacoes').update({ lida: false }).eq('id', id);
-      if (error) throw error;
-      setNotificacoes((prev) => prev.map((n) => (n.id === id ? { ...n, lida: false } : n)));
-    } catch (error) {
-      console.error('Erro ao marcar como não lida:', error);
-      toast.error('Não foi possível marcar como não lida');
-    }
-  };
-
-  const togglePin = async (n: Notificacao) => {
-    const proximoValor = n.fixada_em ? null : new Date().toISOString();
-    // Optimistic
-    setNotificacoes((prev) =>
-      prev.map((x) => (x.id === n.id ? { ...x, fixada_em: proximoValor } : x)),
-    );
-    try {
-      const { error } = await supabase
-        .from('notificacoes')
-        .update({ fixada_em: proximoValor })
-        .eq('id', n.id);
-      if (error) throw error;
-      toast.success(proximoValor ? 'Notificação fixada' : 'Notificação desafixada');
-    } catch (error) {
-      console.error('Erro ao alternar fixar:', error);
-      // Rollback
-      setNotificacoes((prev) =>
-        prev.map((x) => (x.id === n.id ? { ...x, fixada_em: n.fixada_em } : x)),
-      );
-      toast.error('Não foi possível fixar a notificação');
-    }
-  };
-
-
-  const marcarTodasComoLidas = async () => {
-    if (!user) return;
-    try {
-      const { error } = await supabase
-        .from('notificacoes')
-        .update({ lida: true })
-        .eq('user_id', user.id)
-        .eq('lida', false);
-      if (error) throw error;
-      setNotificacoes((prev) => prev.map((n) => ({ ...n, lida: true })));
-      toast.success('Todas as notificações foram marcadas como lidas');
-    } catch (error) {
-      console.error('Erro ao marcar todas como lidas:', error);
-      toast.error('Erro ao atualizar notificações');
-    }
-  };
 
   const buildShareText = (n: Notificacao) => {
     const linkAbs =
