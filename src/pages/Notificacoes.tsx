@@ -58,6 +58,7 @@ import { NotificacaoFocoBanner } from '@/components/notificacoes/NotificacaoFoco
 import { NotificacaoEmptyState } from '@/components/notificacoes/NotificacaoEmptyState';
 import { useFaviconBadge } from '@/hooks/useFaviconBadge';
 import { useNotificacaoStats } from '@/hooks/useNotificacaoStats';
+import { useNotificacaoKeyboardShortcuts } from '@/hooks/useNotificacaoKeyboardShortcuts';
 import { NotificacaoSummaryStats } from '@/components/notificacoes/NotificacaoSummaryStats';
 import { useAutoRules } from '@/hooks/useAutoRules';
 import { useNotificacoesPreferences } from '@/hooks/useNotificacoesPreferences';
