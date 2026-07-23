@@ -77,6 +77,8 @@ import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMo
 import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
 import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
+import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
+
 
 
 export default function Notificacoes() {
