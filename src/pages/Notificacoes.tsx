@@ -76,6 +76,8 @@ import {
 import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMore';
 import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
+import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
+
 
 export default function Notificacoes() {
   const { user } = useAuth();
