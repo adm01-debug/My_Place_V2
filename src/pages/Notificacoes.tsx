@@ -211,28 +211,12 @@ export default function Notificacoes() {
   });
 
 
-  // Reset paginação quando filtros mudam
+  // Informa o teto da paginação (scroll infinito é gerido em useNotificacoesData)
   useEffect(() => {
-    setVisibleCount(50);
-  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco]);
+    setTotalFiltradas(filtradas.length);
+  }, [filtradas.length, setTotalFiltradas]);
 
 
-  // Infinite scroll via IntersectionObserver
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    if (visibleCount >= filtradas.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setVisibleCount((c) => Math.min(c + 50, filtradas.length));
-        }
-      },
-      { rootMargin: '400px 0px' }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [visibleCount, filtradas.length]);
 
 
   // Exportação (CSV / PDF via print)
