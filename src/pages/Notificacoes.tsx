@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -69,10 +69,7 @@ import { NotificacaoHeaderActions } from '@/components/notificacoes/NotificacaoH
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { NotificacaoGroupList } from '@/components/notificacoes/NotificacaoGroupList';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
-import {
-  buildThreads as buildThreadsPure,
-  NotificacaoThreadGroup,
-} from '@/components/notificacoes/NotificacaoThreadGroup';
+import { NotificacaoThreadGroup } from '@/components/notificacoes/NotificacaoThreadGroup';
 import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMore';
 import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
@@ -81,6 +78,7 @@ import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
 import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 import { useNotificacoesShare } from '@/hooks/useNotificacoesShare';
 import { useNotificacoesData } from '@/hooks/useNotificacoesData';
+import { useNotificacoesThreads } from '@/hooks/useNotificacoesThreads';
 
 
 
@@ -124,7 +122,7 @@ export default function Notificacoes() {
   });
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
+  
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -161,14 +159,6 @@ export default function Notificacoes() {
 
 
 
-  const toggleThread = (key: string) => {
-    setThreadsExpandidas((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
 
 
@@ -176,15 +166,6 @@ export default function Notificacoes() {
   // Realtime: novas notificações entram no topo automaticamente
   useNotificacoesRealtime({ user, setNotificacoes, playAlert, matchRule });
 
-  // Deep-linking: /notificacoes?focus=<id>
-  useNotificacaoDeepLink({
-    notificacoes,
-    loading,
-    agruparSimilares,
-    setThreadsExpandidas,
-    setHighlightedId,
-    marcarComoLida,
-  });
 
 
 
@@ -226,24 +207,19 @@ export default function Notificacoes() {
 
 
 
-  // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
-  const buildThreads = useCallback(
-    (label: string, itens: Notificacao[]) => buildThreadsPure(label, itens, agruparSimilares),
-    [agruparSimilares],
-  );
+  // Threading e navegação por teclado (ordem real de renderização).
+  const { threadsExpandidas, setThreadsExpandidas, toggleThread, visibleIds } =
+    useNotificacoesThreads({ grupos, agruparSimilares });
 
-  // IDs visíveis em ordem de renderização (respeitando threads colapsadas) — usados na navegação por teclado.
-  const visibleIds = useMemo(() => {
-    const ids: string[] = [];
-    for (const [label, itens] of grupos) {
-      const threads = buildThreads(label, itens);
-      for (const t of threads) {
-        if (t.kind === 'single') ids.push(t.notif.id);
-        else if (threadsExpandidas.has(t.key)) t.items.forEach((n) => ids.push(n.id));
-      }
-    }
-    return ids;
-  }, [grupos, buildThreads, threadsExpandidas]);
+  // Deep-linking: /notificacoes?focus=<id>
+  useNotificacaoDeepLink({
+    notificacoes,
+    loading,
+    agruparSimilares,
+    setThreadsExpandidas,
+    setHighlightedId,
+    marcarComoLida,
+  });
 
   useNotificacaoKeyboardShortcuts({
     visibleIds,
