@@ -161,14 +161,6 @@ export default function Notificacoes() {
 
 
 
-  const toggleThread = (key: string) => {
-    setThreadsExpandidas((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
 
 
