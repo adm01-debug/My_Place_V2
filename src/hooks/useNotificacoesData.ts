@@ -11,8 +11,6 @@ export interface UseNotificacoesDataParams {
   user: User | null;
   /** Chaves de filtro que, ao mudarem, reiniciam a paginação. */
   resetKeys: readonly unknown[];
-  /** Total de itens já filtrados — limita o teto da paginação. */
-  totalFiltradas: number;
 }
 
 export interface UseNotificacoesData {
@@ -22,6 +20,8 @@ export interface UseNotificacoesData {
   fetchNotificacoes: () => Promise<void>;
   visibleCount: number;
   loadMore: () => void;
+  /** Informa ao hook quantos itens existem após a filtragem (teto da paginação). */
+  setTotalFiltradas: (total: number) => void;
   sentinelRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -29,21 +29,27 @@ export interface UseNotificacoesData {
  * Centraliza o carregamento das notificações do usuário, a paginação
  * incremental e o scroll infinito via IntersectionObserver.
  *
- * Notas de robustez:
- * - Fetch ignorado sem usuário autenticado (evita query com user_id undefined).
- * - Notificações adiadas para o futuro são filtradas no servidor.
- * - O observer é reconectado sempre que a paginação ou o total mudam,
- *   e desconectado quando não há mais itens a carregar.
+ * O total filtrado é informado pelo consumidor (`setTotalFiltradas`) porque a
+ * filtragem depende do resultado deste hook — evitando dependência circular.
+ *
+ * Robustez:
+ * - Fetch ignorado sem usuário autenticado.
+ * - Notificações adiadas para o futuro são excluídas no servidor.
+ * - Observer desconectado quando não há mais itens a carregar.
  */
 export function useNotificacoesData({
   user,
   resetKeys,
-  totalFiltradas,
 }: UseNotificacoesDataParams): UseNotificacoesData {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
+  const [totalFiltradas, setTotalFiltradasState] = useState<number>(0);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const setTotalFiltradas = useCallback((total: number) => {
+    setTotalFiltradasState((prev) => (prev === total ? prev : total));
+  }, []);
 
   const fetchNotificacoes = useCallback(async () => {
     if (!user) return;
@@ -105,6 +111,7 @@ export function useNotificacoesData({
     fetchNotificacoes,
     visibleCount,
     loadMore,
+    setTotalFiltradas,
     sentinelRef,
   };
 }
