@@ -80,6 +80,8 @@ import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
 import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
 import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 import { useNotificacoesShare } from '@/hooks/useNotificacoesShare';
+import { useNotificacoesData } from '@/hooks/useNotificacoesData';
+
 
 
 
@@ -87,8 +89,6 @@ export default function Notificacoes() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
   const {
     prefs,
@@ -109,17 +109,29 @@ export default function Notificacoes() {
     dataInicio,
     dataFim,
   } = prefs;
+  const {
+    notificacoes,
+    setNotificacoes,
+    loading,
+    fetchNotificacoes,
+    visibleCount,
+    loadMore,
+    setTotalFiltradas,
+    sentinelRef,
+  } = useNotificacoesData({
+    user,
+    resetKeys: [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco],
+  });
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState<number>(50);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+
 
   const {
     marcarComoLida,
@@ -158,31 +170,8 @@ export default function Notificacoes() {
     });
   };
 
-  const fetchNotificacoes = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('notificacoes')
-        .select('*')
-        .eq('user_id', user.id)
-        .or('adiada_ate.is.null,adiada_ate.lte.' + new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(200);
 
-      if (error) throw error;
-      setNotificacoes((data || []) as Notificacao[]);
-    } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
-      toast.error('Não foi possível carregar as notificações');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
-  useEffect(() => {
-    fetchNotificacoes();
-  }, [fetchNotificacoes]);
 
   // Realtime: novas notificações entram no topo automaticamente
   useNotificacoesRealtime({ user, setNotificacoes, playAlert, matchRule });
@@ -224,28 +213,12 @@ export default function Notificacoes() {
   });
 
 
-  // Reset paginação quando filtros mudam
+  // Informa o teto da paginação (scroll infinito é gerido em useNotificacoesData)
   useEffect(() => {
-    setVisibleCount(50);
-  }, [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco]);
+    setTotalFiltradas(filtradas.length);
+  }, [filtradas.length, setTotalFiltradas]);
 
 
-  // Infinite scroll via IntersectionObserver
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    if (visibleCount >= filtradas.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setVisibleCount((c) => Math.min(c + 50, filtradas.length));
-        }
-      },
-      { rootMargin: '400px 0px' }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [visibleCount, filtradas.length]);
 
 
   // Exportação (CSV / PDF via print)
@@ -416,7 +389,7 @@ export default function Notificacoes() {
               visibleCount={visibleCount}
               totalCount={filtradas.length}
               visibleFilteredCount={filtradasVisiveis.length}
-              onLoadMore={() => setVisibleCount((c) => Math.min(c + 50, filtradas.length))}
+              onLoadMore={loadMore}
             />
           )}
         </div>
