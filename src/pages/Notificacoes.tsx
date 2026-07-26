@@ -168,31 +168,8 @@ export default function Notificacoes() {
     });
   };
 
-  const fetchNotificacoes = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('notificacoes')
-        .select('*')
-        .eq('user_id', user.id)
-        .or('adiada_ate.is.null,adiada_ate.lte.' + new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(200);
 
-      if (error) throw error;
-      setNotificacoes((data || []) as Notificacao[]);
-    } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
-      toast.error('Não foi possível carregar as notificações');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
 
-  useEffect(() => {
-    fetchNotificacoes();
-  }, [fetchNotificacoes]);
 
   // Realtime: novas notificações entram no topo automaticamente
   useNotificacoesRealtime({ user, setNotificacoes, playAlert, matchRule });
