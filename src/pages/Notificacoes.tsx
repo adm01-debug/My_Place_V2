@@ -166,15 +166,6 @@ export default function Notificacoes() {
   // Realtime: novas notificações entram no topo automaticamente
   useNotificacoesRealtime({ user, setNotificacoes, playAlert, matchRule });
 
-  // Deep-linking: /notificacoes?focus=<id>
-  useNotificacaoDeepLink({
-    notificacoes,
-    loading,
-    agruparSimilares,
-    setThreadsExpandidas,
-    setHighlightedId,
-    marcarComoLida,
-  });
 
 
 
