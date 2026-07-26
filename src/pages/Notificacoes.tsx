@@ -87,8 +87,6 @@ export default function Notificacoes() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
   const {
     prefs,
@@ -109,17 +107,29 @@ export default function Notificacoes() {
     dataInicio,
     dataFim,
   } = prefs;
+  const {
+    notificacoes,
+    setNotificacoes,
+    loading,
+    fetchNotificacoes,
+    visibleCount,
+    loadMore,
+    setTotalFiltradas,
+    sentinelRef,
+  } = useNotificacoesData({
+    user,
+    resetKeys: [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco],
+  });
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState<number>(50);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const { alertasAtivos, toggleAlertas, playAlert } = useNotificationAlert();
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+
 
   const {
     marcarComoLida,
