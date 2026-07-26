@@ -226,24 +226,9 @@ export default function Notificacoes() {
 
 
 
-  // Threading: agrupa notificações com título idêntico dentro do mesmo grupo (≥3)
-  const buildThreads = useCallback(
-    (label: string, itens: Notificacao[]) => buildThreadsPure(label, itens, agruparSimilares),
-    [agruparSimilares],
-  );
-
-  // IDs visíveis em ordem de renderização (respeitando threads colapsadas) — usados na navegação por teclado.
-  const visibleIds = useMemo(() => {
-    const ids: string[] = [];
-    for (const [label, itens] of grupos) {
-      const threads = buildThreads(label, itens);
-      for (const t of threads) {
-        if (t.kind === 'single') ids.push(t.notif.id);
-        else if (threadsExpandidas.has(t.key)) t.items.forEach((n) => ids.push(n.id));
-      }
-    }
-    return ids;
-  }, [grupos, buildThreads, threadsExpandidas]);
+  // Threading e navegação por teclado (ordem real de renderização).
+  const { threadsExpandidas, setThreadsExpandidas, toggleThread, visibleIds } =
+    useNotificacoesThreads({ grupos, agruparSimilares });
 
   useNotificacaoKeyboardShortcuts({
     visibleIds,
