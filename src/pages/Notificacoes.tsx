@@ -69,10 +69,7 @@ import { NotificacaoHeaderActions } from '@/components/notificacoes/NotificacaoH
 import { NotificacaoListItem, getNotificacaoIcon } from '@/components/notificacoes/NotificacaoListItem';
 import { NotificacaoGroupList } from '@/components/notificacoes/NotificacaoGroupList';
 import { groupLabel, URGENCY_RX, relevanceScore } from '@/components/notificacoes/relevance';
-import {
-  buildThreads as buildThreadsPure,
-  NotificacaoThreadGroup,
-} from '@/components/notificacoes/NotificacaoThreadGroup';
+import { NotificacaoThreadGroup } from '@/components/notificacoes/NotificacaoThreadGroup';
 import { NotificacaoLoadMore } from '@/components/notificacoes/NotificacaoLoadMore';
 import { useNotificacoesRealtime } from '@/hooks/useNotificacoesRealtime';
 import { useNotificacoesActions } from '@/hooks/useNotificacoesActions';
@@ -81,6 +78,7 @@ import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
 import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 import { useNotificacoesShare } from '@/hooks/useNotificacoesShare';
 import { useNotificacoesData } from '@/hooks/useNotificacoesData';
+import { useNotificacoesThreads } from '@/hooks/useNotificacoesThreads';
 
 
 
@@ -124,7 +122,7 @@ export default function Notificacoes() {
   });
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [threadsExpandidas, setThreadsExpandidas] = useState<Set<string>>(new Set());
+  
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
