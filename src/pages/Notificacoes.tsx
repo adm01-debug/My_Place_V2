@@ -80,6 +80,8 @@ import { useNotificacoesFiltradas } from '@/hooks/useNotificacoesFiltradas';
 import { useNotificacaoDeepLink } from '@/hooks/useNotificacaoDeepLink';
 import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 import { useNotificacoesShare } from '@/hooks/useNotificacoesShare';
+import { useNotificacoesData } from '@/hooks/useNotificacoesData';
+
 
 
 
@@ -387,7 +389,7 @@ export default function Notificacoes() {
               visibleCount={visibleCount}
               totalCount={filtradas.length}
               visibleFilteredCount={filtradasVisiveis.length}
-              onLoadMore={() => setVisibleCount((c) => Math.min(c + 50, filtradas.length))}
+              onLoadMore={loadMore}
             />
           )}
         </div>
