@@ -211,6 +211,16 @@ export default function Notificacoes() {
   const { threadsExpandidas, setThreadsExpandidas, toggleThread, visibleIds } =
     useNotificacoesThreads({ grupos, agruparSimilares });
 
+  // Deep-linking: /notificacoes?focus=<id>
+  useNotificacaoDeepLink({
+    notificacoes,
+    loading,
+    agruparSimilares,
+    setThreadsExpandidas,
+    setHighlightedId,
+    marcarComoLida,
+  });
+
   useNotificacaoKeyboardShortcuts({
     visibleIds,
     focusedId,
