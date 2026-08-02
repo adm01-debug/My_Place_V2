@@ -79,6 +79,8 @@ import { useNotificacoesExport } from '@/hooks/useNotificacoesExport';
 import { useNotificacoesShare } from '@/hooks/useNotificacoesShare';
 import { useNotificacoesData } from '@/hooks/useNotificacoesData';
 import { useNotificacoesThreads } from '@/hooks/useNotificacoesThreads';
+import { useNotificacoesSelecao } from '@/hooks/useNotificacoesSelecao';
+
 
 
 
@@ -120,9 +122,7 @@ export default function Notificacoes() {
     user,
     resetKeys: [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco],
   });
-  const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -130,6 +130,25 @@ export default function Notificacoes() {
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
+  const { filtradas, filtradasVisiveis, grupos } = useNotificacoesFiltradas({
+    notificacoes,
+    filtro,
+    busca,
+    dataInicio,
+    dataFim,
+    modoFoco,
+    ordenarPorRelevancia,
+    visibleCount,
+  });
+
+  const {
+    selecionadas,
+    setSelecionadas,
+    toggleSelecao,
+    selecionarVisiveis,
+    limparSelecao,
+    todasSelecionadasVisiveis
+  } = useNotificacoesSelecao({ filtradas });
 
   const {
     marcarComoLida,
@@ -139,7 +158,6 @@ export default function Notificacoes() {
     excluirNotificacao,
     adiarNotificacoes,
     acaoEmMassa,
-    toggleSelecao,
   } = useNotificacoesActions({
     user,
     notificacoes,
@@ -147,6 +165,7 @@ export default function Notificacoes() {
     selecionadas,
     setSelecionadas,
   });
+
 
   const resetarFiltros = useCallback(() => {
     setBusca('');
@@ -182,16 +201,7 @@ export default function Notificacoes() {
     }
   };
 
-  const { filtradas, filtradasVisiveis, grupos } = useNotificacoesFiltradas({
-    notificacoes,
-    filtro,
-    busca,
-    dataInicio,
-    dataFim,
-    modoFoco,
-    ordenarPorRelevancia,
-    visibleCount,
-  });
+
 
 
   // Informa o teto da paginação (scroll infinito é gerido em useNotificacoesData)
@@ -245,10 +255,8 @@ export default function Notificacoes() {
   const stats = useNotificacaoStats(notificacoes);
   const { naoLidas, porTipoNaoLidas: contadoresPorTipo } = stats;
   useFaviconBadge(naoLidas, 'Notificações');
-  const todasSelecionadasVisiveis =
-    filtradas.length > 0 && filtradas.every((n) => selecionadas.has(n.id));
-
   return (
+
     <>
     <PullToRefresh onRefresh={fetchNotificacoes}>
       <div className="w-full max-w-4xl mx-auto p-4 space-y-6 pb-24">
@@ -310,11 +318,9 @@ export default function Notificacoes() {
           totalSelecionadas={selecionadas.size}
           totalNaoLidas={naoLidas}
           todasSelecionadasVisiveis={todasSelecionadasVisiveis}
-          onToggleSelecionarVisiveis={(checked) => {
-            if (checked) setSelecionadas(new Set(filtradas.map((n) => n.id)));
-            else setSelecionadas(new Set());
-          }}
-          onLimparSelecao={() => setSelecionadas(new Set())}
+          onToggleSelecionarVisiveis={selecionarVisiveis}
+          onLimparSelecao={limparSelecao}
+
           onMarcarSelecionadasLidas={() => acaoEmMassa('ler')}
           onExcluirSelecionadas={() => acaoEmMassa('excluir')}
           onAdiarSelecionadas={(min) => adiarNotificacoes(Array.from(selecionadas), min)}
