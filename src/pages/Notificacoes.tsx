@@ -123,8 +123,6 @@ export default function Notificacoes() {
     resetKeys: [filtro, busca, dataInicio, dataFim, agruparSimilares, ordenarPorRelevancia, modoFoco],
   });
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-
-  
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -132,6 +130,25 @@ export default function Notificacoes() {
   const { rules, addRule, removeRule, toggleRule, matchRule } = useAutoRules();
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
+  const { filtradas, filtradasVisiveis, grupos } = useNotificacoesFiltradas({
+    notificacoes,
+    filtro,
+    busca,
+    dataInicio,
+    dataFim,
+    modoFoco,
+    ordenarPorRelevancia,
+    visibleCount,
+  });
+
+  const {
+    selecionadas,
+    setSelecionadas,
+    toggleSelecao,
+    selecionarVisiveis,
+    limparSelecao,
+    todasSelecionadasVisiveis
+  } = useNotificacoesSelecao({ filtradas });
 
   const {
     marcarComoLida,
@@ -141,7 +158,6 @@ export default function Notificacoes() {
     excluirNotificacao,
     adiarNotificacoes,
     acaoEmMassa,
-
   } = useNotificacoesActions({
     user,
     notificacoes,
@@ -149,6 +165,7 @@ export default function Notificacoes() {
     selecionadas,
     setSelecionadas,
   });
+
 
   const resetarFiltros = useCallback(() => {
     setBusca('');
@@ -184,25 +201,6 @@ export default function Notificacoes() {
     }
   };
 
-  const { filtradas, filtradasVisiveis, grupos } = useNotificacoesFiltradas({
-    notificacoes,
-    filtro,
-    busca,
-    dataInicio,
-    dataFim,
-    modoFoco,
-    ordenarPorRelevancia,
-    visibleCount,
-  });
-
-  const {
-    selecionadas,
-    setSelecionadas,
-    toggleSelecao,
-    selecionarVisiveis,
-    limparSelecao,
-    todasSelecionadasVisiveis
-  } = useNotificacoesSelecao({ filtradas });
 
 
 
