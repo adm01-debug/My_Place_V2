@@ -170,11 +170,11 @@
   }
 
   html, body {
-    @apply h-full overflow-hidden;
+    @apply min-h-full overflow-x-hidden;
   }
 
   #root {
-    @apply h-full;
+    @apply min-h-full;
   }
 
   h1, h2, h3, h4, h5, h6 {

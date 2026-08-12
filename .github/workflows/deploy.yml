@@ -17,7 +17,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
-
+      
       - name: Deploy to Vercel
         if: ${{ vars.DEPLOY_TARGET == 'vercel' }}
         uses: amondnet/vercel-action@v25
@@ -32,15 +32,6 @@ jobs:
         if: success()
         run: |
           npm install -g supabase
-          supabase functions deploy \
-            admin-user-mgmt \
-            bi-export \
-            integracoes-dispatcher \
-            integracoes-test \
-            link-preview \
-            notificacoes-digest \
-            totp-2fa \
-            webauthn \
-            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
