@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS saldo_horas NUMERIC(10,2) DEFAULT 0;

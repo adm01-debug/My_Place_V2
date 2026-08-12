@@ -1,0 +1,345 @@
+import { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Building2, Briefcase, Calendar, Hash, Shield, 
+  Sun, Clock, Palmtree, Receipt, FileText, type LucideIcon,
+  Bell, User, ChevronRight, HeartHandshake, HelpCircle
+} from 'lucide-react';
+import { RecentActivity } from '@/components/home/RecentActivity';
+import { BenefitsAndHealth } from '@/components/home/BenefitsAndHealth';
+import { SupportSection } from '@/components/home/SupportSection';
+import { TimeBankCard } from '@/components/home/TimeBankCard';
+import { CompanyAnnouncements } from '@/components/home/CompanyAnnouncements';
+import { supabase } from '@/integrations/supabase/client';
+import { PullToRefresh } from '@/components/portal/PullToRefresh';
+import { ModuleHeader } from '@/components/layout/ModuleHeader';
+import { SkeletonCard } from '@/components/portal/Skeleton';
+
+const HoursChart = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.HoursChart })));
+const SalaryChart = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.SalaryChart })));
+const GoalsProgress = lazy(() => import('@/components/home/DashboardCharts').then(m => ({ default: m.GoalsProgress })));
+
+function ProfileInfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-border/30 last:border-0 hover:bg-primary/5 transition-colors px-2 rounded-lg group">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors shrink-0">
+        <Icon className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{label}</p>
+        <p className="text-sm font-semibold text-foreground truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+interface QuickAccessItem {
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  path: string;
+  color: string;
+}
+
+const quickAccessItems: QuickAccessItem[] = [
+  { icon: Clock, label: 'Ponto', description: 'Registrar entrada/saída', path: '/ponto', color: 'text-blue-500 bg-blue-500/10' },
+  { icon: Palmtree, label: 'Férias', description: 'Solicitar e consultar', path: '/ferias', color: 'text-emerald-500 bg-emerald-500/10' },
+  { icon: Receipt, label: 'Holerites', description: 'Consultar pagamentos', path: '/holerites', color: 'text-amber-500 bg-amber-500/10' },
+  { icon: FileText, label: 'Solicitações', description: 'Abrir e acompanhar', path: '/solicitacoes', color: 'text-purple-500 bg-purple-500/10' },
+  { icon: FileText, label: 'Documentos', description: 'Contratos e arquivos', path: '/documentos', color: 'text-orange-500 bg-orange-500/10' },
+];
+
+function QuickAccessCard({ item, onClick }: { item: QuickAccessItem; onClick: () => void }) {
+  const [iconColor, bgColor] = item.color.split(' ');
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border/50 bg-card hover:bg-accent/50 transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+    >
+      <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${bgColor}`}>
+        <item.icon className={`w-6 h-6 ${iconColor}`} />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-semibold text-foreground">{item.label}</p>
+        <p className="text-xs text-muted-foreground leading-tight">{item.description}</p>
+      </div>
+    </button>
+  );
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+export default function Home() {
+  const { user, profile, role } = useAuth();
+  const navigate = useNavigate();
+
+  const [pendingCount, setPendingCount] = useState({ ferias: 0, solicitacoes: 0, notificacoes: 0 });
+  const [gestorNome, setGestorNome] = useState<string | null>(null);
+
+  const fetchCounts = useCallback(async () => {
+    if (!user) return;
+    const [f, s, n] = await Promise.all([
+      supabase.from('solicitacoes_ferias').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('solicitacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'pendente'),
+      supabase.from('notificacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('lida', false),
+    ]);
+    setPendingCount({ ferias: f.count || 0, solicitacoes: s.count || 0, notificacoes: n.count || 0 });
+  }, [user]);
+
+  const fetchGestor = useCallback(async () => {
+    if (!profile?.gestor_id) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('nome')
+      .eq('id', profile.gestor_id)
+      .single();
+    if (data) setGestorNome(data.nome);
+  }, [profile?.gestor_id]);
+
+  useEffect(() => { 
+    fetchCounts(); 
+    fetchGestor();
+  }, [fetchCounts, fetchGestor]);
+
+  const initials = profile?.nome
+    ? profile.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'U';
+
+  const firstName = profile?.nome?.split(' ')[0] || 'Colaborador';
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  const roleLabel: Record<string, string> = {
+    admin: 'Administrador',
+    gestor: 'Gestor',
+    user: 'Colaborador',
+  };
+
+  const roleBadgeVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
+    admin: 'default',
+    gestor: 'secondary',
+    user: 'outline',
+  };
+
+  return (
+    <PullToRefresh onRefresh={async () => { await fetchCounts(); }}>
+    <div className="min-h-screen bg-background/50">
+      <div className="w-full max-w-5xl mx-auto p-4 pt-6 pb-24 space-y-8">
+        <ModuleHeader 
+          title={`Olá, ${firstName}`}
+          description={getGreeting()}
+          icon={Sun}
+        />
+
+        {/* Pending Summary */}
+        {(pendingCount.ferias > 0 || pendingCount.solicitacoes > 0 || pendingCount.notificacoes > 0) && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {pendingCount.notificacoes > 0 && (
+              <button onClick={() => navigate('/notificacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary shrink-0">
+                <Bell className="w-3.5 h-3.5" />
+                {pendingCount.notificacoes} notificação(ões)
+              </button>
+            )}
+            {pendingCount.ferias > 0 && (
+              <button onClick={() => navigate('/ferias')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Palmtree className="w-3.5 h-3.5" />
+                {pendingCount.ferias} férias pendente(s)
+              </button>
+            )}
+            {pendingCount.solicitacoes > 0 && (
+              <button onClick={() => navigate('/solicitacoes')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-xs font-medium text-purple-600 dark:text-purple-400 shrink-0">
+                <FileText className="w-3.5 h-3.5" />
+                {pendingCount.solicitacoes} solicitação(ões)
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Raio-X do Colaborador (Profile + Info) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <Card className="md:col-span-4 border-border/50 shadow-xl overflow-hidden h-fit bg-gradient-to-b from-card to-background">
+            <div className="h-24 bg-gradient-to-r from-primary to-primary/60 dark:from-primary/80 dark:to-primary/30" />
+            <CardContent className="relative pt-0 pb-6 -mt-12">
+              <div className="flex flex-col items-center text-center space-y-3">
+                <Avatar className="w-24 h-24 border-4 border-card shadow-lg">
+                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.nome || ''} />
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="space-y-1">
+                  <h1 className="text-xl font-bold text-foreground">{profile?.nome || 'Colaborador'}</h1>
+                  <p className="text-sm text-muted-foreground">{profile?.email || user?.email}</p>
+                </div>
+
+                <Badge variant={roleBadgeVariant[role] || 'outline'} className="gap-1">
+                  <Shield className="w-3 h-3" />
+                  {roleLabel[role] || 'Colaborador'}
+                </Badge>
+
+                {profile?.data_admissao && (
+                  <div className="pt-2">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Tempo de Casa</p>
+                    <p className="text-xs font-semibold text-primary">
+                      {(() => {
+                        const adm = new Date(profile.data_admissao + 'T12:00:00');
+                        const now = new Date();
+                        let years = now.getFullYear() - adm.getFullYear();
+                        let months = now.getMonth() - adm.getMonth();
+                        
+                        if (months < 0 || (months === 0 && now.getDate() < adm.getDate())) {
+                          years--;
+                          months += 12;
+                        }
+
+                        if (years > 0) {
+                          return `${years} ano${years > 1 ? 's' : ''}${months > 0 ? ` e ${months} m${months > 1 ? 'eses' : 'ês'}` : ''}`;
+                        }
+                        return `${months} m${months > 1 ? 'eses' : 'ês'}`;
+                      })()}
+                    </p>
+                  </div>
+                )}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-4 text-xs"
+                  onClick={() => navigate('/perfil')}
+                >
+                  <User className="w-3.5 h-3.5 mr-2" />
+                  Editar Perfil
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="md:col-span-8 border-border/50 shadow-lg h-fit bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Raio-X Profissional
+                </h2>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+              {profile?.cargo && (
+                <ProfileInfoItem icon={Briefcase} label="Cargo" value={profile.cargo} />
+              )}
+              {profile?.departamento && (
+                <ProfileInfoItem icon={Building2} label="Departamento" value={profile.departamento} />
+              )}
+              {profile?.matricula && (
+                <ProfileInfoItem icon={Hash} label="Matrícula" value={profile.matricula} />
+              )}
+              {profile?.data_admissao && (
+                <ProfileInfoItem icon={Calendar} label="Data de Admissão" value={formatDate(profile.data_admissao)!} />
+              )}
+              {profile?.salario_base && (
+                <div className="flex items-center justify-between group">
+                  <ProfileInfoItem icon={Receipt} label="Salário Base" value={`R$ ${profile.salario_base.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => navigate('/holerites')}>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              {profile?.gestor_id && (
+                 <ProfileInfoItem icon={User} label="Gestor Direto" value={gestorNome || 'Carregando...'} />
+              )}
+              {profile?.rh_responsavel && (
+                 <ProfileInfoItem icon={HeartHandshake} label="RH Responsável" value={profile.rh_responsavel} />
+              )}
+              {profile?.apoio_departamento && (
+                 <ProfileInfoItem icon={HelpCircle} label="Apoio Departamento" value={profile.apoio_departamento} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Company Announcements */}
+        <CompanyAnnouncements />
+
+        {/* Quick Access */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Acesso Rápido
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {quickAccessItems.map((item) => (
+              <QuickAccessCard
+                key={item.path}
+                item={item}
+                onClick={() => navigate(item.path)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Dashboard Charts */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Dashboard
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="md:col-span-3">
+              <Suspense fallback={<SkeletonCard />}>
+                <HoursChart />
+              </Suspense>
+            </div>
+            <div className="md:col-span-3">
+              <TimeBankCard />
+            </div>
+            <div className="md:col-span-3">
+              <Suspense fallback={<SkeletonCard />}>
+                <SalaryChart />
+              </Suspense>
+            </div>
+            <div className="md:col-span-3">
+              <Suspense fallback={<SkeletonCard />}>
+                <GoalsProgress />
+              </Suspense>
+            </div>
+            <div className="md:col-span-6">
+              <RecentActivity />
+            </div>
+          </div>
+        </div>
+
+        {/* Support and Team Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Suporte & Equipe
+          </h2>
+          <SupportSection />
+        </div>
+
+        {/* Benefits and Health Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+            Minha Vida na Empresa
+          </h2>
+          <BenefitsAndHealth />
+        </div>
+
+
+
+      </div>
+    </div>
+    </PullToRefresh>
+  );
+}

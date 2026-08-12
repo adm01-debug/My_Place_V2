@@ -1,0 +1,2 @@
+ALTER TABLE public.notificacoes ADD COLUMN IF NOT EXISTS fixada_em TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_notificacoes_fixada ON public.notificacoes(user_id, fixada_em DESC) WHERE fixada_em IS NOT NULL;
