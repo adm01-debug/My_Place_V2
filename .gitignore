@@ -23,5 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 
+# Contexto para agentes de IA (gerado): publicado na branch `contexto`, não na main
+/docs/contexto/codigo/
+/docs/contexto/regras/*
+!/docs/contexto/regras/manual/
+/docs/contexto/supabase/
+/docs/contexto/00-INDEX.md
+# Inventário: banco.json/rotas.json/edges.json são versionados; o uso por tabela é derivado
+/inventario/estado/tabelas-uso.json
 # Grafo de código (graphify) — gerado por clone, ~dezenas de MB
-graphify-out/
+/graphify-out/
+# Python dos scripts de contexto
+__pycache__/
+*.pyc

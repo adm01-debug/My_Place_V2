@@ -114,3 +114,9 @@ existir: `graphify query "<pergunta>"`, `graphify path "<A>" "<B>"`, `graphify e
 de buscar por texto; `GRAPH_REPORT.md` só para revisão ampla. Alterou código ou o report não é do HEAD
 atual → `npm run graph:update` (só AST). Em nuvem o grafo é gerado em segundo plano
 (`.claude/hooks/session-start.sh`) — siga sem ele até terminar.
+
+<!-- ai-context-sync:start -->
+## Contexto para agentes de IA — protocolo
+
+Antes de qualquer tarefa ou planejamento, leia `docs/contexto/00-INDEX.md`: ele diz onde está cada fonte de verdade (banco real, código, regras de negócio) e a ordem de leitura. Arquivos gerados têm o cabeçalho "Gerado automaticamente" e não são editados à mão; regras humanas vivem em `docs/contexto/regras/manual/`.
+<!-- ai-context-sync:end -->

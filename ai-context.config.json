@@ -1,0 +1,7 @@
+{
+  "routeFiles": ["src/App.tsx"],
+  "menuFiles": ["src/components/layout/Navbar.tsx", "src/components/layout/GlobalSearch.tsx"],
+  "typesFile": "src/integrations/supabase/types.ts",
+  "aliases": { "@/": "src/" },
+  "publicacao": "Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`."
+}
