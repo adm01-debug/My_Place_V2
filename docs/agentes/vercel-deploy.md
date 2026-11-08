@@ -12,6 +12,7 @@ Ler quando for confirmar um deploy, mexer em env vars do Vercel, domínio ou dep
 | Proteção | **SSO protection ligada** (`all_except_custom_domains`) — URL `.vercel.app` pede login Vercel; não é "site fora do ar" |
 | Último deploy de produção | `dpl_HKe41Nqt5atR6yrSZQw69BSE6zjV`, `READY`, criado em **2026-09-01**, mesmo dia da criação do projeto. Nenhum deploy depois. |
 | `live` | `false` no projeto |
+| Integração GitHub↔Vercel | **ativa**: push em branch abre deploy de preview sozinho. Evidência: o push da PR #1 (2026-11-08) gerou `my-place-v2-git-claude04-funny-mccarthy-w50tg5-juca1.vercel.app` com status `Ready`, mais os checks `Vercel Preview Comments` (success) e `Vercel Agent Review` (neutral — "usage billing is not enabled for this team") |
 | MCP Vercel | `mcp__Vercel__*`; escrita = ação de produção |
 
 ### Limite de evidência
@@ -27,10 +28,13 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
 - **O último run do workflow `Deploy` falhou** (push de 2026-09-01, `conclusion: failure` —
   `github_list_workflow_runs`): o deploy de produção que existe no Vercel é o da criação do projeto, não
   um deploy do workflow.
-- **Merge em `main` não publica o front sozinho.** `deploy.yml` roda no push da `main`, mas o passo Vercel
-  é condicional: `if: ${{ vars.DEPLOY_TARGET == 'vercel' }}`. Se a variável de repositório `DEPLOY_TARGET`
-  não estiver em `vercel`, o job builda e não deploya. **Não existe deploy Git automático confirmado**
-  (o único deploy de produção é o da criação do projeto) — confirme sempre antes de dizer "subiu".
+- **Preview é automático pela integração Git** (verificado na PR #1), e **não** pelo `preview.yml`: os dois
+  caminhos coexistem e podem deployar o mesmo commit duas vezes.
+- **Produção pelo workflow é condicional:** `deploy.yml` roda no push da `main`, mas o passo Vercel só
+  executa com `if: ${{ vars.DEPLOY_TARGET == 'vercel' }}`; sem essa variável o job builda e não deploya.
+  Se a produção sai pela integração Git no merge da `main`, isso **não está verificado** — o último deploy
+  de produção no Vercel é de 2026-09-01, da criação do projeto. Confirme o deploy (MCP ou dashboard) antes
+  de dizer "subiu".
 - **Edge functions:** o passo seguinte do mesmo job (`if: success()`) roda
   `supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}` sem lista de funções →
   publica **todas**, inclusive `migrate-helper` (backdoor de `service_role`, ver `banco.md`). Nunca rode
@@ -56,7 +60,8 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
 
 ### Pendências (dependem de decisão do dono)
 
-1. Definir se o deploy é Vercel (ligar `DEPLOY_TARGET=vercel` e confirmar o link Git) ou Docker/VPS
-   (`docker-vps.md`) — hoje os dois caminhos existem e nenhum está comprovadamente ativo.
+1. Definir o caminho único de deploy: integração Git do Vercel (hoje a única comprovadamente ativa, em
+   preview), `deploy.yml` + `DEPLOY_TARGET=vercel`, ou Docker/VPS (`docker-vps.md`). Hoje preview deploya
+   por dois caminhos e produção por nenhum confirmado.
 2. Node 20 (CI/Docker) vs 24.x (Vercel): alinhar antes de culpar build por diferença de ambiente.
 3. Tirar `migrate-helper` da lista implícita de deploy (e do repo) + rotacionar `service_role`.
