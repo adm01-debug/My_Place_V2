@@ -53,6 +53,12 @@ Estado dos runs na `main` (`github_list_workflow_runs`, 590 runs; leitura em 202
 workflows a rodar na `main` terminaram em **failure** — `CI` e `Deploy` no push de 2026-09-01 e `CodeQL`
 em toda execução agendada desde 2026-09-07 (última: 2026-11-02). Não há run verde recente na `main`.
 
+**Actions não está executando nada neste repo.** Na PR #1 (2026-11-08) os quatro workflows disparados
+(`CI`, `CodeQL`, `Preview`, `Agents Guard`) ficaram ~10 min em `QUEUED` com **nenhum job iniciado** — o
+runner nunca pegou. Causa provável: minutos/billing de GitHub Actions em repositório privado; **NÃO
+VERIFICADO** (o token da sessão não lê billing). Consequência prática: não espere check verde aqui — rode
+os guards local (`node --test scripts/ci/*.unit.mjs`) e diga que a validação foi local.
+
 Fatos que já custaram retrabalho:
 
 - **CI verde não é alcançável hoje.** Não trate vermelho como "seu" sem olhar o job: se a falha é
