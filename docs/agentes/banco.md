@@ -63,14 +63,15 @@ o host no ambiente.
 
 ## Perigos já presentes na `main` (não amplie; corrigir só com o dono)
 
-1. **`supabase/functions/migrate-helper/` é backdoor de credencial.** `supabase/config.toml` declara
-   `verify_jwt = false` para ela; o `ACCESS_KEY` está **hardcoded no arquivo versionado**; a ação
-   `?action=credentials` devolve `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_DB_URL`. Histórico: removida em
-   `50dab43` ("security: remove migrate-helper edge function (exposes service_role key)", 2026-08-11),
-   **reintroduzida** em `a1e20e1` (2026-08-12), chave trocada em `3c2a8cb` e revertida em `bb90f29`
-   (2026-09-01). O `deploy.yml` atual roda `supabase functions deploy` **sem lista de funções**, então
-   publica essa função junto — `3722a22` havia trocado por lista explícita sem ela, e isso também regrediu.
-   Remover a função + rotacionar `service_role` é tarefa do dono (muda produção).
+1. **Rotacionar `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_DB_URL` — pendente, só com o dono.**
+   `supabase/functions/migrate-helper/` foi backdoor de credencial (`verify_jwt = false`, `ACCESS_KEY`
+   hardcoded, `?action=credentials` devolvia `service_role` e `SUPABASE_DB_URL`) com três idas e voltas:
+   removida em `50dab43` (2026-08-11), **reintroduzida** em `a1e20e1` (2026-08-12), chave trocada em
+   `3c2a8cb` e revertida em `bb90f29` (2026-09-01). Esta sessão removeu a função, o bloco
+   `[functions.migrate-helper]` do `supabase/config.toml` e fixou a lista de functions do `deploy.yml`
+   (não publica mais funções fora da lista). **O que falta e não pode ser feito daqui:** a chave já foi
+   exposta em texto claro várias vezes no histórico do Git — rotacionar `service_role` e `SUPABASE_DB_URL`
+   no painel do projeto `twdechwttlqtmmfzwapc` é tarefa do dono.
 2. **Segredos versionados:** `.env` está no Git (`git ls-files .env`) e o `.gitignore` não o ignora;
    `seed-now.mjs:4` tem chave Supabase literal. Qualquer rotação precisa limpar os dois.
 3. **`supabase/scripts/*.sql`** (8 arquivos, inclui `seed-rls-disable.sql`) desligam RLS e criam usuários.

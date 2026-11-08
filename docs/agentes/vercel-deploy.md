@@ -37,9 +37,8 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
   Se a produção sai pela integração Git no merge da `main`, isso **não está verificado** — o último deploy
   de produção no Vercel é de 2026-09-01, da criação do projeto. Confirme o deploy (MCP ou dashboard) antes
   de dizer "subiu".
-- **Edge functions:** o passo seguinte do mesmo job (`if: success()`) roda
-  `supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}` sem lista de funções →
-  publica **todas**, inclusive `migrate-helper` (backdoor de `service_role`, ver `banco.md`). Nunca rode
+- **Edge functions:** o passo seguinte do mesmo job (`if: success()`) roda `supabase functions deploy`
+  com a **lista explícita** das 8 functions do repo (corrigido nesta sessão). Nunca rode
   `supabase functions deploy` à mão sem `--project-ref`: o `supabase/config.toml` aponta para o projeto
   Lovable antigo.
 - **Preview:** `preview.yml` deploya preview a cada PR e comenta a URL. Depende de `VERCEL_TOKEN`,
@@ -66,4 +65,4 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
    preview), `deploy.yml` + `DEPLOY_TARGET=vercel`, ou Docker/VPS (`docker-vps.md`). Hoje preview deploya
    por dois caminhos e produção por nenhum confirmado.
 2. Node 20 (CI/Docker) vs 24.x (Vercel): alinhar antes de culpar build por diferença de ambiente.
-3. Tirar `migrate-helper` da lista implícita de deploy (e do repo) + rotacionar `service_role`.
+3. Rotacionar `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_DB_URL` no projeto `twdechwttlqtmmfzwapc` — a chave já esteve em texto claro no histórico do Git (`migrate-helper`, removido nesta sessão).

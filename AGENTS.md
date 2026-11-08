@@ -21,8 +21,8 @@ Regras do dono para qualquer agente de IA; vencem `docs/` e `README.md` (histór
 - Segredos nunca em código, commit ou resposta — só em env/secret do serviço (edge: `supabase secrets set`
   ou painel; Vercel: Settings → Environment Variables). Chave exposta em chat → rotacionar na hora. Nunca
   imprima nem commite `.env`, `.git-credentials`, tokens ou `service_role`. **Este repo já tem segredo
-  versionado** (`.env` e `seed-now.mjs`) e uma edge function que vaza `service_role`
-  (`supabase/functions/migrate-helper/`) — ver `docs/agentes/banco.md`; não copie o padrão nem amplie o vazamento.
+  versionado** (`.env` e `seed-now.mjs`) e a `service_role` já esteve em texto claro no histórico do Git
+  (edge function `migrate-helper`, removida) — ver `docs/agentes/banco.md`; a rotação é tarefa do dono.
 
 ## Bugs e funcionalidades
 - Diagnóstico antes de patch: logs e estado real, ponto exato (arquivo:linha), causa; várias causas → liste
@@ -83,9 +83,9 @@ Regras do dono para qualquer agente de IA; vencem `docs/` e `README.md` (histór
 ## Serviços
 - **Vercel** — ler `docs/agentes/vercel-deploy.md` ao confirmar deploy ou mexer em env/domínio. Projeto
   `my-place-v2` (team `juca1`), SSO protection ligada, último deploy de produção em 2026-09-01. Merge em
-  `main` **não** publica: `deploy.yml` só roda o passo Vercel se `vars.DEPLOY_TARGET == 'vercel'`, e o
-  mesmo job publica **todas** as edge functions (migrate-helper incluída). Nunca segredo de servidor com
-  prefixo `VITE_` (vai para o bundle).
+  `main` **não** publica pelo workflow: `deploy.yml` só roda o passo Vercel se `vars.DEPLOY_TARGET == 'vercel'`,
+  e o mesmo job publica a lista explícita de edge functions (sem `migrate-helper`, removida). Nunca segredo
+  de servidor com prefixo `VITE_` (vai para o bundle).
 - **Docker / VPS (Traefik)** — ler `docs/agentes/docker-vps.md` ao mexer em `Dockerfile`, `nginx.conf` ou
   `docker-compose.yml` (host `my-place.promobrindes.com.br`). Não há workflow que construa a imagem.
 - **GitHub/CI** — ler `docs/agentes/github-ci.md` ao mexer em workflows, settings ou quando um merge falhar.

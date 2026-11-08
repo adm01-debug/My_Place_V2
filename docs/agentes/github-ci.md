@@ -43,7 +43,7 @@ disciplina de agente, não trava técnica. E porque o Lovable escreve direto na 
 | Arquivo | Gatilho | Estado real |
 |---|---|---|
 | `ci.yml` | push em `main`/`develop`, PR para `main` | **vermelha por construção**: o job `lint-and-type-check` morre antes do typecheck, no `npm run lint` (8 erros na `main`); o passo seguinte chama `npm run type-check`, script que **não existe** no `package.json`; e o job `test` rodaria `npm run test -- --coverage` com `setupFiles: ./src/test/setup.ts` inexistente e **zero arquivos de teste** — hoje fica `skipped` junto com `build` |
-| `deploy.yml` | push em `main`, `workflow_dispatch` | environment `production`; passo Vercel só roda `if vars.DEPLOY_TARGET == 'vercel'`; o passo seguinte faz `supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}` **sem lista** → publica todas as functions, `migrate-helper` incluída |
+| `deploy.yml` | push em `main`, `workflow_dispatch` | environment `production`; passo Vercel só roda `if vars.DEPLOY_TARGET == 'vercel'`; o passo seguinte roda `supabase functions deploy` com a **lista explícita** das 8 functions do repo (corrigido nesta sessão; antes rodava sem lista e publicava `migrate-helper` junto) |
 | `preview.yml` | PR (opened/synchronize/reopened) | **falha sempre**: `Error: Input required and not supplied: vercel-token` — o secret `VERCEL_TOKEN` não existe. O preview que funciona vem da integração Git do Vercel, não daqui |
 | `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript; **falha sempre** com `Code scanning is not enabled for this repository` (configuração do repo, não do código) |
 | `agents-guard.yml` | PR para `main` tocando instruções de agente/CI, push em `main`, `workflow_dispatch` | roda `scripts/ci/check-agents-md-integrity.mjs` (base `origin/main`) e `node --test scripts/ci/*.unit.mjs`. Verde no GitHub no head `fd281c2` e local (10/10 testes + guard exit 0) |
@@ -77,9 +77,10 @@ Fatos que já custaram retrabalho:
   `vercel-token` ausente são heranças da `main` → "Próximos passos".
 - **`a1e20e1` desfez três fixes do dia anterior** (`3722a22`, `50dab43` e `6b8c92b`): o `project_id` do
   banco oficial, a remoção do `migrate-helper` e o import quebrado de `notificacoes-digest`
-  (`npm:@supabase/supabase-js@2/cors`, subpath inexistente). Antes de "restaurar" algo em
-  `supabase/config.toml`, `deploy.yml` ou `supabase/functions/`, leia esse histórico — ver `banco.md` e
-  `regras-dominio.md`.
+  (`npm:@supabase/supabase-js@2/cors`, subpath inexistente). A remoção do `migrate-helper` foi refeita
+  nesta sessão (função, `config.toml` e lista do `deploy.yml`); o import quebrado do digest **continua
+  quebrado**. Antes de "restaurar" algo em `supabase/config.toml`, `deploy.yml` ou `supabase/functions/`,
+  leia esse histórico — ver `banco.md` e `regras-dominio.md`.
 - **`audit-pdf.yml` escreve na branch do push.** Alterar `docs/audit_report.md` numa PR faz o workflow
   tentar commitar o PDF; não use esse arquivo como rascunho.
 - **Node:** CI e Dockerfile usam Node 20; `.nvmrc` diz `20`; o projeto no Vercel está em **24.x**.
