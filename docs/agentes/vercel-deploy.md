@@ -28,8 +28,10 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
 - **O último run do workflow `Deploy` falhou** (push de 2026-09-01, `conclusion: failure` —
   `github_list_workflow_runs`): o deploy de produção que existe no Vercel é o da criação do projeto, não
   um deploy do workflow.
-- **Preview é automático pela integração Git** (verificado na PR #1), e **não** pelo `preview.yml`: os dois
-  caminhos coexistem e podem deployar o mesmo commit duas vezes.
+- **Preview é automático pela integração Git** (verificado na PR #1), e **não** pelo `preview.yml`: esse
+  workflow falha sempre com `Error: Input required and not supplied: vercel-token` — o secret
+  `VERCEL_TOKEN` não existe no repo. Pelo mesmo motivo, o passo Vercel do `deploy.yml` também não
+  funcionaria se `DEPLOY_TARGET` fosse ligado sem criar o secret antes.
 - **Produção pelo workflow é condicional:** `deploy.yml` roda no push da `main`, mas o passo Vercel só
   executa com `if: ${{ vars.DEPLOY_TARGET == 'vercel' }}`; sem essa variável o job builda e não deploya.
   Se a produção sai pela integração Git no merge da `main`, isso **não está verificado** — o último deploy
