@@ -45,7 +45,7 @@ disciplina de agente, não trava técnica. E porque o Lovable escreve direto na 
 | `ci.yml` | push em `main`/`develop`, PR para `main` | **vermelha por construção**: o job `lint-and-type-check` morre antes do typecheck, no `npm run lint` (8 erros na `main`); o passo seguinte chama `npm run type-check`, script que **não existe** no `package.json`; e o job `test` rodaria `npm run test -- --coverage` com `setupFiles: ./src/test/setup.ts` inexistente e **zero arquivos de teste** — hoje fica `skipped` junto com `build` |
 | `deploy.yml` | push em `main`, `workflow_dispatch` | environment `production`; passo Vercel só roda `if vars.DEPLOY_TARGET == 'vercel'`; o passo seguinte faz `supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}` **sem lista** → publica todas as functions, `migrate-helper` incluída |
 | `preview.yml` | PR (opened/synchronize/reopened) | **falha sempre**: `Error: Input required and not supplied: vercel-token` — o secret `VERCEL_TOKEN` não existe. O preview que funciona vem da integração Git do Vercel, não daqui |
-| `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript |
+| `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript; **falha sempre** com `Code scanning is not enabled for this repository` (configuração do repo, não do código) |
 | `agents-guard.yml` | PR para `main` tocando instruções de agente/CI, push em `main`, `workflow_dispatch` | roda `scripts/ci/check-agents-md-integrity.mjs` (base `origin/main`) e `node --test scripts/ci/*.unit.mjs`. Verde no GitHub no head `fd281c2` e local (10/10 testes + guard exit 0) |
 | `audit-pdf.yml` | push que altera `docs/audit_report.md`, `workflow_dispatch` | gera HTML/PDF com pandoc + wkhtmltopdf e **commita de volta** com `git push` |
 
@@ -65,7 +65,7 @@ Resultado real daquele head (`fd281c2`), para calibrar expectativa:
 | `lint-and-type-check` | **failure** | morre em `npm run lint` com **8 erros** pré-existentes (2× `no-empty-object-type`, 3× `react-hooks/rules-of-hooks`, `prefer-const` em `supabase/functions/integracoes-dispatcher/index.ts:98`, `no-explicit-any` em `totp-2fa/index.ts:459`, `no-require-imports` em `tailwind.config.ts:195`). O passo `npm run type-check` **nem chega a rodar** |
 | `test`, `build` | skipped | dependem (`needs`) do job vermelho |
 | `preview` | **failure** | `Error: Input required and not supplied: vercel-token` — o secret `VERCEL_TOKEN` não existe no repo |
-| `Analyze (javascript/typescript)` (CodeQL) | em execução na leitura | — |
+| `Analyze (javascript/typescript)` (CodeQL) | **failure** | erro de configuração, não de código: `Code scanning is not enabled for this repository`. É o mesmo motivo de todas as execuções agendadas falharem desde 2026-09-07 — ligar code scanning nas Settings do repo é decisão do dono |
 
 Ou seja: nenhuma PR consegue CI verde enquanto os 8 erros de lint estiverem na `main`, e os workflows que
 dependem de `VERCEL_TOKEN` nunca funcionaram.
