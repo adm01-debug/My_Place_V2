@@ -1,0 +1,44 @@
+name: Agents Guard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'docs/agentes/**'
+      - 'scripts/ci/**'
+      - '.claude/**'
+      - '.agents/**'
+      - '.codex/**'
+      - 'package.json'
+      - '.github/workflows/**'
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agents-guard:
+    name: Instrucoes de agente
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Integridade de AGENTS.md e docs/agentes
+        env:
+          AGENTS_MD_BASE: origin/${{ github.event.pull_request.base.ref || github.ref_name }}
+        run: node scripts/ci/check-agents-md-integrity.mjs
+
+      - name: Baseline dos fatos dos docs
+        run: node --test scripts/ci/*.unit.mjs

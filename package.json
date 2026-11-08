@@ -21,7 +21,9 @@
     "docker:run": "docker run -p 3000:80 my-place",
     "docker:dev": "docker-compose --profile dev up",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "graph:setup": "bash scripts/graphify/setup.sh",
+    "graph:update": "graphify update ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

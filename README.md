@@ -51,6 +51,7 @@ docker-compose up -d
 - [Deployment](docs/DEPLOYMENT.md)
 - [Database](docs/DATABASE_SCHEMA.md)
 - [Testes](docs/TESTING.md)
+- [Regras para agentes de IA](AGENTS.md) + referência por tema em [`docs/agentes/`](docs/agentes/)
 - [Contribuição](CONTRIBUTING.md)
 - [Segurança](SECURITY.md)
 

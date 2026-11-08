@@ -1,0 +1,19 @@
+# .graphifyignore — My Place V2 (Promo Brindes)
+# Nada de segredo nem de artefato gerado entra no grafo (o grafo pode ir para IA externa).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+seed-now.mjs
+supabase/scripts/
+dist/
+coverage/
+playwright-report/
+storybook-static/
+graphify-out/graph.json
+graphify-out/graph.html
+
+# Relatórios de auditoria gerados (PDF/HTML): poluem a busca do grafo
+docs/audit_report.html
+docs/audit_report.pdf
