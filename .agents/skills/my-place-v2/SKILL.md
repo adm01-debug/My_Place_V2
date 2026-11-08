@@ -14,9 +14,9 @@ Padrão Conventional Commits de `commitlint.config.js`: `<tipo>(<escopo>): <desc
 tipos: `feat fix docs style refactor test chore perf ci build revert` (`subject-case` desligado).
 Mensagem em PT-BR, modo imperativo, primeira linha curta.
 
-Atenção: os hooks `.husky/commit-msg` e `.husky/pre-commit` **não rodam** neste clone — `husky`,
-`@commitlint/*`, `lint-staged` e `prettier` não estão nas devDependencies e não há script `prepare`.
-Nada valida a mensagem: cumpra o padrão à mão.
+`.husky/commit-msg` valida a mensagem de verdade (husky instalado + `prepare` no `package.json`;
+lógica sem dependência nova em `scripts/ci/commit-msg-lint.mjs`). `.husky/pre-commit` é no-op: `lint-staged`
+e `prettier` continuam sem instalar — rode `npm run lint`/`npm run type-check` à mão antes do commit.
 
 Exemplo: `fix(notificacoes): corrige import de cors na edge de digest`
 

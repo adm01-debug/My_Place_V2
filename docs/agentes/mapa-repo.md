@@ -46,8 +46,11 @@ usam npm). `node_modules/` não vem no clone — rode `npm ci` antes de typechec
 - build: `npm run build` · preview: `npm run preview` · Storybook: `npm run storybook`;
 - guards de agente: `node scripts/ci/check-agents-md-integrity.mjs`, `node --test scripts/ci/*.unit.mjs`.
 
-Hooks do husky: `.husky/commit-msg` e `.husky/pre-commit` existem, mas `husky`/`commitlint`/`lint-staged`/
-`prettier` **não estão instalados** e não há script `prepare` — nenhum hook roda.
+Hooks do husky: `husky` foi instalado nesta sessão (`package.json` ganhou `prepare: "husky || true"`).
+`.husky/commit-msg` valida a mensagem (`node scripts/ci/commit-msg-lint.mjs`, zero dependência nova na
+lógica — ver `commitlint.config.js` para os tipos aceitos). `.husky/pre-commit` é **no-op de propósito**:
+`lint-staged`/`prettier` continuam sem instalar, então rodar `npx lint-staged` ali bloquearia todo commit;
+use `npm run lint <arquivos>`/`npm run type-check` à mão antes de commitar.
 
 ## Grafo de código (graphify) — detalhes
 
@@ -57,8 +60,9 @@ neste repo) está no `.gitignore`: cada clone gera o seu. Verificado nesta sess�
 
 Frescor: compare `git rev-parse --short HEAD` com a linha "Built from commit" de
 `graphify-out/GRAPH_REPORT.md`; divergiu → `npm run graph:update` (`graphify update .`, só AST, sem custo
-de API). Diferente do Zapp Web V2, **não** rodamos `graphify hook install` aqui (sem husky instalado o
-rebuild automático não funcionaria) — o update é manual. Em sessão de nuvem,
+de API). Diferente do Zapp Web V2, **não** rodamos `graphify hook install` aqui — o `prepare` deste repo
+só cuida do hook de commit-msg; ligar o rebuild automático do graphify via husky é trabalho futuro, não
+feito nesta sessão. O update continua manual. Em sessão de nuvem,
 `.claude/hooks/session-start.sh` instala o graphify e gera o grafo em segundo plano (log em
 `graphify-out/.session-start.log`; pula se o grafo já é do commit atual). Os hooks `PreToolUse` em
 `.claude/settings.json` chamam `graphify hook-guard` e não fazem nada onde o graphify não estiver instalado.

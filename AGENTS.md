@@ -100,8 +100,10 @@ Regras do dono para qualquer agente de IA; vencem `docs/` e `README.md` (histór
 - `npm run type-check`; `npm run lint` (0 erros hoje); `npx vitest run <caminho>`
   (**não existe nenhum teste**: `src/test/setup.ts` e `e2e/` não existem, então `npm run test` e
   `npx playwright test` falham na partida); `npm run build`; `npm run storybook`.
-- Hooks do husky estão em `.husky/` mas **husky, commitlint, lint-staged e prettier não estão instalados**
-  (sem `prepare` no `package.json`): o commit local não valida nada — siga o padrão à mão.
+- **`.husky/commit-msg` valida a mensagem de verdade** (husky instalado nesta sessão + `prepare`
+  no `package.json`; lógica sem dependência nova em `scripts/ci/commit-msg-lint.mjs`, portada do Zapp
+  Web V2). `.husky/pre-commit` é no-op de propósito: `lint-staged` continua sem instalar — rode
+  `npm run lint`/`npm run type-check` à mão antes do commit.
 - Antes de qualquer tarefa: `docs/agentes/mapa-repo.md` (onde fica cada coisa) e, para o que está quebrado,
   a tabela de riscos em `docs/agentes/github-ci.md`.
 - Automação em `scripts/<nome>/` com README (leia antes de alterar); nunca em `supabase/` nem `src/`.

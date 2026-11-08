@@ -27,7 +27,7 @@ test('AGENTS.md aponta o banco oficial e marca o antigo como proibido', () => {
   assert.match(t, /GITHUB - MCP - FOREVER/, 'a regra de escrita no GitHub precisa continuar explicita');
 });
 
-test('banco.md registra o backdoor do migrate-helper e o limite de evidencia', () => {
+test('banco.md registra a rotacao pendente da service_role e o limite de evidencia', () => {
   const t = ler(`${AGENTES}/banco.md`);
   assert.match(t, /migrate-helper/);
   assert.match(t, /service_role/);

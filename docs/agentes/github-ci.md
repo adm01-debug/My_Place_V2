@@ -11,9 +11,10 @@ Ler quando mexer em settings do repo, `.github/workflows/`, ou quando um merge o
   `delete` no mesmo commit (1 commit atômico).
 - Commits: `<tipo>(<escopo>): <assunto>`, tipos do `commitlint.config.js`
   (`feat fix docs style refactor test chore perf ci build revert`; `subject-case` desligado).
-  **Os hooks locais não validam nada**: `.husky/commit-msg` chama `commitlint` e `.husky/pre-commit` chama
-  `lint-staged`, mas `husky`, `@commitlint/*`, `lint-staged` e `prettier` **não estão nas devDependencies**
-  e não há script `prepare` — siga o padrão à mão.
+  **`.husky/commit-msg` valida isso de verdade** (`husky` instalado + `prepare`; lógica em
+  `scripts/ci/commit-msg-lint.mjs`, sem dependência nova, portada do Zapp Web V2 — mesma validação do
+  commit via MCP, que não passa pelo hook local). `.husky/pre-commit` continua no-op: `lint-staged` não
+  está instalado.
 - Para listar PRs abertas com os arquivos que tocam numa chamada só, use `github_graphql`
   (`pullRequests(states:OPEN){ nodes { number files { nodes { path } } } }`).
 
