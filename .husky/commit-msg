@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-npx --no -- commitlint --edit ${1}
+#!/bin/sh
+# Gate de mensagem de commit: a funcao do commitlint SEM dependencia nova para a logica
+# (husky so dispara o hook). O git passa o caminho do arquivo de mensagem em $1; o padrao
+# cobrado e o de commitlint.config.js (ver scripts/ci/commit-msg-lint.mjs).
+node scripts/ci/commit-msg-lint.mjs "$1"

@@ -144,6 +144,29 @@ export default function BusinessIntelligence() {
   const filtro = <T extends { departamento: string }>(rows: T[] | undefined) =>
     (rows ?? []).filter((r) => departamento === "todos" || r.departamento === departamento);
 
+  // Séries agregadas por mês para os charts — useMemo precisa rodar antes de qualquer
+  // return condicional (regra dos hooks), por isso ficam aqui e não perto do uso no JSX.
+  const headcountSerie = useMemo(() => {
+    const rows = filtro(headcount.data);
+    const map = new Map<string, number>();
+    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + r.ativos));
+    return Array.from(map.entries()).map(([mes, ativos]) => ({ mes: formatMes(mes), ativos }));
+  }, [headcount.data, departamento]);
+
+  const custoSerie = useMemo(() => {
+    const rows = filtro(custo.data);
+    const map = new Map<string, number>();
+    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + Number(r.total)));
+    return Array.from(map.entries()).map(([mes, total]) => ({ mes: formatMes(mes), total }));
+  }, [custo.data, departamento]);
+
+  const engajSerie = useMemo(() => {
+    const rows = filtro(engaj.data);
+    const map = new Map<string, number>();
+    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + r.score_engajamento));
+    return Array.from(map.entries()).map(([mes, score]) => ({ mes: formatMes(mes), score }));
+  }, [engaj.data, departamento]);
+
   if (loadingRole) return <PageSkeleton />;
   if (!hasAccess) return <Navigate to="/" replace />;
 
@@ -177,28 +200,6 @@ export default function BusinessIntelligence() {
     turnover.data && turnover.data.length > 0
       ? turnover.data.reduce((s, r) => s + Number(r.turnover_pct || 0), 0) / turnover.data.length
       : 0;
-
-  // Séries agregadas por mês para os charts
-  const headcountSerie = useMemo(() => {
-    const rows = filtro(headcount.data);
-    const map = new Map<string, number>();
-    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + r.ativos));
-    return Array.from(map.entries()).map(([mes, ativos]) => ({ mes: formatMes(mes), ativos }));
-  }, [headcount.data, departamento]);
-
-  const custoSerie = useMemo(() => {
-    const rows = filtro(custo.data);
-    const map = new Map<string, number>();
-    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + Number(r.total)));
-    return Array.from(map.entries()).map(([mes, total]) => ({ mes: formatMes(mes), total }));
-  }, [custo.data, departamento]);
-
-  const engajSerie = useMemo(() => {
-    const rows = filtro(engaj.data);
-    const map = new Map<string, number>();
-    rows.forEach((r) => map.set(r.mes, (map.get(r.mes) || 0) + r.score_engajamento));
-    return Array.from(map.entries()).map(([mes, score]) => ({ mes: formatMes(mes), score }));
-  }, [engaj.data, departamento]);
 
   return (
     <div className="space-y-4 pb-6">

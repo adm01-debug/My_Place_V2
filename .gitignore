@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Grafo de código (graphify) — gerado por clone, ~dezenas de MB
+graphify-out/
