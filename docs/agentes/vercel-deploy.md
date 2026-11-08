@@ -28,10 +28,10 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
 - **O último run do workflow `Deploy` falhou** (push de 2026-09-01, `conclusion: failure` —
   `github_list_workflow_runs`): o deploy de produção que existe no Vercel é o da criação do projeto, não
   um deploy do workflow.
-- **Preview é automático pela integração Git** (verificado na PR #1), e **não** pelo `preview.yml`: esse
-  workflow falha sempre com `Error: Input required and not supplied: vercel-token` — o secret
-  `VERCEL_TOKEN` não existe no repo. Pelo mesmo motivo, o passo Vercel do `deploy.yml` também não
-  funcionaria se `DEPLOY_TARGET` fosse ligado sem criar o secret antes.
+- **Preview é automático pela integração Git** (verificado na PR #1). O `preview.yml` **foi removido**
+  nesta sessão: falhava sempre com `Error: Input required and not supplied: vercel-token` (secret
+  inexistente) e era redundante com a integração Git. Pelo mesmo motivo (`VERCEL_TOKEN` ausente), o passo
+  Vercel do `deploy.yml` também não funcionaria se `DEPLOY_TARGET` fosse ligado sem criar o secret antes.
 - **Produção pelo workflow é condicional:** `deploy.yml` roda no push da `main`, mas o passo Vercel só
   executa com `if: ${{ vars.DEPLOY_TARGET == 'vercel' }}`; sem essa variável o job builda e não deploya.
   Se a produção sai pela integração Git no merge da `main`, isso **não está verificado** — o último deploy
@@ -41,9 +41,6 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
   com a **lista explícita** das 8 functions do repo (corrigido nesta sessão). Nunca rode
   `supabase functions deploy` à mão sem `--project-ref`: o `supabase/config.toml` aponta para o projeto
   Lovable antigo.
-- **Preview:** `preview.yml` deploya preview a cada PR e comenta a URL. Depende de `VERCEL_TOKEN`,
-  `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
-
 ### Regras de env vars no Vercel
 
 - Vars `VITE_*` entram no bundle e são **públicas** — nunca segredo com prefixo `VITE_`.
@@ -62,7 +59,8 @@ permissão revogada. Histórico de deploys e logs de runtime: **NÃO VERIFICÁVE
 ### Pendências (dependem de decisão do dono)
 
 1. Definir o caminho único de deploy: integração Git do Vercel (hoje a única comprovadamente ativa, em
-   preview), `deploy.yml` + `DEPLOY_TARGET=vercel`, ou Docker/VPS (`docker-vps.md`). Hoje preview deploya
-   por dois caminhos e produção por nenhum confirmado.
+   preview, e a única para preview depois da remoção do `preview.yml`), `deploy.yml` + `DEPLOY_TARGET=vercel`,
+   ou Docker/VPS (`docker-vps.md`). Produção continua sem confirmação.
 2. Node 20 (CI/Docker) vs 24.x (Vercel): alinhar antes de culpar build por diferença de ambiente.
 3. Rotacionar `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_DB_URL` no projeto `twdechwttlqtmmfzwapc` — a chave já esteve em texto claro no histórico do Git (`migrate-helper`, removido nesta sessão).
+4. Ligar code scanning (CodeQL) nas Settings do repo — repo privado, provável custo de GitHub Advanced Security; decisão do dono.

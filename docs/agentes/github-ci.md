@@ -38,43 +38,45 @@ Sem branch protection, **nada impede push direto na `main`** — a regra "nunca 
 disciplina de agente, não trava técnica. E porque o Lovable escreve direto na `main`, re-sincronize
 (`git fetch origin main`) antes de abrir branch.
 
-## Workflows (6 arquivos em `.github/workflows/`)
+## Workflows (5 arquivos em `.github/workflows/`)
 
 | Arquivo | Gatilho | Estado real |
 |---|---|---|
-| `ci.yml` | push em `main`/`develop`, PR para `main` | **vermelha por construção**: o job `lint-and-type-check` morre antes do typecheck, no `npm run lint` (8 erros na `main`); o passo seguinte chama `npm run type-check`, script que **não existe** no `package.json`; e o job `test` rodaria `npm run test -- --coverage` com `setupFiles: ./src/test/setup.ts` inexistente e **zero arquivos de teste** — hoje fica `skipped` junto com `build` |
+| `ci.yml` | push em `main`/`develop`, PR para `main` | o job `lint-and-type-check` roda `npm run lint` + `npm run type-check` (script criado nesta sessão). Os 8 erros de lint pré-existentes foram corrigidos nesta sessão — o job passa até aí. O job `test` ainda falha: `setupFiles: ./src/test/setup.ts` (vitest.config.ts) não existe e não há nenhum arquivo `*.test.*`/`*.spec.*` em `src/` — **isso não foi corrigido** (escrever testes é tarefa maior, fora do escopo desta sessão); `build` fica `skipped` por `needs: test` |
 | `deploy.yml` | push em `main`, `workflow_dispatch` | environment `production`; passo Vercel só roda `if vars.DEPLOY_TARGET == 'vercel'`; o passo seguinte roda `supabase functions deploy` com a **lista explícita** das 8 functions do repo (corrigido nesta sessão; antes rodava sem lista e publicava `migrate-helper` junto) |
-| `preview.yml` | PR (opened/synchronize/reopened) | **falha sempre**: `Error: Input required and not supplied: vercel-token` — o secret `VERCEL_TOKEN` não existe. O preview que funciona vem da integração Git do Vercel, não daqui |
-| `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript; **falha sempre** com `Code scanning is not enabled for this repository` (configuração do repo, não do código) |
+| `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript; **falha sempre** com `Code scanning is not enabled for this repository`. Repo **privado**: ligar code scanning aqui normalmente exige GitHub Advanced Security (feature paga fora de Enterprise) — **decisão de custo do dono**, não mexi nisso. Nas Settings: Security → Code security → Code scanning |
 | `agents-guard.yml` | PR para `main` tocando instruções de agente/CI, push em `main`, `workflow_dispatch` | roda `scripts/ci/check-agents-md-integrity.mjs` (base `origin/main`) e `node --test scripts/ci/*.unit.mjs`. Verde no GitHub no head `fd281c2` e local (10/10 testes + guard exit 0) |
 | `audit-pdf.yml` | push que altera `docs/audit_report.md`, `workflow_dispatch` | gera HTML/PDF com pandoc + wkhtmltopdf e **commita de volta** com `git push` |
 
-Estado dos runs na `main` (`github_list_workflow_runs`, 590 runs; leitura em 2026-11-08): os três últimos
-workflows a rodar na `main` terminaram em **failure** — `CI` e `Deploy` no push de 2026-09-01 e `CodeQL`
-em toda execução agendada desde 2026-09-07 (última: 2026-11-02). Não há run verde recente na `main`.
+**`preview.yml` foi removido nesta sessão.** Falhava sempre com `Error: Input required and not supplied:
+vercel-token` (secret `VERCEL_TOKEN` inexistente) e era redundante: a integração Git do Vercel já cobre
+preview em cada push, sem passar por Actions (ver `vercel-deploy.md`). Decisão tomada sem pendência: criar
+o secret não teria efeito prático, já que o resultado (preview deployado) já existe pelo outro caminho.
+
+Estado dos runs na `main` antes desta sessão (`github_list_workflow_runs`, 590 runs; leitura em
+2026-11-08): os três últimos workflows a rodar terminaram em **failure** — `CI` e `Deploy` no push de
+2026-09-01 e `CodeQL` em toda execução agendada desde 2026-09-07 (última: 2026-11-02). Essa leitura é
+anterior às correções de lint/type-check/deploy desta sessão.
 
 **Actions roda, mas a fila é lenta:** na PR #1 (2026-11-08) os jobs ficaram ~8 min em `QUEUED` antes de
 qualquer runner pegar. `QUEUED` por alguns minutos aqui é normal, não é travamento.
 
-Resultado real daquele head (`fd281c2`), para calibrar expectativa:
+Resultado real no head `fd281c2` (antes das correções desta sessão), para calibrar expectativa histórica:
 
 | Check | Conclusão | Por quê |
 |---|---|---|
 | `Instrucoes de agente` (Agents Guard) | **success** | guard deste repo passa no CI |
 | `security-scan` | success | `npm audit` com `continue-on-error` |
-| `lint-and-type-check` | **failure** | morre em `npm run lint` com **8 erros** pré-existentes (2× `no-empty-object-type`, 3× `react-hooks/rules-of-hooks`, `prefer-const` em `supabase/functions/integracoes-dispatcher/index.ts:98`, `no-explicit-any` em `totp-2fa/index.ts:459`, `no-require-imports` em `tailwind.config.ts:195`). O passo `npm run type-check` **nem chega a rodar** |
-| `test`, `build` | skipped | dependem (`needs`) do job vermelho |
-| `preview` | **failure** | `Error: Input required and not supplied: vercel-token` — o secret `VERCEL_TOKEN` não existe no repo |
-| `Analyze (javascript/typescript)` (CodeQL) | **failure** | erro de configuração, não de código: `Code scanning is not enabled for this repository`. É o mesmo motivo de todas as execuções agendadas falharem desde 2026-09-07 — ligar code scanning nas Settings do repo é decisão do dono |
-
-Ou seja: nenhuma PR consegue CI verde enquanto os 8 erros de lint estiverem na `main`, e os workflows que
-dependem de `VERCEL_TOKEN` nunca funcionaram.
+| `lint-and-type-check` | failure | morria em `npm run lint` com 8 erros — **corrigidos nesta sessão** (ver commit que fecha este item) |
+| `test`, `build` | skipped | dependiam (`needs`) do job vermelho; `test` **ainda falha** sozinho (`src/test/setup.ts` ausente, zero testes) |
+| `preview` | failure | `vercel-token` ausente — **workflow removido** nesta sessão |
+| `Analyze (javascript/typescript)` (CodeQL) | failure | `Code scanning is not enabled for this repository` — **decisão de custo do dono**, continua assim |
 
 Fatos que já custaram retrabalho:
 
-- **CI verde não é alcançável hoje.** Não trate vermelho como "seu" sem olhar o job: erro de lint em
-  arquivo que você não tocou, `npm run type-check` (script ausente), `No test files found` ou
-  `vercel-token` ausente são heranças da `main` → "Próximos passos".
+- **CI ainda não é 100% verde.** O job `lint-and-type-check` passa desde esta sessão; `test`/`build`
+  continuam vermelhos por falta de suíte de teste (não escrita aqui — é tarefa maior) e `CodeQL` continua
+  vermelho por decisão de custo pendente com o dono. Não trate vermelho como "seu" sem checar qual job é.
 - **`a1e20e1` desfez três fixes do dia anterior** (`3722a22`, `50dab43` e `6b8c92b`): o `project_id` do
   banco oficial, a remoção do `migrate-helper` e o import quebrado de `notificacoes-digest`
   (`npm:@supabase/supabase-js@2/cors`, subpath inexistente). A remoção do `migrate-helper` foi refeita

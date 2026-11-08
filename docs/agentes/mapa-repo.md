@@ -36,9 +36,9 @@ o resultado do CI — avise na PR.
 Gerenciador: **`npm ci`** (há `package-lock.json`; `bun.lock` também está versionado, mas CI e Dockerfile
 usam npm). `node_modules/` não vem no clone — rode `npm ci` antes de typecheck/lint.
 
-- typecheck: `npx tsc --noEmit -p tsconfig.app.json` (não existe script `type-check`, apesar de o
-  `ci.yml` chamá-lo);
-- lint só do que tocou: `npx eslint <arquivos>` (`npm run lint` roda o repo inteiro);
+- typecheck: `npm run type-check` (script criado nesta sessão; `tsc --noEmit -p tsconfig.app.json`);
+- lint: `npm run lint` roda o repo inteiro e hoje passa com 0 erros (8 erros pré-existentes corrigidos
+  nesta sessão); lint só do que tocou: `npx eslint <arquivos>`;
 - testes unitários: `npx vitest run <caminho>` — **não há nenhum teste**; `npm run test` falha por
   `setupFiles` inexistente;
 - E2E: `npx playwright test` — falha por falta de `e2e/`; e o `baseURL` padrão é `http://localhost:5173`

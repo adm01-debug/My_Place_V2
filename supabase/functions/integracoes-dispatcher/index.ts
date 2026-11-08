@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
       const inicio = Date.now();
       let respStatus: number | null = null;
       let respBody = "";
-      let respHeaders: Record<string, string> = {};
+      const respHeaders: Record<string, string> = {};
       let erro: string | null = null;
 
       try {

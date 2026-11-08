@@ -97,7 +97,7 @@ Regras do dono para qualquer agente de IA; vencem `docs/` e `README.md` (histór
   (`vite-plugin-pwa`), Storybook 7, Supabase (`supabase/functions/`, `supabase/migrations/`), Node 20.
 - **`package-lock.json` e `bun.lock` versionados ao mesmo tempo**; CI e Dockerfile usam `npm ci` — use
   `npm ci` e não troque de gerenciador sem avisar na PR.
-- `npx tsc --noEmit -p tsconfig.app.json`; `npx eslint <arquivos>`; `npx vitest run <caminho>`
+- `npm run type-check`; `npm run lint` (0 erros hoje); `npx vitest run <caminho>`
   (**não existe nenhum teste**: `src/test/setup.ts` e `e2e/` não existem, então `npm run test` e
   `npx playwright test` falham na partida); `npm run build`; `npm run storybook`.
 - Hooks do husky estão em `.husky/` mas **husky, commitlint, lint-staged e prettier não estão instalados**
