@@ -17,3 +17,7 @@ graphify-out/graph.html
 # Relatórios de auditoria gerados (PDF/HTML): poluem a busca do grafo
 docs/audit_report.html
 docs/audit_report.pdf
+
+# Contexto para agentes de IA gerado (docs/contexto/): regenerado a cada 10 min, não versionado
+# na main; polui a busca do grafo como os relatórios acima.
+docs/contexto/

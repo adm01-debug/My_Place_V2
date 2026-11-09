@@ -1,0 +1,1850 @@
+{
+  "format_version": 1,
+  "fonte": "scripts/inventario/gerar-rotas.mjs (le src/App.tsx, src/components/layout/Navbar.tsx, src/components/layout/GlobalSearch.tsx e os imports de cada pagina)",
+  "resumo": {
+    "rotas": 49,
+    "protegidas": 46,
+    "itens_de_menu": 15,
+    "hooks_distintos": 18,
+    "problemas": 33
+  },
+  "rotas": [
+    {
+      "caminho": "*",
+      "rotulo": "Não encontrado",
+      "componente": "NotFound",
+      "arquivo": "src/pages/NotFound.tsx",
+      "protegida": false,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 2,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/",
+      "rotulo": "Home",
+      "componente": "Home",
+      "arquivo": "src/pages/Home.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Início",
+        "busca": "Início",
+        "admin": false
+      },
+      "arquivos_lidos": 17,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "beneficios",
+        "comunicados",
+        "decimo_terceiro",
+        "holerites",
+        "metas_colaborador",
+        "notificacoes",
+        "ocorrencias",
+        "plano_saude_gastos",
+        "profiles",
+        "registros_ponto",
+        "remuneracoes_variaveis",
+        "solicitacoes",
+        "solicitacoes_ferias",
+        "user_roles",
+        "vale_transportes"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin",
+      "rotulo": "Dashboard Admin",
+      "componente": "AdminDashboard",
+      "arquivo": "src/pages/AdminDashboard.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Dashboard Admin",
+        "admin": true
+      },
+      "arquivos_lidos": 5,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "profiles",
+        "registros_ponto",
+        "solicitacoes",
+        "solicitacoes_ferias",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/aprovacoes",
+      "rotulo": "Aprovações",
+      "componente": "AdminAprovacoes",
+      "arquivo": "src/pages/AdminAprovacoes.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Aprovações",
+        "admin": true
+      },
+      "arquivos_lidos": 13,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_notificar",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "solicitacoes",
+        "solicitacoes_ferias",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/auditoria",
+      "rotulo": "Auditoria",
+      "componente": "AdminAuditoria",
+      "arquivo": "src/pages/AdminAuditoria.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 7,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "audit_log"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/configuracoes",
+      "rotulo": "Configurações",
+      "componente": "AdminConfiguracoes",
+      "arquivo": "src/pages/AdminConfiguracoes.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Configurações do Sistema",
+        "admin": true
+      },
+      "arquivos_lidos": 6,
+      "hooks": [],
+      "buckets": [
+        "documentos"
+      ],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "configuracoes_globais"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/holerites",
+      "rotulo": "Importação de Holerites",
+      "componente": "AdminHolerites",
+      "arquivo": "src/pages/AdminHolerites.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [],
+      "buckets": [
+        "documentos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "fn_notificar"
+      ],
+      "tabelas": [
+        "holerites",
+        "profiles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/integracoes",
+      "rotulo": "Integrações Externas",
+      "componente": "AdminIntegracoes",
+      "arquivo": "src/pages/AdminIntegracoes.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 11,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [
+        "integracoes-dispatcher",
+        "integracoes-test"
+      ],
+      "rpcs": [
+        "check_account_locked",
+        "fn_integracao_estatisticas",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "integracoes",
+        "integracoes_eventos",
+        "integracoes_logs",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/locais",
+      "rotulo": "Locais Permitidos",
+      "componente": "AdminLocais",
+      "arquivo": "src/pages/AdminLocais.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Locais Permitidos",
+        "admin": true
+      },
+      "arquivos_lidos": 11,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "locais_permitidos",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/notif-templates",
+      "rotulo": "Templates de Notificação",
+      "componente": "AdminNotifTemplates",
+      "arquivo": "src/pages/AdminNotifTemplates.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 2,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "fn_notif_template_stats"
+      ],
+      "tabelas": [
+        "notificacao_templates"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/rate-limits",
+      "rotulo": "Rate Limits",
+      "componente": "AdminRateLimits",
+      "arquivo": "src/pages/AdminRateLimits.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 5,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "notificacao_rate_limits"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/relatorios",
+      "rotulo": "Relatórios Gerenciais",
+      "componente": "AdminRelatorios",
+      "arquivo": "src/pages/AdminRelatorios.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Relatórios",
+        "admin": true
+      },
+      "arquivos_lidos": 6,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "registros_ponto",
+        "solicitacoes",
+        "solicitacoes_ferias"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/admin/usuarios",
+      "rotulo": "Gestão de Usuários",
+      "componente": "AdminUsuarios",
+      "arquivo": "src/pages/AdminUsuarios.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Usuários",
+        "admin": true
+      },
+      "arquivos_lidos": 6,
+      "hooks": [],
+      "buckets": [],
+      "edges": [
+        "admin-user-mgmt"
+      ],
+      "rpcs": [],
+      "tabelas": [
+        "profiles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/assinaturas",
+      "rotulo": "Assinatura de Documentos",
+      "componente": "Assinaturas",
+      "arquivo": "src/pages/Assinaturas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "documentos_assinatura",
+        "documentos_assinaturas",
+        "profiles",
+        "user_roles",
+        "vw_documentos_assinatura"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/atestados",
+      "rotulo": "Atestados & Afastamentos",
+      "componente": "Atestados",
+      "arquivo": "src/pages/Atestados.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useToast",
+          "arquivo": "src/hooks/use-toast.ts"
+        }
+      ],
+      "buckets": [
+        "atestados"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "atestados",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/bi",
+      "rotulo": "Business Intelligence",
+      "componente": "BusinessIntelligence",
+      "arquivo": "src/pages/BusinessIntelligence.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 12,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [
+        "bi-export"
+      ],
+      "rpcs": [
+        "check_account_locked",
+        "fn_bi_absenteismo",
+        "fn_bi_compliance",
+        "fn_bi_criar_snapshot",
+        "fn_bi_custo",
+        "fn_bi_engajamento",
+        "fn_bi_headcount",
+        "fn_bi_refresh_all",
+        "fn_bi_turnover",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/calculadoras",
+      "rotulo": "Calculadoras",
+      "componente": "Calculadoras",
+      "arquivo": "src/pages/Calculadoras.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/calendario",
+      "rotulo": "Calendário Corporativo",
+      "componente": "Calendario",
+      "arquivo": "src/pages/Calendario.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 3,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "fn_calendario_mes"
+      ],
+      "tabelas": [],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/chamados",
+      "rotulo": "Central de Chamados",
+      "componente": "Chamados",
+      "arquivo": "src/pages/Chamados.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "chamados",
+        "chamados_mensagens",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/clima",
+      "rotulo": "Clima Organizacional",
+      "componente": "Clima",
+      "arquivo": "src/pages/Clima.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_clima_resultados",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "clima_enquetes",
+        "clima_respostas",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/documentos",
+      "rotulo": "Documentos",
+      "componente": "Documentos",
+      "arquivo": "src/pages/Documentos.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Documentos",
+        "busca": "Documentos",
+        "admin": false
+      },
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "documentos",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/emprestimos",
+      "rotulo": "Empréstimos",
+      "componente": "Emprestimos",
+      "arquivo": "src/pages/Emprestimos.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 12,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "emprestimos",
+        "parcelas_emprestimo",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/epis",
+      "rotulo": "EPIs",
+      "componente": "Epis",
+      "arquivo": "src/pages/Epis.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "epis_entregas",
+        "profiles",
+        "user_roles",
+        "vw_epis_ativos"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/exit-interview",
+      "rotulo": "Pesquisa de Desligamento",
+      "componente": "ExitInterview",
+      "arquivo": "src/pages/ExitInterview.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useToast",
+          "arquivo": "src/hooks/use-toast.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "exit_interviews",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/faq",
+      "rotulo": "FAQ",
+      "componente": "FAQ",
+      "arquivo": "src/pages/FAQ.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 7,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [
+        "faq"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/feedback-360",
+      "rotulo": "Feedback 360º",
+      "componente": "Feedback360",
+      "arquivo": "src/pages/Feedback360.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 8,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_meus_resultados_360",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "feedback_avaliadores",
+        "feedback_ciclos",
+        "feedback_respostas",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/ferias",
+      "rotulo": "Férias",
+      "componente": "Ferias",
+      "arquivo": "src/pages/Ferias.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Férias",
+        "busca": "Férias",
+        "admin": false
+      },
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_calcular_saldo_ferias",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "solicitacoes_ferias",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/holerites",
+      "rotulo": "Holerites",
+      "componente": "Holerites",
+      "arquivo": "src/pages/Holerites.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Holerites",
+        "busca": "Holerites",
+        "admin": false
+      },
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [
+        "documentos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "holerites",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/ideias",
+      "rotulo": "Central de Ideias",
+      "componente": "Ideias",
+      "arquivo": "src/pages/Ideias.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "ideias",
+        "ideias_comentarios",
+        "ideias_votos",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/justificativas",
+      "rotulo": "Justificativas",
+      "componente": "Justificativas",
+      "arquivo": "src/pages/Justificativas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 5,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [
+        "anexos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "justificativas_ponto",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/kudos",
+      "rotulo": "Kudos",
+      "componente": "Kudos",
+      "arquivo": "src/pages/Kudos.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 5,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "kudos",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/login",
+      "rotulo": "Login",
+      "componente": "Login",
+      "arquivo": "src/pages/Login.tsx",
+      "protegida": false,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/metas",
+      "rotulo": "Metas & OKRs",
+      "componente": "Metas",
+      "arquivo": "src/pages/Metas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 8,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "metas_colaborador",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/notificacoes",
+      "rotulo": "Notificacoes",
+      "componente": "Notificacoes",
+      "arquivo": "src/pages/Notificacoes.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Notificações",
+        "admin": false
+      },
+      "arquivos_lidos": 43,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useAutoRules",
+          "arquivo": "src/hooks/useAutoRules.ts"
+        },
+        {
+          "nome": "useFaviconBadge",
+          "arquivo": "src/hooks/useFaviconBadge.ts"
+        },
+        {
+          "nome": "useNotificacaoDeepLink",
+          "arquivo": "src/hooks/useNotificacaoDeepLink.ts"
+        },
+        {
+          "nome": "useNotificacaoKeyboardShortcuts",
+          "arquivo": "src/hooks/useNotificacaoKeyboardShortcuts.ts"
+        },
+        {
+          "nome": "useNotificacaoStats",
+          "arquivo": "src/hooks/useNotificacaoStats.ts"
+        },
+        {
+          "nome": "useNotificacoesActions",
+          "arquivo": "src/hooks/useNotificacoesActions.ts"
+        },
+        {
+          "nome": "useNotificacoesData",
+          "arquivo": "src/hooks/useNotificacoesData.ts"
+        },
+        {
+          "nome": "useNotificacoesExport",
+          "arquivo": "src/hooks/useNotificacoesExport.ts"
+        },
+        {
+          "nome": "useNotificacoesFiltradas",
+          "arquivo": "src/hooks/useNotificacoesFiltradas.ts"
+        },
+        {
+          "nome": "useNotificacoesPreferences",
+          "arquivo": "src/hooks/useNotificacoesPreferences.ts"
+        },
+        {
+          "nome": "useNotificacoesRealtime",
+          "arquivo": "src/hooks/useNotificacoesRealtime.ts"
+        },
+        {
+          "nome": "useNotificacoesSelecao",
+          "arquivo": "src/hooks/useNotificacoesSelecao.ts"
+        },
+        {
+          "nome": "useNotificacoesShare",
+          "arquivo": "src/hooks/useNotificacoesShare.ts"
+        },
+        {
+          "nome": "useNotificacoesThreads",
+          "arquivo": "src/hooks/useNotificacoesThreads.ts"
+        },
+        {
+          "nome": "useNotificationAlert",
+          "arquivo": "src/hooks/useNotificationAlert.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [
+        "link-preview"
+      ],
+      "rpcs": [
+        "check_account_locked",
+        "fn_adiar_notificacoes",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "notificacoes",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/notificacoes/historico",
+      "rotulo": "Histórico de Notificações",
+      "componente": "NotificacaoHistorico",
+      "arquivo": "src/pages/NotificacaoHistorico.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 10,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_motivo_bloqueio",
+        "fn_notif_stats_24h",
+        "fn_notificar",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "integracoes",
+        "notificacao_entregas",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/notificacoes/preferencias",
+      "rotulo": "Preferências de Notificação",
+      "componente": "NotificacaoPreferencias",
+      "arquivo": "src/pages/NotificacaoPreferencias.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 8,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_notif_prefs_reset",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "notificacao_preferencias",
+        "notificacao_quiet_hours",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/onboarding",
+      "rotulo": "Onboarding",
+      "componente": "Onboarding",
+      "arquivo": "src/pages/Onboarding.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useToast",
+          "arquivo": "src/hooks/use-toast.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "onboarding_colaborador",
+        "onboarding_progresso",
+        "onboarding_tarefas",
+        "onboarding_templates",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/patrimonio",
+      "rotulo": "Patrimônio",
+      "componente": "Patrimonio",
+      "arquivo": "src/pages/Patrimonio.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "patrimonio_movimentacoes",
+        "profiles",
+        "user_roles",
+        "vw_patrimonio_em_uso"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/perfil",
+      "rotulo": "Perfil",
+      "componente": "Perfil",
+      "arquivo": "src/pages/Perfil.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": null,
+        "busca": "Meu Perfil",
+        "admin": false
+      },
+      "arquivos_lidos": 12,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useToast",
+          "arquivo": "src/hooks/use-toast.ts"
+        }
+      ],
+      "buckets": [
+        "avatars"
+      ],
+      "edges": [
+        "totp-2fa",
+        "webauthn"
+      ],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "user_2fa",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/politicas",
+      "rotulo": "Políticas Corporativas",
+      "componente": "Politicas",
+      "arquivo": "src/pages/Politicas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "politicas",
+        "politicas_aceites",
+        "politicas_versoes",
+        "profiles",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/ponto",
+      "rotulo": "Ponto",
+      "componente": "Ponto",
+      "arquivo": "src/pages/Ponto.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Ponto",
+        "busca": "Ponto",
+        "admin": false
+      },
+      "arquivos_lidos": 13,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "fn_validar_ponto_no_raio",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "registros_ponto",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/reembolsos",
+      "rotulo": "Reembolsos",
+      "componente": "Reembolsos",
+      "arquivo": "src/pages/Reembolsos.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 9,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useToast",
+          "arquivo": "src/hooks/use-toast.ts"
+        }
+      ],
+      "buckets": [
+        "anexos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "reembolsos",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/reservas",
+      "rotulo": "Reservas de Salas & Recursos",
+      "componente": "Reservas",
+      "arquivo": "src/pages/Reservas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 5,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "reservas_recursos",
+        "salas_recursos",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/reset-password",
+      "rotulo": "Redefinir Senha",
+      "componente": "ResetPassword",
+      "arquivo": "src/pages/ResetPassword.tsx",
+      "protegida": false,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 2,
+      "hooks": [],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [],
+      "tabelas": [],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/solicitacoes",
+      "rotulo": "Solicitações",
+      "componente": "Solicitacoes",
+      "arquivo": "src/pages/Solicitacoes.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Solicitações",
+        "busca": "Solicitações",
+        "admin": false
+      },
+      "arquivos_lidos": 11,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [
+        "anexos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "solicitacoes",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/treinamentos",
+      "rotulo": "Treinamentos & Certificações",
+      "componente": "Treinamentos",
+      "arquivo": "src/pages/Treinamentos.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        },
+        {
+          "nome": "useUserRoles",
+          "arquivo": "src/hooks/useUserRoles.ts"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "treinamentos_matriculas",
+        "user_roles",
+        "vw_treinamentos_status"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/trilhas",
+      "rotulo": "Trilhas",
+      "componente": "Trilhas",
+      "arquivo": "src/pages/Trilhas.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 12,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "trilhas_desenvolvimento",
+        "trilhas_etapas",
+        "trilhas_etapas_concluidas",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/vales",
+      "rotulo": "Vales",
+      "componente": "Vales",
+      "arquivo": "src/pages/Vales.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": {
+        "navbar": "Vales",
+        "busca": null,
+        "admin": false
+      },
+      "arquivos_lidos": 13,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [
+        "anexos",
+        "solicitacoes_anexos"
+      ],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "configuracoes_globais",
+        "faq",
+        "profiles",
+        "solicitacoes",
+        "solicitacoes_historico",
+        "user_roles"
+      ],
+      "imports_quebrados": []
+    },
+    {
+      "caminho": "/viagens",
+      "rotulo": "Viagens Corporativas",
+      "componente": "Viagens",
+      "arquivo": "src/pages/Viagens.tsx",
+      "protegida": true,
+      "redireciona": null,
+      "menu": null,
+      "arquivos_lidos": 6,
+      "hooks": [
+        {
+          "nome": "useAuth",
+          "arquivo": "src/contexts/AuthContext.tsx"
+        }
+      ],
+      "buckets": [],
+      "edges": [],
+      "rpcs": [
+        "check_account_locked",
+        "record_login_attempt"
+      ],
+      "tabelas": [
+        "profiles",
+        "user_roles",
+        "viagens",
+        "viagens_despesas",
+        "vw_viagens_resumo"
+      ],
+      "imports_quebrados": []
+    }
+  ],
+  "hooks": {
+    "useAuth": {
+      "arquivo": "src/contexts/AuthContext.tsx",
+      "rotas": [
+        "/",
+        "/admin/aprovacoes",
+        "/admin/integracoes",
+        "/admin/locais",
+        "/assinaturas",
+        "/atestados",
+        "/bi",
+        "/chamados",
+        "/clima",
+        "/documentos",
+        "/emprestimos",
+        "/epis",
+        "/exit-interview",
+        "/feedback-360",
+        "/ferias",
+        "/holerites",
+        "/ideias",
+        "/justificativas",
+        "/kudos",
+        "/login",
+        "/metas",
+        "/notificacoes",
+        "/notificacoes/historico",
+        "/notificacoes/preferencias",
+        "/onboarding",
+        "/patrimonio",
+        "/perfil",
+        "/politicas",
+        "/ponto",
+        "/reembolsos",
+        "/reservas",
+        "/solicitacoes",
+        "/treinamentos",
+        "/trilhas",
+        "/vales",
+        "/viagens"
+      ]
+    },
+    "useAutoRules": {
+      "arquivo": "src/hooks/useAutoRules.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useFaviconBadge": {
+      "arquivo": "src/hooks/useFaviconBadge.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacaoDeepLink": {
+      "arquivo": "src/hooks/useNotificacaoDeepLink.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacaoKeyboardShortcuts": {
+      "arquivo": "src/hooks/useNotificacaoKeyboardShortcuts.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacaoStats": {
+      "arquivo": "src/hooks/useNotificacaoStats.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesActions": {
+      "arquivo": "src/hooks/useNotificacoesActions.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesData": {
+      "arquivo": "src/hooks/useNotificacoesData.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesExport": {
+      "arquivo": "src/hooks/useNotificacoesExport.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesFiltradas": {
+      "arquivo": "src/hooks/useNotificacoesFiltradas.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesPreferences": {
+      "arquivo": "src/hooks/useNotificacoesPreferences.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesRealtime": {
+      "arquivo": "src/hooks/useNotificacoesRealtime.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesSelecao": {
+      "arquivo": "src/hooks/useNotificacoesSelecao.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesShare": {
+      "arquivo": "src/hooks/useNotificacoesShare.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificacoesThreads": {
+      "arquivo": "src/hooks/useNotificacoesThreads.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useNotificationAlert": {
+      "arquivo": "src/hooks/useNotificationAlert.ts",
+      "rotas": [
+        "/notificacoes"
+      ]
+    },
+    "useToast": {
+      "arquivo": "src/hooks/use-toast.ts",
+      "rotas": [
+        "/atestados",
+        "/exit-interview",
+        "/onboarding",
+        "/perfil",
+        "/reembolsos"
+      ]
+    },
+    "useUserRoles": {
+      "arquivo": "src/hooks/useUserRoles.ts",
+      "rotas": [
+        "/admin/aprovacoes",
+        "/admin/integracoes",
+        "/admin/locais",
+        "/bi",
+        "/chamados",
+        "/epis",
+        "/patrimonio",
+        "/politicas",
+        "/treinamentos"
+      ]
+    }
+  },
+  "problemas": [
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/admin/auditoria",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/admin/holerites",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/admin/integracoes",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/admin/notif-templates",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/admin/rate-limits",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/assinaturas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/atestados",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/bi",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/calculadoras",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/calendario",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/chamados",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/clima",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/emprestimos",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/epis",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/exit-interview",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/faq",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/feedback-360",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/ideias",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/justificativas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/kudos",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/login",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/metas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/notificacoes/historico",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/notificacoes/preferencias",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/onboarding",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/patrimonio",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/politicas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/reembolsos",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/reservas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/reset-password",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/treinamentos",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/trilhas",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    },
+    {
+      "tipo": "rota_sem_entrada_de_menu",
+      "id": "/viagens",
+      "detalhe": "nao aparece no Navbar nem na busca global: so por URL direta"
+    }
+  ]
+}
