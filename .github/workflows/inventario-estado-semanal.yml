@@ -13,7 +13,7 @@ name: Inventário do estado real (semanal)
 #
 # Secrets:
 #   - SUPABASE_ACCESS_TOKEN: só leitura aqui — POST /database/query/read-only e GET /functions do
-#     projeto pwxaijahjuxnusrlkgic. Sem ele o inventário do banco é pulado com aviso e rotas/edges
+#     projeto twdechwttlqtmmfzwapc. Sem ele o inventário do banco é pulado com aviso e rotas/edges
 #     ainda são atualizados.
 
 on:

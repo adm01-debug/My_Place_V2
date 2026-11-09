@@ -39,7 +39,7 @@ Sem branch protection, **nada impede push direto na `main`** — a regra "nunca 
 disciplina de agente, não trava técnica. E porque o Lovable escreve direto na `main`, re-sincronize
 (`git fetch origin main`) antes de abrir branch.
 
-## Workflows (5 arquivos em `.github/workflows/`)
+## Workflows (7 arquivos em `.github/workflows/`)
 
 | Arquivo | Gatilho | Estado real |
 |---|---|---|
@@ -48,6 +48,8 @@ disciplina de agente, não trava técnica. E porque o Lovable escreve direto na 
 | `codeql.yml` | push/PR em `main` + cron `0 6 * * 1` | javascript/typescript; **falha sempre** com `Code scanning is not enabled for this repository`. Repo **privado**: ligar code scanning aqui normalmente exige GitHub Advanced Security (feature paga fora de Enterprise) — **decisão de custo do dono**, não mexi nisso. Nas Settings: Security → Code security → Code scanning |
 | `agents-guard.yml` | PR para `main` tocando instruções de agente/CI, push em `main`, `workflow_dispatch` | roda `scripts/ci/check-agents-md-integrity.mjs` (base `origin/main`) e `node --test scripts/ci/*.unit.mjs`. Verde no GitHub no head `fd281c2` e local (10/10 testes + guard exit 0) |
 | `audit-pdf.yml` | push que altera `docs/audit_report.md`, `workflow_dispatch` | gera HTML/PDF com pandoc + wkhtmltopdf e **commita de volta** com `git push` |
+| `contexto.yml` | push em `main` tocando código/banco/scripts de contexto + cron `3-59/10 * * * *`, `workflow_dispatch` | porta do Zapp Web V2 (PR #2); 4 jobs (código/banco/regras/publicar) montam `docs/contexto/` na branch gerada `contexto`. Sem o secret `SUPABASE_DB_URL`, o job do banco sai verde com aviso |
+| `inventario-estado-semanal.yml` | cron `23 10 * * 1`, `workflow_dispatch` | porta do Zapp Web V2 (PR #2); refaz `inventario/estado/*.json` e abre PR com auto-merge só se o conteúdo mudar. Sem o secret `SUPABASE_ACCESS_TOKEN`, pula o inventário do banco com aviso |
 
 **`preview.yml` foi removido nesta sessão.** Falhava sempre com `Error: Input required and not supplied:
 vercel-token` (secret `VERCEL_TOKEN` inexistente) e era redundante: a integração Git do Vercel já cobre
